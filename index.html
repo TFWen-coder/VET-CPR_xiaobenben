@@ -605,7 +605,7 @@ const fmt = (n, digits = 2) => {
 function VetShockCalculator() {
   const [species, setSpecies] = useState('dog');
   const [weightInput, setWeightInput] = useState('');
-  const [tab, setTab] = useState('cri');
+  const [tab, setTab] = useState('emergency');
   const [checked, setChecked] = useState({});
   const [views, setViews] = useState(null);
   useEffect(() => {
@@ -622,13 +622,13 @@ function VetShockCalculator() {
   }));
   const resetChecks = () => setChecked({});
   const tabs = [{
-    id: 'cri',
-    label: '升壓 / CRI',
-    icon: Activity
-  }, {
     id: 'emergency',
     label: '急救藥物',
     icon: Syringe
+  }, {
+    id: 'cri',
+    label: '升壓 / CRI',
+    icon: Activity
   }, {
     id: 'fluid',
     label: '輸液 / 電擊',
@@ -1373,6 +1373,6 @@ function ReferencesSection() {
 }
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(/*#__PURE__*/React.createElement(VetShockCalculator, null));
-</script>
+  </script>
 </body>
 </html>
