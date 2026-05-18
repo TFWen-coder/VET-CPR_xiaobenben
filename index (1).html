@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0d14" />
+  <meta name="description" content="急救小本本．犬貓休克與心肺復甦劑量計算機 — RECOVER 2024" />
+  <title>急救小本本</title>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="急救小本本" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    html, body { margin: 0; background: #0a0d14; color: #e2e8f0; }
+    body { font-family: 'IBM Plex Sans', 'Noto Sans TC', sans-serif; }
+    .font-display { font-family: 'Bricolage Grotesque', 'Noto Sans TC', sans-serif; letter-spacing: -0.01em; }
+    .font-body { font-family: 'IBM Plex Sans', 'Noto Sans TC', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(239, 68, 68, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(239, 68, 68, 0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .num-glow { text-shadow: 0 0 20px currentColor; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .grid-bg { background-image: none !important; }
+    }
+    #loading {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #f87171; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      letter-spacing: 0.15em; text-transform: uppercase;
+    }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    #loading .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #ef4444; margin-right: 10px; animation: pulse-dot 1s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="loading"><div><span class="dot"></span>loading...</div></div>
+  </div>
+
+  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+
+  <script>
+const {
+  useState,
+  useMemo,
+  useEffect
+} = React;
+const Svg = ({
+  className = "w-4 h-4",
+  children
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "2",
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  className: className
+}, children);
+const Syringe = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "m18 2 4 4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "m17 7 3-3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "m9 11 4 4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "m5 19-3 3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "m14 4 6 6"
+}));
+const Activity = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.68 3.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4.44 13H2"
+}));
+const Droplet = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"
+}));
+const Zap = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
+}));
+const ListChecks = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "m3 17 2 2 4-4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "m3 7 2 2 4-4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M13 6h8"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M13 12h8"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M13 18h8"
+}));
+const AlertTriangle = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M12 9v4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M12 17h.01"
+}));
+const RotateCcw = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M3 3v5h5"
+}));
+const Dog = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M11.25 16.25h1.5L12 17z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M16 14v.5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444a11.702 11.702 0 0 0-.493-3.309"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M8 14v.5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M8.5 8.5c-.384 1.05-1.083 2.028-2.344 2.5-1.931.722-3.576-.297-3.656-1-.113-.994 1.177-6.53 4-7 1.923-.321 3.651.845 3.651 2.235A7.497 7.497 0 0 1 14 5c0-1.39 1.844-2.598 3.767-2.277 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5"
+}));
+const Cat = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M8 14v.5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M16 14v.5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M11.25 16.25h1.5L12 17l-.75-.75Z"
+}));
+
+// ───────────────────────────────────────────────────────────────
+// Drug & protocol data (依 RECOVER 2024 與常用獸醫劑量整理)
+// ───────────────────────────────────────────────────────────────
+
+const EMERGENCY_DRUGS = [{
+  name: 'Epinephrine (Adrenaline)',
+  cn: '腎上腺素',
+  conc: '1 mg/mL (1:1000)',
+  color: 'red',
+  doses: [{
+    label: 'Standard dose（每 3–5 分鐘）',
+    mgPerKg: 0.01,
+    mlPerMg: 1,
+    route: 'IV / IO',
+    priority: true
+  }, {
+    label: 'Endotracheal（無血管路）',
+    mgPerKg: 0.1,
+    mlPerMg: 1,
+    route: 'IT，稀釋至 5–10 mL'
+  }],
+  note: 'RECOVER 2024：不再建議使用高劑量 epinephrine（潛在傷害大於效益）。'
+}, {
+  name: 'Atropine',
+  cn: '阿托品',
+  conc: '0.5 mg/mL',
+  color: 'red',
+  doses: [{
+    label: '心停（疑迷走神經性 / asystole / PEA）',
+    mgPerKg: 0.04,
+    mlPerMg: 2,
+    route: 'IV / IO',
+    priority: true
+  }],
+  note: 'RECOVER 2024：僅在首次使用，不重複給藥。'
+}, {
+  name: 'Vasopressin',
+  cn: '血管加壓素',
+  conc: '20 U/mL',
+  color: 'red',
+  doses: [{
+    label: 'Bolus（可替代 epinephrine）',
+    unitPerKg: 0.8,
+    mlPerUnit: 0.05,
+    route: 'IV / IO'
+  }]
+}, {
+  name: 'Lidocaine 2%',
+  cn: '利多卡因',
+  conc: '20 mg/mL',
+  color: 'amber',
+  doses: [{
+    label: 'Dog．VF / pulseless VT',
+    mgPerKg: 2,
+    mlPerMg: 0.05,
+    route: 'IV slow bolus',
+    species: 'dog'
+  }, {
+    label: 'Cat．謹慎使用',
+    mgPerKg: 0.25,
+    mgPerKgHigh: 0.5,
+    mlPerMg: 0.05,
+    route: 'IV slow',
+    species: 'cat',
+    warn: '貓對 lidocaine 心毒性敏感'
+  }]
+}, {
+  name: 'Amiodarone',
+  cn: '安碘酮',
+  conc: '50 mg/mL',
+  color: 'amber',
+  doses: [{
+    label: '頑固性 VF / pulseless VT',
+    mgPerKg: 5,
+    mlPerMg: 0.02,
+    route: 'IV slow over 10 min'
+  }],
+  note: '犬可能引起過敏反應（histamine release），先稀釋於 D5W。'
+}, {
+  name: 'Magnesium sulfate',
+  cn: '硫酸鎂',
+  conc: '500 mg/mL（50%）',
+  color: 'amber',
+  doses: [{
+    label: 'Torsades / 頑固性 VF',
+    mgPerKg: 30,
+    mlPerMg: 0.002,
+    route: 'IV slow 5–15 min'
+  }]
+}, {
+  name: 'Sodium bicarbonate 7%',
+  cn: '碳酸氫鈉',
+  conc: '0.83 mEq/mL',
+  color: 'cyan',
+  doses: [{
+    label: 'Prolonged arrest > 10–15 min、高血鉀',
+    mEqPerKg: 1,
+    mlPerMEq: 1.2,
+    route: 'IV slow'
+  }],
+  note: '需與 epinephrine 分流給予；確保通氣足夠才用。'
+}, {
+  name: 'Calcium gluconate 10%',
+  cn: '葡萄糖酸鈣',
+  conc: '100 mg/mL',
+  color: 'cyan',
+  doses: [{
+    label: '高血鉀、低血鈣、鈣通道阻斷劑中毒',
+    mgPerKg: 50,
+    mgPerKgHigh: 100,
+    mlPerMg: 0.01,
+    route: 'IV slow，心電監測'
+  }]
+}, {
+  name: '50% Dextrose',
+  cn: '50% 葡萄糖',
+  conc: '500 mg/mL',
+  color: 'cyan',
+  doses: [{
+    label: '低血糖',
+    mlPerKgDirect: 0.5,
+    mlPerKgHighDirect: 1,
+    route: 'IV，稀釋 1:4 後給予'
+  }]
+}, {
+  name: 'Naloxone',
+  cn: '納洛酮',
+  conc: '0.4 mg/mL',
+  color: 'indigo',
+  doses: [{
+    label: '反轉 opioid',
+    mgPerKg: 0.04,
+    mlPerMg: 2.5,
+    route: 'IV / IM / IT'
+  }]
+}, {
+  name: 'Flumazenil',
+  cn: '氟馬西尼',
+  conc: '0.1 mg/mL',
+  color: 'indigo',
+  doses: [{
+    label: '反轉 benzodiazepine',
+    mgPerKg: 0.01,
+    mlPerMg: 10,
+    route: 'IV'
+  }]
+}, {
+  name: 'Atipamezole',
+  cn: '阿替美唑',
+  conc: '5 mg/mL',
+  color: 'indigo',
+  doses: [{
+    label: '反轉 α2 agonist（medetomidine）',
+    mgPerKg: 0.1,
+    mgPerKgHigh: 0.2,
+    mlPerMg: 0.2,
+    route: 'IM（緊急時 IV slow）'
+  }]
+}];
+const VASOPRESSORS = [{
+  name: 'Dopamine',
+  cn: '多巴胺',
+  color: 'amber',
+  prep: '200 mg → 250 mL NS／D5W．濃度 800 μg/mL',
+  concUgPerMl: 800,
+  ranges: [{
+    species: 'dog',
+    low: 5,
+    mid: 7,
+    high: 15,
+    note: '5–10 μg/kg/min 正性肌力；>10 升壓'
+  }, {
+    species: 'cat',
+    low: 2,
+    mid: 5,
+    high: 10,
+    note: '貓對 dopamine 反應差異大'
+  }],
+  syringeRecipe: {
+    stockConc: 40,
+    stockLabel: '40 mg/mL（200 mg/5 mL）',
+    multiplier: 0.0375,
+    multiplierLabel: '0.075/2 × BW',
+    totalVolume: 25,
+    ratePerHr: 1
+  }
+}, {
+  name: 'Dobutamine',
+  cn: '多巴酚丁胺',
+  color: 'amber',
+  prep: '250 mg → 250 mL NS／D5W．濃度 1000 μg/mL',
+  concUgPerMl: 1000,
+  ranges: [{
+    species: 'dog',
+    low: 2.5,
+    mid: 7.5,
+    high: 15
+  }, {
+    species: 'cat',
+    low: 1,
+    mid: 2.5,
+    high: 5,
+    note: '貓 > 5 μg/kg/min 易引發癲癇'
+  }],
+  syringeRecipe: {
+    stockConc: 12.5,
+    stockLabel: '12.5 mg/mL（250 mg/20 mL）',
+    multiplier: 0.24,
+    multiplierLabel: '0.24 × BW',
+    totalVolume: 25,
+    ratePerHr: 1
+  }
+}, {
+  name: 'Norepinephrine',
+  cn: '正腎上腺素',
+  color: 'red',
+  prep: '4 mg → 250 mL D5W．濃度 16 μg/mL',
+  concUgPerMl: 16,
+  ranges: [{
+    species: 'dog',
+    low: 0.05,
+    mid: 0.5,
+    high: 2
+  }, {
+    species: 'cat',
+    low: 0.05,
+    mid: 0.5,
+    high: 2
+  }],
+  syringeRecipe: {
+    stockConc: 1,
+    stockLabel: '1 mg/mL（4 mg/4 mL）',
+    multiplier: 0.15,
+    multiplierLabel: '0.15 × BW',
+    totalVolume: 25,
+    ratePerHr: 1
+  }
+}, {
+  name: 'Epinephrine CRI',
+  cn: '腎上腺素持續輸注',
+  color: 'red',
+  prep: '4 mg → 250 mL D5W．濃度 16 μg/mL',
+  concUgPerMl: 16,
+  ranges: [{
+    species: 'dog',
+    low: 0.05,
+    mid: 0.2,
+    high: 1
+  }, {
+    species: 'cat',
+    low: 0.05,
+    mid: 0.2,
+    high: 1
+  }]
+}, {
+  name: 'Vasopressin CRI',
+  cn: '血管加壓素持續輸注',
+  color: 'red',
+  prep: '5 U → 250 mL NS．濃度 20 mU/mL',
+  concUgPerMl: 20,
+  // mU/mL，公式相同
+  unit: 'mU',
+  ranges: [{
+    species: 'dog',
+    low: 0.5,
+    mid: 2,
+    high: 5
+  }, {
+    species: 'cat',
+    low: 0.5,
+    mid: 2,
+    high: 5
+  }]
+}, {
+  name: 'Phenylephrine',
+  cn: '苯腎上腺素',
+  color: 'amber',
+  prep: '10 mg → 250 mL NS．濃度 40 μg/mL',
+  concUgPerMl: 40,
+  ranges: [{
+    species: 'dog',
+    low: 0.5,
+    mid: 1,
+    high: 3
+  }, {
+    species: 'cat',
+    low: 0.5,
+    mid: 1,
+    high: 3
+  }]
+}];
+const FLUID_PROTOCOLS = {
+  dog: {
+    crystalloidShockFull: 90,
+    crystalloidBolus: 20,
+    crystalloidBolusHigh: 30,
+    hypertonic: 4,
+    hypertonicHigh: 5,
+    colloid: 5,
+    maintenancePerHr: 2.5,
+    bloodWhole: 20,
+    pRBC: 10,
+    plasma: 10
+  },
+  cat: {
+    crystalloidShockFull: 55,
+    crystalloidBolus: 10,
+    crystalloidBolusHigh: 15,
+    hypertonic: 2,
+    hypertonicHigh: 4,
+    colloid: 3,
+    maintenancePerHr: 2,
+    bloodWhole: 15,
+    pRBC: 10,
+    plasma: 10
+  }
+};
+const DEFIB_DOSES = {
+  externalBiphasic: {
+    low: 2,
+    high: 4
+  },
+  externalMonophasic: {
+    low: 4,
+    high: 6
+  },
+  internalBiphasic: {
+    low: 0.2,
+    high: 0.4
+  },
+  internalMonophasic: {
+    low: 0.5,
+    high: 1
+  }
+};
+const CPCR_FLOW = [{
+  phase: 'BLS',
+  time: '0–2 min',
+  color: 'red',
+  items: ['10 秒內確認 arrest：無反應、呼吸停止、無脈搏／心音', '立即胸外按壓．100–120 次/分．深度為胸寬 1/3–1/2', '側臥位（圓桶胸品種考慮仰臥）．硬平面', '插管，IPPV 10 次/分．1 秒吸氣．FiO₂ 100%', '建立 IV／IO 通路（IO 為備案）', '接 ECG、SpO₂、ETCO₂（目標 > 15 mmHg）', '操作者每 2 分鐘輪替．不間斷按壓']
+}, {
+  phase: 'ALS — Cycle 評估',
+  time: '每 2 min',
+  color: 'amber',
+  items: ['暫停按壓 < 10 秒讀心律', '依心律分支處置（見下）', '同時尋找可逆原因：5H 5T', '記錄藥物給予時間．使用 timer']
+}, {
+  phase: '心律分支',
+  time: '依 ECG',
+  color: 'cyan',
+  branches: [{
+    rhythm: 'Asystole / PEA',
+    actions: ['Epinephrine 0.01 mg/kg IV/IO，每 2 個 cycle（即每 3–5 分）一次', 'Atropine 0.04 mg/kg：疑迷走神經性 arrest 時，僅給予首次劑量', '繼續 CPR，找可逆原因']
+  }, {
+    rhythm: 'VF / pulseless VT',
+    actions: ['立即電擊：biphasic 2–4 J/kg．monophasic 4–6 J/kg', '電擊後立即恢復 CPR，2 分鐘後再評估', '反覆 VF：考慮 Amiodarone 5 mg/kg 或 Lidocaine（犬 2 mg/kg）', '腎上腺素仍可給予，不影響電擊']
+  }]
+}, {
+  phase: '可逆原因 — 5H 5T',
+  time: '同時思考',
+  color: 'indigo',
+  columns: [['Hypovolemia 低血容', 'Hypoxia 缺氧', 'Hypothermia 低體溫', 'Hyper/Hypokalemia 鉀異常', 'Hydrogen ion 酸中毒'], ['Toxins 中毒／藥物', 'Tamponade 心包填塞', 'Tension pneumothorax 張力性氣胸', 'Thrombosis 血栓', 'Trauma 創傷']]
+}, {
+  phase: 'ROSC 後照護',
+  time: 'Post-arrest',
+  color: 'emerald',
+  items: ['維持 MAP > 80 mmHg（犬）／> 70 mmHg（貓）', '避免高氧：SpO₂ 94–98%．避免 hyperventilation（PaCO₂ 32–40）', '溫和升溫：> 37.0°C 才主動加溫，避免再灌注傷害', '處理 reperfusion injury：考慮 mannitol、抗驚厥', '血糖 80–180 mg/dL；血鉀正常化', '神經學評估．通知飼主預後']
+}];
+const CHECKLIST_SECTIONS = [{
+  title: '到院 / 初評估（< 5 min）',
+  color: 'red',
+  items: ['意識狀態（A / V / P / U）', '黏膜顏色、CRT、脈搏品質', 'HR、RR、T、SpO₂、BP（doppler 或 oscillometric）', '聽診：心音、肺音、雜音', '出血／創傷快速檢查', '判定 shock 分類：hypovolemic / distributive / cardiogenic / obstructive']
+}, {
+  title: '血管路與檢驗',
+  color: 'amber',
+  items: ['建立至少一條大口徑 IV（必要時 IO）', '採血：PCV / TP / glucose / lactate / BUN（最少 set）', '進階：CBC / chem / 電解質 / 凝血 / 血氣', '血型（potential 輸血需求）', 'POCUS：A-FAST / T-FAST / 心臟掃查', 'ECG（若不穩定）']
+}, {
+  title: '輸液復甦',
+  color: 'cyan',
+  items: ['計算 shock bolus（已於上方產生劑量）', '15–20 分鐘 reassess：HR、BP、lactate、CRT', '貓謹慎：每次 bolus 後聽肺音、看呼吸', '考慮 hypertonic saline（嚴重低血容、頭外傷）', '失血 > 20%：考慮輸血', '結束 bolus 後設定 maintenance 速率']
+}, {
+  title: '藥物與監測',
+  color: 'amber',
+  items: ['止痛：opioid（methadone / fentanyl）', '抗生素（如敗血性休克．< 1 小時內）', '升壓藥備用（已計算劑量）', '皮質類固醇？（僅特定 adrenal crisis）', '尿管置入（測尿量 1–2 mL/kg/hr）', '中心靜脈壓 / 動脈導管（若條件允許）']
+}, {
+  title: 'CPR 準備（隨時待命）',
+  color: 'red',
+  items: ['Crash cart 位置確認', '插管器材、ambu bag、氧氣', '電擊器電源開啟、能量設定（已計算）', '腎上腺素抽好放手邊（已計算劑量）', '記錄員、按壓員、給藥員分工', 'Timer / stopwatch 就位']
+}, {
+  title: '溝通與紀錄',
+  color: 'indigo',
+  items: ['飼主告知病況與 CPR 同意（DNR / open chest 意願）', '預後與費用初步告知', '完整時間軸紀錄（時間、處置、反應）', '交班 SBAR：Situation / Background / Assessment / Recommendation']
+}];
+
+// ───────────────────────────────────────────────────────────────
+// 色彩工具
+// ───────────────────────────────────────────────────────────────
+
+const colorMap = {
+  red: {
+    border: 'border-red-500/30',
+    bg: 'bg-red-500/5',
+    text: 'text-red-300',
+    accent: 'text-red-400',
+    dot: 'bg-red-500',
+    glow: 'shadow-red-500/10'
+  },
+  amber: {
+    border: 'border-amber-500/30',
+    bg: 'bg-amber-500/5',
+    text: 'text-amber-300',
+    accent: 'text-amber-400',
+    dot: 'bg-amber-500',
+    glow: 'shadow-amber-500/10'
+  },
+  cyan: {
+    border: 'border-cyan-500/30',
+    bg: 'bg-cyan-500/5',
+    text: 'text-cyan-300',
+    accent: 'text-cyan-400',
+    dot: 'bg-cyan-500',
+    glow: 'shadow-cyan-500/10'
+  },
+  indigo: {
+    border: 'border-indigo-500/30',
+    bg: 'bg-indigo-500/5',
+    text: 'text-indigo-300',
+    accent: 'text-indigo-400',
+    dot: 'bg-indigo-500',
+    glow: 'shadow-indigo-500/10'
+  },
+  emerald: {
+    border: 'border-emerald-500/30',
+    bg: 'bg-emerald-500/5',
+    text: 'text-emerald-300',
+    accent: 'text-emerald-400',
+    dot: 'bg-emerald-500',
+    glow: 'shadow-emerald-500/10'
+  }
+};
+const fmt = (n, digits = 2) => {
+  if (!isFinite(n) || n === 0) return '—';
+  if (n < 0.01) return n.toExponential(2);
+  if (n < 1) return n.toFixed(digits);
+  if (n < 10) return n.toFixed(2);
+  if (n < 100) return n.toFixed(1);
+  return Math.round(n).toString();
+};
+
+// ───────────────────────────────────────────────────────────────
+// 主元件
+// ───────────────────────────────────────────────────────────────
+
+function VetShockCalculator() {
+  const [species, setSpecies] = useState('dog');
+  const [weightInput, setWeightInput] = useState('');
+  const [tab, setTab] = useState('cri');
+  const [checked, setChecked] = useState({});
+  const [views, setViews] = useState(null);
+  useEffect(() => {
+    // Free counter API (Abacus). Fails silently when offline.
+    fetch('https://abacus.jasoncameron.dev/hit/tfwen-vet-cpcr/views').then(r => r.json()).then(d => {
+      if (d && typeof d.value === 'number') setViews(d.value);
+    }).catch(() => {});
+  }, []);
+  const w = parseFloat(weightInput) || 0;
+  const hasWeight = w > 0;
+  const toggleCheck = id => setChecked(p => ({
+    ...p,
+    [id]: !p[id]
+  }));
+  const resetChecks = () => setChecked({});
+  const tabs = [{
+    id: 'cri',
+    label: '升壓 / CRI',
+    icon: Activity
+  }, {
+    id: 'emergency',
+    label: '急救藥物',
+    icon: Syringe
+  }, {
+    id: 'fluid',
+    label: '輸液 / 電擊',
+    icon: Droplet
+  }, {
+    id: 'flow',
+    label: 'CPR 流程',
+    icon: Zap
+  }, {
+    id: 'checklist',
+    label: '檢查清單',
+    icon: ListChecks
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "min-h-screen bg-[#0a0d14] text-slate-100 font-body relative overflow-x-hidden"
+  }, /*#__PURE__*/React.createElement("style", null, `
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
+        .font-display { font-family: 'Bricolage Grotesque', 'Noto Sans TC', sans-serif; letter-spacing: -0.01em; }
+        .font-body { font-family: 'IBM Plex Sans', 'Noto Sans TC', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+        .grid-bg {
+          background-image:
+            linear-gradient(rgba(239, 68, 68, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(239, 68, 68, 0.04) 1px, transparent 1px);
+          background-size: 24px 24px;
+        }
+        .num-glow { text-shadow: 0 0 20px currentColor; }
+        @media print {
+          .no-print { display: none !important; }
+          body { background: white !important; color: black !important; }
+        }
+      `), /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 grid-bg opacity-40 pointer-events-none"
+  }), /*#__PURE__*/React.createElement("header", {
+    className: "relative border-b border-slate-800 bg-[#0a0d14]/80 backdrop-blur-xl sticky top-0 z-30"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-6xl mx-auto px-4 sm:px-6 pt-3 pb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 mb-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 text-red-400"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"
+  }), "Emergency / CPCR"), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-600"
+  }, views !== null && /*#__PURE__*/React.createElement("span", null, "\u7D2F\u8A08\u958B\u555F ", /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400"
+  }, views.toLocaleString()), " \u6B21"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between gap-4 flex-wrap"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    className: "font-display text-3xl sm:text-4xl font-bold leading-none"
+  }, "\u6025\u6551\u5C0F\u672C\u672C"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 mt-1.5 font-mono"
+  }, "\u72AC\u8C93\u4F11\u514B\u8207\u5FC3\u80BA\u5FA9\u7526\u8A08\u7B97\u6A5F\uFF0ERECOVER 2024")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 sm:gap-3 flex-wrap"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1 bg-slate-900/80 border border-slate-800 rounded-lg p-1"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSpecies('dog'),
+    className: `flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all ${species === 'dog' ? 'bg-red-500/15 text-red-300 border border-red-500/30' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`
+  }, /*#__PURE__*/React.createElement(Dog, {
+    className: "w-4 h-4"
+  }), " \u72AC"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSpecies('cat'),
+    className: `flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all ${species === 'cat' ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`
+  }, /*#__PURE__*/React.createElement(Cat, {
+    className: "w-4 h-4"
+  }), " \u8C93")), /*#__PURE__*/React.createElement("div", {
+    className: `flex items-center gap-3 rounded-xl border-2 px-4 py-2 transition-all ${hasWeight ? 'bg-emerald-500/10 border-emerald-500/50 shadow-lg shadow-emerald-500/10' : 'bg-red-500/10 border-red-500/60 shadow-lg shadow-red-500/20'}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `text-xs font-mono uppercase tracking-widest font-bold ${hasWeight ? 'text-emerald-400' : 'text-red-400'}`
+  }, "BW"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    inputMode: "decimal",
+    step: "0.1",
+    min: "0",
+    value: weightInput,
+    onChange: e => setWeightInput(e.target.value),
+    placeholder: "\u2014",
+    className: `w-24 sm:w-28 bg-transparent text-right text-3xl sm:text-4xl font-mono font-bold num-glow outline-none ${hasWeight ? 'text-emerald-300' : 'text-red-300 placeholder-red-500/40'}`
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-base text-slate-300 font-mono font-semibold"
+  }, "kg"))))), /*#__PURE__*/React.createElement("nav", {
+    className: "max-w-6xl mx-auto px-2 sm:px-6 overflow-x-auto no-scrollbar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1 min-w-max"
+  }, tabs.map(({
+    id,
+    label,
+    icon: Icon
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    onClick: () => setTab(id),
+    className: `flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${tab === id ? 'border-red-400 text-red-300' : 'border-transparent text-slate-500 hover:text-slate-300'}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    className: "w-4 h-4"
+  }), label))))), /*#__PURE__*/React.createElement("main", {
+    className: "relative max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8"
+  }, !hasWeight && /*#__PURE__*/React.createElement("div", {
+    className: "mb-6 flex items-start gap-3 px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/5"
+  }, /*#__PURE__*/React.createElement(AlertTriangle, {
+    className: "w-5 h-5 text-amber-400 shrink-0 mt-0.5"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-amber-200"
+  }, "\u8ACB\u65BC\u4E0A\u65B9\u8F38\u5165\u9AD4\u91CD\u5F8C\u7522\u751F\u500B\u5225\u5291\u91CF\u3002\u6D41\u7A0B\u8207\u6E05\u55AE\u53EF\u4E0D\u8F38\u5165\u9AD4\u91CD\u76F4\u63A5\u67E5\u95B1\u3002")), tab === 'emergency' && /*#__PURE__*/React.createElement(EmergencyDrugsView, {
+    w: w,
+    species: species
+  }), tab === 'cri' && /*#__PURE__*/React.createElement(VasopressorsView, {
+    w: w,
+    species: species
+  }), tab === 'fluid' && /*#__PURE__*/React.createElement(FluidsDefibView, {
+    w: w,
+    species: species
+  }), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
+    checked: checked,
+    toggleCheck: toggleCheck,
+    resetChecks: resetChecks
+  }), /*#__PURE__*/React.createElement(ReferencesSection, null), /*#__PURE__*/React.createElement("footer", {
+    className: "mt-6 pt-6 border-t border-slate-800 text-xs text-slate-500 space-y-1"
+  }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-amber-400 font-semibold"
+  }, "\u26A0 "), "\u672C\u5DE5\u5177\u50C5\u4F9B\u81E8\u5E8A\u53C3\u8003\u3002\u5291\u91CF\u70BA\u4E00\u822C\u53C3\u8003\u7BC4\u570D\uFF0C\u5BE6\u969B\u4F7F\u7528\u9808\u7D50\u5408\u60A3\u8005\u72C0\u6CC1\u3001\u85E5\u5EE0\u6FC3\u5EA6\u8207\u81E8\u5E8A\u5224\u65B7\u3002"), /*#__PURE__*/React.createElement("p", {
+    className: "font-mono text-slate-600"
+  }, "\u8CC7\u6599\u4E0D\u7559\u5B58\uFF0E\u6BCF\u6B21\u91CD\u65B0\u958B\u555F\u7686\u70BA\u65B0\u72C0\u614B\u3002"))));
+}
+
+// ───────────────────────────────────────────────────────────────
+// 急救藥物
+// ───────────────────────────────────────────────────────────────
+
+function EmergencyDrugsView({
+  w,
+  species
+}) {
+  // 將藥物依顏色分群
+  const groups = [{
+    key: 'red',
+    title: 'CPR 一線藥物',
+    color: 'red'
+  }, {
+    key: 'amber',
+    title: '抗心律不整 / 電解質',
+    color: 'amber'
+  }, {
+    key: 'cyan',
+    title: '代謝 / 酸鹼支持',
+    color: 'cyan'
+  }, {
+    key: 'indigo',
+    title: '反轉藥物',
+    color: 'indigo'
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, groups.map(g => {
+    const drugs = EMERGENCY_DRUGS.filter(d => d.color === g.key);
+    const c = colorMap[g.color];
+    return /*#__PURE__*/React.createElement("section", {
+      key: g.key
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3 mb-3"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `w-1.5 h-6 ${c.dot} rounded-full`
+    }), /*#__PURE__*/React.createElement("h2", {
+      className: "font-display text-xl font-semibold"
+    }, g.title)), /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-1 lg:grid-cols-2 gap-3"
+    }, drugs.map(drug => /*#__PURE__*/React.createElement(DrugCard, {
+      key: drug.name,
+      drug: drug,
+      w: w,
+      species: species
+    }))));
+  }));
+}
+function DrugCard({
+  drug,
+  w,
+  species
+}) {
+  const c = colorMap[drug.color];
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl border ${c.border} ${c.bg} p-4 sm:p-5`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline justify-between gap-3 mb-3"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display text-lg font-semibold leading-tight"
+  }, drug.name), /*#__PURE__*/React.createElement("p", {
+    className: `text-sm ${c.text} font-mono`
+  }, drug.cn, "\uFF0E", drug.conc))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2.5"
+  }, drug.doses.filter(d => !d.species || d.species === species).map((dose, i) => {
+    // Compute dose
+    let mgDose, volDose, doseLabel;
+    if (dose.mgPerKg) {
+      const lowMg = dose.mgPerKg * w;
+      const highMg = dose.mgPerKgHigh ? dose.mgPerKgHigh * w : null;
+      const lowMl = lowMg * dose.mlPerMg;
+      const highMl = highMg ? highMg * dose.mlPerMg : null;
+      doseLabel = highMg ? `${fmt(lowMg)}–${fmt(highMg)} mg` : `${fmt(lowMg)} mg`;
+      volDose = highMl ? `${fmt(lowMl)}–${fmt(highMl)} mL` : `${fmt(lowMl)} mL`;
+    } else if (dose.unitPerKg) {
+      const u = dose.unitPerKg * w;
+      const ml = u * dose.mlPerUnit;
+      doseLabel = `${fmt(u)} U`;
+      volDose = `${fmt(ml)} mL`;
+    } else if (dose.mEqPerKg) {
+      const meq = dose.mEqPerKg * w;
+      const ml = meq * dose.mlPerMEq;
+      doseLabel = `${fmt(meq)} mEq`;
+      volDose = `${fmt(ml)} mL`;
+    } else if (dose.mlPerKgDirect) {
+      const ml = dose.mlPerKgDirect * w;
+      const mlH = dose.mlPerKgHighDirect ? dose.mlPerKgHighDirect * w : null;
+      doseLabel = '直接體積';
+      volDose = mlH ? `${fmt(ml)}–${fmt(mlH)} mL` : `${fmt(ml)} mL`;
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: `rounded-lg border border-slate-800 bg-slate-900/50 p-3 ${dose.priority ? 'ring-1 ring-red-500/40' : ''}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-start justify-between gap-3 mb-1.5"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-400 leading-snug flex-1"
+    }, dose.priority && /*#__PURE__*/React.createElement("span", {
+      className: "inline-block mr-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-red-500/20 text-red-300 rounded font-mono tracking-wider"
+    }, "FIRST"), dose.label)), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-baseline gap-3 flex-wrap"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `font-mono text-2xl font-bold ${c.accent} num-glow`
+    }, w > 0 ? volDose : '—'), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-500 font-mono"
+    }, "= ", w > 0 ? doseLabel : '—')), /*#__PURE__*/React.createElement("div", {
+      className: "mt-1 flex items-center gap-2 flex-wrap text-[11px] font-mono text-slate-400"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "px-1.5 py-0.5 bg-slate-800 rounded"
+    }, dose.route), dose.warn && /*#__PURE__*/React.createElement("span", {
+      className: "text-amber-400"
+    }, "\u26A0 ", dose.warn)));
+  })), drug.note && /*#__PURE__*/React.createElement("p", {
+    className: "mt-3 text-xs text-slate-500 italic leading-relaxed"
+  }, drug.note));
+}
+
+// ───────────────────────────────────────────────────────────────
+// 升壓藥 / CRI
+// ───────────────────────────────────────────────────────────────
+
+function VasopressorsView({
+  w,
+  species
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 leading-relaxed border border-slate-800 rounded-lg p-3 bg-slate-900/40"
+  }, /*#__PURE__*/React.createElement("p", null, "\u4E0B\u5217\u70BA\u6A19\u6E96\u7A00\u91CB\u6FC3\u5EA6\u4E0B\u7684\u8F38\u6CE8\u901F\u7387\uFF08mL/hr\uFF09\u3002", /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300"
+  }, "Low"), " / ", /*#__PURE__*/React.createElement("span", {
+    className: "text-amber-300"
+  }, "Mid"), " / ", /*#__PURE__*/React.createElement("span", {
+    className: "text-red-300"
+  }, "High"), " \u70BA\u5E38\u7528\u5291\u91CF\u968E\u68AF\u3002 \u5BE6\u969B\u4F7F\u7528\u8ACB\u5F9E\u4F4E\u5291\u91CF\u8D77\u59CB\u4E26\u4F9D\u8840\u58D3\u3001\u5FC3\u7387\u53CD\u61C9\u9010\u6B65\u8ABF\u6574\u3002")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-2 gap-3"
+  }, VASOPRESSORS.map(vp => /*#__PURE__*/React.createElement(VasopressorCard, {
+    key: vp.name,
+    vp: vp,
+    w: w,
+    species: species
+  }))));
+}
+function VasopressorCard({
+  vp,
+  w,
+  species
+}) {
+  const c = colorMap[vp.color];
+  const range = vp.ranges.find(r => r.species === species);
+  const unit = vp.unit || 'μg';
+  const calcRate = doseUgKgMin => doseUgKgMin * w * 60 / vp.concUgPerMl;
+  const levels = range ? [{
+    label: 'Low',
+    dose: range.low,
+    color: 'emerald'
+  }, {
+    label: 'Mid',
+    dose: range.mid,
+    color: 'amber'
+  }, {
+    label: 'High',
+    dose: range.high,
+    color: 'red'
+  }] : [];
+
+  // Syringe-pump quick-recipe dose at 1 mL/hr
+  // formula: (multiplier × stockConc × 1000 × ratePerHr) / (totalVolume × 60) μg/kg/min
+  const sr = vp.syringeRecipe;
+  const syringeDose = sr ? sr.multiplier * sr.stockConc * 1000 * sr.ratePerHr / (sr.totalVolume * 60) : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl border ${c.border} ${c.bg} p-4 sm:p-5`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-3"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display text-lg font-semibold leading-tight"
+  }, vp.name), /*#__PURE__*/React.createElement("p", {
+    className: `text-sm ${c.text} font-mono`
+  }, vp.cn), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 mt-1.5 font-mono"
+  }, vp.prep)), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-3 gap-2"
+  }, levels.map(({
+    label,
+    dose,
+    color
+  }) => {
+    const lc = colorMap[color];
+    const rate = calcRate(dose);
+    return /*#__PURE__*/React.createElement("div", {
+      key: label,
+      className: `rounded-lg border ${lc.border} ${lc.bg} p-2.5 text-center`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `text-[10px] font-mono uppercase tracking-widest ${lc.text}`
+    }, label), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-400 font-mono mt-0.5"
+    }, dose, " ", unit, "/kg/min"), /*#__PURE__*/React.createElement("div", {
+      className: `font-mono text-xl font-bold ${lc.accent} num-glow mt-1`
+    }, w > 0 ? fmt(rate) : '—'), /*#__PURE__*/React.createElement("div", {
+      className: "text-[10px] text-slate-500 font-mono"
+    }, "mL/hr"));
+  })), range?.note && /*#__PURE__*/React.createElement("p", {
+    className: "mt-3 text-xs text-amber-400/80 italic"
+  }, "\u26A0 ", range.note), sr && /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 rounded-lg border border-slate-700 bg-slate-950/60 p-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline justify-between mb-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.18em] text-slate-400 font-bold"
+  }, "\u6CE8\u5C04\u5E6B\u6D66\u5FEB\u914D"), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono text-slate-500"
+  }, sr.totalVolume, " mL syringe @ ", sr.ratePerHr, " mL/hr")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline gap-2 flex-wrap"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400"
+  }, "\u62BD"), /*#__PURE__*/React.createElement("span", {
+    className: `font-mono text-2xl font-bold ${c.accent} num-glow`
+  }, w > 0 ? fmt(sr.multiplier * w) : '—'), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400"
+  }, "mL"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-slate-500 font-mono"
+  }, "\uFF1D ", sr.multiplierLabel)), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-400 mt-1.5 leading-relaxed"
+  }, "\u539F\u6DB2 ", sr.stockLabel, " \u2192 \u52A0 NS \u7A00\u91CB\u81F3 ", sr.totalVolume, " mL"), /*#__PURE__*/React.createElement("div", {
+    className: "mt-2 pt-2 border-t border-slate-800 flex items-baseline justify-between gap-2 flex-wrap"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-500 font-mono"
+  }, sr.ratePerHr, " mL/hr ="), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline gap-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `font-mono text-lg font-bold text-emerald-300 num-glow`
+  }, fmt(syringeDose)), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-slate-400 font-mono"
+  }, "\u03BCg/kg/min"))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-1.5 text-[10px] text-slate-600 font-mono"
+  }, "\xD72 mL/hr = ", fmt(syringeDose * 2), "\uFF0E\xD75 mL/hr = ", fmt(syringeDose * 5), " \u03BCg/kg/min")));
+}
+
+// ───────────────────────────────────────────────────────────────
+// 輸液與電擊
+// ───────────────────────────────────────────────────────────────
+
+function FluidsDefibView({
+  w,
+  species
+}) {
+  const f = FLUID_PROTOCOLS[species];
+  const speciesLabel = species === 'dog' ? '犬' : '貓';
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mb-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1.5 h-6 bg-cyan-500 rounded-full"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "font-display text-xl font-semibold"
+  }, "\u4F11\u514B\u8F38\u6DB2\uFF0E", speciesLabel)), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-3"
+  }, /*#__PURE__*/React.createElement(BigStat, {
+    label: "\u521D\u59CB Bolus\uFF0815\u201320 min\uFF09",
+    value: w > 0 ? `${fmt(w * f.crystalloidBolus)}–${fmt(w * f.crystalloidBolusHigh)}` : '—',
+    unit: "mL",
+    sub: `${f.crystalloidBolus}–${f.crystalloidBolusHigh} mL/kg．晶體液（LRS / Normosol）`,
+    color: "cyan",
+    highlight: true
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: "\u5B8C\u6574 Shock Dose\uFF08\u4E0A\u9650\uFF09",
+    value: w > 0 ? fmt(w * f.crystalloidShockFull) : '—',
+    unit: "mL",
+    sub: `${f.crystalloidShockFull} mL/kg．分多次 bolus，每 20 分 reassess`,
+    color: "cyan"
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: "Maintenance\uFF08\u6301\u7E8C\uFF09",
+    value: w > 0 ? fmt(w * f.maintenancePerHr) : '—',
+    unit: "mL/hr",
+    sub: `${f.maintenancePerHr} mL/kg/hr．休克緩解後切換`,
+    color: "emerald"
+  })), species === 'cat' && /*#__PURE__*/React.createElement("p", {
+    className: "mt-3 text-xs text-amber-300 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2"
+  }, "\u26A0 \u8C93\u5C0D\u9AD4\u6DB2\u904E\u8F09\u654F\u611F\uFF1A\u6BCF\u6B21 bolus \u5F8C\u52D9\u5FC5\u807D\u8A3A\u80BA\u97F3\u8207\u8A55\u4F30\u547C\u5438\u7A98\u8FEB\uFF0C\u5FC5\u8981\u6642\u653E\u6162\u6216\u505C\u6B62\u3002")), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mb-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1.5 h-6 bg-cyan-500 rounded-full"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "font-display text-xl font-semibold"
+  }, "\u9AD8\u5F35\u6EB6\u6DB2 / \u81A0\u9AD4 / \u8840\u54C1")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
+  }, /*#__PURE__*/React.createElement(BigStat, {
+    label: "Hypertonic 7.5%\uFF0810 min\uFF09",
+    value: w > 0 ? `${fmt(w * f.hypertonic)}–${fmt(w * f.hypertonicHigh)}` : '—',
+    unit: "mL",
+    sub: `${f.hypertonic}–${f.hypertonicHigh} mL/kg．不適用脫水患者`,
+    color: "amber"
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: "\u5408\u6210\u81A0\u9AD4\uFF08Voluven\uFF09",
+    value: w > 0 ? fmt(w * f.colloid) : '—',
+    unit: "mL",
+    sub: `${f.colloid} mL/kg bolus`,
+    color: "amber"
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: "\u5168\u8840",
+    value: w > 0 ? fmt(w * f.bloodWhole) : '—',
+    unit: "mL",
+    sub: `${f.bloodWhole} mL/kg．2–4 小時內輸完`,
+    color: "red"
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: "pRBC / FFP",
+    value: w > 0 ? fmt(w * f.pRBC) : '—',
+    unit: "mL",
+    sub: `${f.pRBC} mL/kg．依需求`,
+    color: "red"
+  }))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mb-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1.5 h-6 bg-yellow-500 rounded-full"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "font-display text-xl font-semibold"
+  }, "\u96FB\u64CA\u53BB\u986B\u80FD\u91CF")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement(DefibCard, {
+    title: "\u9AD4\u5916\uFF0E\u96D9\u76F8\uFF08Biphasic\uFF09",
+    primary: true,
+    low: w * DEFIB_DOSES.externalBiphasic.low,
+    high: w * DEFIB_DOSES.externalBiphasic.high,
+    rangeLabel: "2\u20134 J/kg",
+    w: w
+  }), /*#__PURE__*/React.createElement(DefibCard, {
+    title: "\u9AD4\u5916\uFF0E\u55AE\u76F8\uFF08Monophasic\uFF09",
+    low: w * DEFIB_DOSES.externalMonophasic.low,
+    high: w * DEFIB_DOSES.externalMonophasic.high,
+    rangeLabel: "4\u20136 J/kg",
+    w: w
+  }), /*#__PURE__*/React.createElement(DefibCard, {
+    title: "\u958B\u80F8\uFF0E\u96D9\u76F8",
+    low: w * DEFIB_DOSES.internalBiphasic.low,
+    high: w * DEFIB_DOSES.internalBiphasic.high,
+    rangeLabel: "0.2\u20130.4 J/kg",
+    w: w
+  }), /*#__PURE__*/React.createElement(DefibCard, {
+    title: "\u958B\u80F8\uFF0E\u55AE\u76F8",
+    low: w * DEFIB_DOSES.internalMonophasic.low,
+    high: w * DEFIB_DOSES.internalMonophasic.high,
+    rangeLabel: "0.5\u20131 J/kg",
+    w: w
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "mt-3 text-xs text-slate-400 leading-relaxed"
+  }, "\u9069\u61C9\u75C7\uFF1AVF / pulseless VT\u3002Asystole \u8207 PEA \u4E0D\u96FB\u64CA\u3002\u96FB\u64CA\u5F8C\u7ACB\u5373\u6062\u5FA9\u6309\u58D3\uFF0C2 \u5206\u9418\u5F8C\u518D\u8A55\u4F30\u3002")));
+}
+function BigStat({
+  label,
+  value,
+  unit,
+  sub,
+  color,
+  highlight
+}) {
+  const c = colorMap[color];
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl border ${c.border} ${c.bg} p-4 ${highlight ? 'ring-1 ring-cyan-500/40' : ''}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-400 leading-snug mb-2"
+  }, label), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `font-mono text-3xl font-bold ${c.accent} num-glow`
+  }, value), /*#__PURE__*/React.createElement("span", {
+    className: "font-mono text-sm text-slate-400"
+  }, unit)), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-500 font-mono mt-1.5 leading-relaxed"
+  }, sub));
+}
+function DefibCard({
+  title,
+  low,
+  high,
+  rangeLabel,
+  primary,
+  w
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl border p-4 ${primary ? 'border-yellow-500/40 bg-yellow-500/5 ring-1 ring-yellow-500/30' : 'border-slate-800 bg-slate-900/40'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-400"
+  }, title), primary && /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-mono uppercase tracking-widest text-yellow-400 bg-yellow-500/10 px-1.5 py-0.5 rounded"
+  }, "\u9996\u9078")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `font-mono text-2xl font-bold num-glow ${primary ? 'text-yellow-300' : 'text-slate-300'}`
+  }, w > 0 ? `${fmt(low)}–${fmt(high)}` : '—'), /*#__PURE__*/React.createElement("span", {
+    className: "font-mono text-sm text-slate-400"
+  }, "J")), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-500 font-mono mt-1"
+  }, rangeLabel));
+}
+
+// ───────────────────────────────────────────────────────────────
+// CPR 流程
+// ───────────────────────────────────────────────────────────────
+
+function CPRFlowView() {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, CPCR_FLOW.map((step, i) => {
+    const c = colorMap[step.color];
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: `rounded-xl border ${c.border} ${c.bg} overflow-hidden`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `flex items-center justify-between px-4 py-2.5 border-b ${c.border}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `font-mono text-[10px] uppercase tracking-[0.2em] ${c.text} font-bold`
+    }, "Step ", i + 1), /*#__PURE__*/React.createElement("h3", {
+      className: "font-display text-lg font-semibold"
+    }, step.phase)), /*#__PURE__*/React.createElement("span", {
+      className: "font-mono text-xs text-slate-400"
+    }, step.time)), /*#__PURE__*/React.createElement("div", {
+      className: "p-4"
+    }, step.items && /*#__PURE__*/React.createElement("ol", {
+      className: "space-y-2"
+    }, step.items.map((item, j) => /*#__PURE__*/React.createElement("li", {
+      key: j,
+      className: "flex gap-3 text-sm leading-relaxed"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `font-mono text-xs ${c.accent} shrink-0 mt-1`
+    }, String(j + 1).padStart(2, '0')), /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-200"
+    }, item)))), step.branches && /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+    }, step.branches.map((br, j) => /*#__PURE__*/React.createElement("div", {
+      key: j,
+      className: "rounded-lg border border-slate-800 bg-slate-900/50 p-3"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `font-mono text-xs uppercase tracking-wider ${c.accent} font-bold mb-2`
+    }, "\u25B8 ", br.rhythm), /*#__PURE__*/React.createElement("ul", {
+      className: "space-y-1.5"
+    }, br.actions.map((a, k) => /*#__PURE__*/React.createElement("li", {
+      key: k,
+      className: "text-sm text-slate-200 flex gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-500"
+    }, "\xB7"), /*#__PURE__*/React.createElement("span", null, a))))))), step.columns && /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-2 gap-3"
+    }, step.columns.map((col, j) => /*#__PURE__*/React.createElement("ul", {
+      key: j,
+      className: "space-y-1.5"
+    }, col.map((item, k) => /*#__PURE__*/React.createElement("li", {
+      key: k,
+      className: "text-sm text-slate-200 flex gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `${c.accent} font-mono`
+    }, "\xB7"), /*#__PURE__*/React.createElement("span", null, item))))))));
+  }));
+}
+
+// ───────────────────────────────────────────────────────────────
+// 檢查清單
+// ───────────────────────────────────────────────────────────────
+
+function ChecklistView({
+  checked,
+  toggleCheck,
+  resetChecks
+}) {
+  const totalItems = CHECKLIST_SECTIONS.reduce((acc, s) => acc + s.items.length, 0);
+  const checkedCount = Object.values(checked).filter(Boolean).length;
+  const pct = totalItems > 0 ? Math.round(checkedCount / totalItems * 100) : 0;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rounded-xl border border-slate-800 bg-slate-900/40 p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-300"
+  }, "\u9032\u5EA6", /*#__PURE__*/React.createElement("span", {
+    className: "ml-2 font-mono text-emerald-300"
+  }, checkedCount, " / ", totalItems)), /*#__PURE__*/React.createElement("button", {
+    onClick: resetChecks,
+    className: "flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-300 transition-colors no-print"
+  }, /*#__PURE__*/React.createElement(RotateCcw, {
+    className: "w-3 h-3"
+  }), "\u5168\u90E8\u91CD\u8A2D")), /*#__PURE__*/React.createElement("div", {
+    className: "h-2 bg-slate-800 rounded-full overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-all duration-300",
+    style: {
+      width: `${pct}%`
+    }
+  }))), CHECKLIST_SECTIONS.map((section, si) => {
+    const c = colorMap[section.color];
+    return /*#__PURE__*/React.createElement("section", {
+      key: si,
+      className: `rounded-xl border ${c.border} ${c.bg} overflow-hidden`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `px-4 py-2.5 border-b ${c.border} flex items-center gap-3`
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `w-1.5 h-5 ${c.dot} rounded-full`
+    }), /*#__PURE__*/React.createElement("h3", {
+      className: "font-display text-lg font-semibold"
+    }, section.title)), /*#__PURE__*/React.createElement("ul", {
+      className: "divide-y divide-slate-800/60"
+    }, section.items.map((item, i) => {
+      const id = `${si}-${i}`;
+      const isChecked = !!checked[id];
+      return /*#__PURE__*/React.createElement("li", {
+        key: i
+      }, /*#__PURE__*/React.createElement("button", {
+        onClick: () => toggleCheck(id),
+        className: `w-full text-left flex items-start gap-3 px-4 py-3 hover:bg-slate-900/40 transition-colors ${isChecked ? 'opacity-50' : ''}`
+      }, /*#__PURE__*/React.createElement("span", {
+        className: `mt-0.5 w-5 h-5 shrink-0 rounded border-2 flex items-center justify-center font-mono text-xs transition-all ${isChecked ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300' : 'border-slate-600 text-transparent'}`
+      }, "\u2713"), /*#__PURE__*/React.createElement("span", {
+        className: `text-sm leading-relaxed ${isChecked ? 'line-through text-slate-500' : 'text-slate-200'}`
+      }, item)));
+    })));
+  }));
+}
+
+// ───────────────────────────────────────────────────────────────
+// References
+// ───────────────────────────────────────────────────────────────
+
+const REFERENCES = {
+  guidelines: [{
+    cite: 'Hopper K, Epstein SE, Fletcher DJ, Boller M; RECOVER Investigators. RECOVER 2024 Clinical Guidelines for Small Animal CPR. J Vet Emerg Crit Care. 2024;34(S1):16–75.',
+    note: '2024 年更新版 BLS / ALS 演算法、按壓速率、給藥時機與電擊能量'
+  }, {
+    cite: 'Fletcher DJ, Boller M, Brainard BM, et al. RECOVER evidence and knowledge gap analysis on veterinary CPR. Part 7: Clinical guidelines. J Vet Emerg Crit Care. 2012;22(s1):S102–S131.',
+    note: '原始 RECOVER 2012 臨床指引'
+  }],
+  textbooks: [{
+    cite: 'Silverstein DC, Hopper K, eds. Small Animal Critical Care Medicine. 2nd ed. Saunders Elsevier; 2015.',
+    note: '休克分類、輸液復甦、升壓藥使用章節'
+  }, {
+    cite: 'Drobatz KJ, Hopper K, Rozanski E, Silverstein DC, eds. Textbook of Small Animal Emergency Medicine. Wiley-Blackwell; 2019.'
+  }, {
+    cite: 'Tully T, Plunkett SJ, eds. Plumb\'s Veterinary Drug Handbook. 10th ed. Wiley-Blackwell; 2023.',
+    note: '藥物濃度、劑量範圍、給藥途徑'
+  }, {
+    cite: 'King LG, Boag A, eds. BSAVA Manual of Canine and Feline Emergency and Critical Care. 3rd ed. BSAVA; 2018.'
+  }],
+  topics: [{
+    cite: 'Boller M, Fletcher DJ. Update on small animal cardiopulmonary resuscitation. Vet Clin North Am Small Anim Pract. 2020;50(6):1183–1202.'
+  }, {
+    cite: 'Cole SG, Otto CM, Hughes D. Cardiopulmonary cerebral resuscitation in small animals — a clinical practice review (Part II). J Vet Emerg Crit Care. 2003;13(1):13–23.'
+  }, {
+    cite: 'Powell LL. Vasopressor and inotrope use in the ICU. In: Silverstein DC, Hopper K, eds. SACCM. 2nd ed. 2015:792–795.'
+  }, {
+    cite: 'Muir WW, Ueyama Y, Noel-Morgan J, et al. A systematic review of the quality of IV fluid therapy in veterinary medicine. Front Vet Sci. 2017;4:127.'
+  }, {
+    cite: 'Boysen SR, Gommeren K. Assessment of volume status and fluid responsiveness in small animals. Front Vet Sci. 2021;8:630643.'
+  }]
+};
+function ReferencesSection() {
+  const [open, setOpen] = useState(false);
+  const groups = [{
+    key: 'guidelines',
+    title: 'CPR 指引',
+    items: REFERENCES.guidelines
+  }, {
+    key: 'textbooks',
+    title: '教科書 / 藥典',
+    items: REFERENCES.textbooks
+  }, {
+    key: 'topics',
+    title: '主題期刊',
+    items: REFERENCES.topics
+  }];
+  return /*#__PURE__*/React.createElement("section", {
+    className: "mt-10 rounded-xl border border-slate-800 bg-slate-900/30 overflow-hidden"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    className: "w-full flex items-center justify-between px-4 py-3 hover:bg-slate-900/60 transition-colors no-print"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1.5 h-5 bg-slate-500 rounded-full"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "font-display text-lg font-semibold"
+  }, "References"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-500 font-mono"
+  }, REFERENCES.guidelines.length + REFERENCES.textbooks.length + REFERENCES.topics.length, " sources")), /*#__PURE__*/React.createElement("span", {
+    className: `text-slate-400 text-xs font-mono transition-transform ${open ? 'rotate-180' : ''}`
+  }, "\u25BE")), /*#__PURE__*/React.createElement("div", {
+    className: `${open ? 'block' : 'hidden'} print:block px-4 pb-4 space-y-5`
+  }, groups.map((g, gi) => /*#__PURE__*/React.createElement("div", {
+    key: g.key
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 mb-2 mt-1"
+  }, g.title), /*#__PURE__*/React.createElement("ol", {
+    className: "space-y-2"
+  }, g.items.map((ref, i) => {
+    // 全域編號
+    const offset = groups.slice(0, gi).reduce((acc, x) => acc + x.items.length, 0);
+    const n = offset + i + 1;
+    return /*#__PURE__*/React.createElement("li", {
+      key: i,
+      className: "flex gap-3 text-xs leading-relaxed"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-mono text-slate-500 shrink-0 w-6 text-right"
+    }, "[", n, "]"), /*#__PURE__*/React.createElement("div", {
+      className: "flex-1"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-slate-300"
+    }, ref.cite), ref.note && /*#__PURE__*/React.createElement("div", {
+      className: "text-slate-500 mt-0.5 italic"
+    }, "\u2014 ", ref.note)));
+  }))))));
+}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(VetShockCalculator, null));
+</script>
+</body>
+</html>
