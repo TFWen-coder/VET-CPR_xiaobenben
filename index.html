@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0d14" />
-  <meta name="description" content="急救小本本 ver.2.0．犬貓休克與心肺復甦劑量計算機 — RECOVER 2024 ／ Emergency Pocketbook — Canine & Feline Shock and CPR Calculator" />
+  <meta name="description" content="急救小本本 ver.2.0．犬貓兔休克與心肺復甦劑量計算機 — RECOVER 2024" />
   <title>急救小本本 ver.2.0 ／ Emergency Pocketbook</title>
 
   <link rel="manifest" href="manifest.webmanifest" />
@@ -154,6 +154,15 @@ const Cat = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.cre
 }), /*#__PURE__*/React.createElement("path", {
   d: "M11.25 16.25h1.5L12 17l-.75-.75Z"
 }));
+const Rabbit = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M13 16a3 3 0 0 1 2.24 5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M18 12h.01"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M18 21h-8a4 4 0 0 1-4-4 7 7 0 0 1 7-7h.2L9.6 6.4a1 1 0 1 1 2.8-2.8L15.8 7h.2c3.3 0 6 2.7 6 6v1a2 2 0 0 1-2 2h-1a3 3 0 0 0-3 3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M16 10s.93-2 .25-3.25c-.45-.83-.83-1.25-1.25-1.75"
+}));
 
 // ───────────────────────────────────────────────────────────────
 // i18n helpers
@@ -192,11 +201,65 @@ const EMERGENCY_DRUGS = [{
     mgPerKg: 0.04,
     mlPerMg: 1,
     route: 'IV / IO',
-    priority: true
+    priority: true,
+    species: ['dog', 'cat']
+  }, {
+    label: {
+      zh: '兔／特殊寵物：心搏過慢',
+      en: 'Rabbit / exotic mammals: bradycardia'
+    },
+    mgPerKg: 0.02,
+    mlPerMg: 1,
+    route: 'IV / IM / IO / IT',
+    species: ['rabbit'],
+    warn: {
+      zh: '可能效果不佳．見上方提醒',
+      en: 'May be ineffective; see warning above'
+    }
   }],
+  speciesAlert: {
+    rabbit: {
+      zh: '⚠ 兔具 atropinesterase，atropine 效果可能不佳。建議改用 Glycopyrrolate。下方劑量供必要時參考。',
+      en: '⚠ Rabbits often have atropinesterase; atropine may be ineffective. Glycopyrrolate is preferred. Dose below provided for reference if needed.'
+    }
+  },
   note: {
     zh: 'RECOVER 2024：僅在首次使用，不重複給藥。',
     en: 'RECOVER 2024: Single initial dose only; do not repeat.'
+  }
+}, {
+  name: 'Glycopyrrolate',
+  cn: {
+    zh: '糖吡咯酸',
+    en: ''
+  },
+  conc: '0.2 mg/mL',
+  color: 'red',
+  doses: [{
+    label: {
+      zh: '兔（首選 anticholinergic）',
+      en: 'Rabbit (preferred anticholinergic)'
+    },
+    mgPerKg: 0.01,
+    mgPerKgHigh: 0.02,
+    mlPerMg: 5,
+    route: 'IV / IO / IM',
+    priority: true,
+    species: ['rabbit']
+  }, {
+    label: {
+      zh: '犬貓（atropine 替代）',
+      en: 'Dog / Cat (atropine alternative)'
+    },
+    mgPerKg: 0.005,
+    mgPerKgHigh: 0.01,
+    mlPerMg: 5,
+    route: 'IV / IO / IM',
+    species: ['dog', 'cat']
+  }],
+  note: {
+    zh: '不通過血腦屏障，作用時間較 atropine 長（2–4 小時）。兔子的首選 anticholinergic。',
+    en: 'Does not cross BBB; longer duration than atropine (2–4 h). First-choice anticholinergic for rabbits.'
   }
 }, {
   name: 'Epinephrine (Adrenaline)',
@@ -213,18 +276,18 @@ const EMERGENCY_DRUGS = [{
     },
     mgPerKg: 0.01,
     mlPerMg: 1,
-    route: 'IV / IO',
+    route: 'IV / IO / IM',
     priority: true
   }, {
     label: {
-      zh: 'Endotracheal（無血管路）',
-      en: 'Endotracheal (no vascular access)'
+      zh: 'Endotracheal（無血管路）．劑量加倍',
+      en: 'Endotracheal (no vascular access) · dose doubled'
     },
-    mgPerKg: 0.1,
+    mgPerKg: 0.02,
     mlPerMg: 1,
     route: {
-      zh: 'IT，稀釋至 5–10 mL',
-      en: 'IT, dilute to 5–10 mL'
+      zh: 'IT，可稀釋至 5–10 mL',
+      en: 'IT, may dilute to 5–10 mL'
     }
   }],
   note: {
@@ -288,7 +351,20 @@ const EMERGENCY_DRUGS = [{
     route: {
       zh: 'IV slow，心電監測',
       en: 'IV slow, ECG monitoring'
-    }
+    },
+    species: ['dog', 'cat']
+  }, {
+    label: {
+      zh: '兔／特殊寵物：低血鈣',
+      en: 'Rabbit / exotic mammals: hypocalcemia'
+    },
+    mgPerKg: 100,
+    mlPerMg: 0.01,
+    route: {
+      zh: 'IV / IM / IO slow',
+      en: 'IV / IM / IO slow'
+    },
+    species: ['rabbit']
   }]
 }, {
   name: '50% Dextrose',
@@ -308,7 +384,19 @@ const EMERGENCY_DRUGS = [{
     route: {
       zh: 'IV，稀釋 1:4 後給予',
       en: 'IV, dilute 1:4 before administration'
-    }
+    },
+    species: ['dog', 'cat']
+  }, {
+    label: {
+      zh: '兔／特殊寵物：低血糖',
+      en: 'Rabbit / exotic mammals: hypoglycemia'
+    },
+    mlPerKgDirect: 0.25,
+    route: {
+      zh: 'IV / IO．NS 稀釋 2 倍慢推',
+      en: 'IV / IO · dilute 1:2 with NS, slow push'
+    },
+    species: ['rabbit']
   }]
 }, {
   name: 'Naloxone',
@@ -365,6 +453,107 @@ const EMERGENCY_DRUGS = [{
       en: 'IM (IV slow in emergency)'
     }
   }]
+}, {
+  name: 'Doxapram',
+  cn: {
+    zh: '多沙普崙',
+    en: ''
+  },
+  conc: '8.7 mg/mL',
+  color: 'emerald',
+  doses: [{
+    label: {
+      zh: '呼吸中樞興奮（無法插管時）',
+      en: 'Respiratory stimulant (when intubation not feasible)'
+    },
+    mgPerKg: 2,
+    mlPerMg: 0.115,
+    route: 'IV / IM / IO / IT'
+  }],
+  note: {
+    zh: '主要用於無法插管的小動物／特殊寵物。RECOVER 2024 不建議常規用於犬貓 CPR。',
+    en: 'Mainly for small/exotic patients where intubation is difficult. Not routinely recommended in RECOVER 2024 for dog/cat CPR.'
+  }
+}, {
+  name: 'Dexamethasone',
+  cn: {
+    zh: '地塞米松',
+    en: ''
+  },
+  conc: '4 mg/mL',
+  color: 'emerald',
+  doses: [{
+    label: {
+      zh: '抗發炎／非出血性休克',
+      en: 'Anti-inflammatory / non-hemorrhagic shock'
+    },
+    mgPerKg: 4,
+    mlPerMg: 0.25,
+    route: 'IV / IM',
+    warn: {
+      zh: '勿用於出血性或低血容性休克',
+      en: 'Avoid in hemorrhagic or hypovolemic shock'
+    }
+  }]
+}, {
+  name: 'Diazepam',
+  cn: {
+    zh: '安定',
+    en: ''
+  },
+  conc: '5 mg/mL',
+  color: 'emerald',
+  doses: [{
+    label: {
+      zh: '癲癇發作',
+      en: 'Seizures'
+    },
+    mgPerKg: 1,
+    mlPerMg: 0.2,
+    route: 'IV / IM / IO'
+  }],
+  note: {
+    zh: '反覆發作可重複給予。注意呼吸抑制。',
+    en: 'May repeat for recurrent seizures. Monitor for respiratory depression.'
+  }
+}, {
+  name: 'Diphenhydramine',
+  cn: {
+    zh: '苯海拉明',
+    en: ''
+  },
+  conc: '30 mg/mL',
+  color: 'emerald',
+  doses: [{
+    label: {
+      zh: '過敏性休克',
+      en: 'Anaphylactic shock'
+    },
+    mgPerKg: 2,
+    mlPerMg: 0.0333,
+    route: 'IV / IM'
+  }]
+}, {
+  name: 'Furosemide',
+  cn: {
+    zh: '呋塞米',
+    en: ''
+  },
+  conc: '10 mg/mL',
+  color: 'emerald',
+  doses: [{
+    label: {
+      zh: '心衰竭、肺水腫',
+      en: 'Heart failure, pulmonary edema'
+    },
+    mgPerKg: 4,
+    mlPerMg: 0.1,
+    route: 'IV / IM'
+  }],
+  note: {
+    zh: '監測脫水與電解質。',
+    en: 'Monitor for dehydration and electrolyte imbalance.'
+  }
 }];
 const VASOPRESSORS = [{
   name: 'Dopamine',
@@ -395,6 +584,15 @@ const VASOPRESSORS = [{
     note: {
       zh: '貓對 dopamine 反應差異大',
       en: 'Cats show variable response to dopamine'
+    }
+  }, {
+    species: 'rabbit',
+    low: 5,
+    mid: 10,
+    high: 15,
+    note: {
+      zh: '兔／特殊寵物常用 10 μg/kg/min',
+      en: 'Rabbit / exotics: common dose 10 μg/kg/min'
     }
   }],
   syringeRecipe: {
@@ -434,6 +632,15 @@ const VASOPRESSORS = [{
       zh: '貓 > 5 μg/kg/min 易引發癲癇',
       en: 'Cats: >5 μg/kg/min may induce seizures'
     }
+  }, {
+    species: 'rabbit',
+    low: 5,
+    mid: 15,
+    high: 20,
+    note: {
+      zh: '兔／特殊寵物常用 15 μg/kg/min',
+      en: 'Rabbit / exotics: common dose 15 μg/kg/min'
+    }
   }],
   syringeRecipe: {
     stockConc: 12.5,
@@ -468,6 +675,15 @@ const VASOPRESSORS = [{
     low: 0.05,
     mid: 0.5,
     high: 2
+  }, {
+    species: 'rabbit',
+    low: 0.05,
+    mid: 0.5,
+    high: 1,
+    note: {
+      zh: '兔資料有限',
+      en: 'Limited rabbit data'
+    }
   }],
   syringeRecipe: {
     stockConc: 1,
@@ -502,6 +718,15 @@ const VASOPRESSORS = [{
     low: 0.05,
     mid: 0.2,
     high: 1
+  }, {
+    species: 'rabbit',
+    low: 0.05,
+    mid: 0.2,
+    high: 1,
+    note: {
+      zh: '兔資料有限',
+      en: 'Limited rabbit data'
+    }
   }]
 }, {
   name: 'Vasopressin CRI',
@@ -526,6 +751,15 @@ const VASOPRESSORS = [{
     low: 0.5,
     mid: 2,
     high: 5
+  }, {
+    species: 'rabbit',
+    low: 0.5,
+    mid: 2,
+    high: 5,
+    note: {
+      zh: '兔資料有限',
+      en: 'Limited rabbit data'
+    }
   }]
 }, {
   name: 'Phenylephrine',
@@ -549,6 +783,15 @@ const VASOPRESSORS = [{
     low: 0.5,
     mid: 1,
     high: 3
+  }, {
+    species: 'rabbit',
+    low: 0.5,
+    mid: 1,
+    high: 3,
+    note: {
+      zh: '兔資料有限',
+      en: 'Limited rabbit data'
+    }
   }]
 }];
 const CPR_TIPS = [{
@@ -572,6 +815,9 @@ const CPR_TIPS = [{
 }, {
   zh: '體外雙向波 2 J/kg（單向波 4 J/kg）去顫後如再出現 VF、或每分鐘 > 200 下無脈搏的 VT，使用兩倍能量，後續都以此劑量電擊。每 4 分鐘給予 Epinephrine 或 Vasopressin 維持血管張力，考慮使用抗心律不整藥：貓用 Amiodarone、犬用 Lidocaine，犬貓皆可用 Esmolol',
   en: 'External biphasic 2 J/kg (monophasic 4 J/kg) defibrillation. If VF recurs or pulseless VT >200 bpm appears after defib, double the energy and use that for all subsequent shocks. Every 4 min give Epinephrine or Vasopressin for vascular tone. Consider antiarrhythmic: Amiodarone for cats, Lidocaine for dogs, Esmolol for both.'
+}, {
+  zh: '兔特別注意：① Atropine 常無效（atropinesterase）→ 改用 Glycopyrrolate　② Epinephrine 需較高劑量（0.1–0.2 mg/kg）　③ Maintenance 4 mL/kg/hr，較犬貓高　④ 容易產氣性休克／GI stasis，發現後盡早處理',
+  en: 'Rabbit considerations: ① Atropine often ineffective (atropinesterase) — use Glycopyrrolate  ② Epinephrine requires higher dose (0.1–0.2 mg/kg)  ③ Maintenance 4 mL/kg/hr (higher than dogs/cats)  ④ Prone to bloat/GI stasis — address early'
 }];
 const ANTIARRHYTHMICS = [{
   name: 'Lidocaine 2%',
@@ -604,6 +850,14 @@ const ANTIARRHYTHMICS = [{
         zh: 'IV slow．貓對 lidocaine 心毒性敏感',
         en: 'IV slow · cats sensitive to lidocaine cardiotoxicity'
       }
+    },
+    rabbit: {
+      mgPerKgLow: 2,
+      mgPerKgHigh: 4,
+      note: {
+        zh: '2–4 mg/kg IV slow',
+        en: '2–4 mg/kg IV slow'
+      }
     }
   },
   cri: {
@@ -619,6 +873,15 @@ const ANTIARRHYTHMICS = [{
       note: {
         zh: '貓謹慎使用',
         en: 'Cats: use cautiously'
+      }
+    },
+    rabbit: {
+      low: 50,
+      mid: 75,
+      high: 100,
+      note: {
+        zh: '兔資料有限',
+        en: 'Limited rabbit data'
       }
     }
   },
@@ -705,6 +968,658 @@ const ANTIARRHYTHMICS = [{
     en: 'Recommended: bolus followed by CRI 50 μg/kg/min'
   }
 }];
+
+// ECG identification decision tree (Lead II). Synthesized from standard
+// veterinary cardiology references (Tilley, Côté, Edwards).
+const ECG_TREE = {
+  start: 'q_heartbeat',
+  nodes: {
+    q_heartbeat: {
+      type: 'q',
+      text: {
+        zh: '有聽診心音或摸到脈搏嗎？',
+        en: 'Audible heartbeat or palpable pulse?'
+      },
+      options: [{
+        l: {
+          zh: '有',
+          en: 'Yes'
+        },
+        n: 'q_pwave'
+      }, {
+        l: {
+          zh: '無',
+          en: 'No'
+        },
+        n: 'q_electrical'
+      }]
+    },
+    q_electrical: {
+      type: 'q',
+      text: {
+        zh: 'ECG 有電氣活動嗎？',
+        en: 'Electrical activity on ECG?'
+      },
+      options: [{
+        l: {
+          zh: '無（平直線）',
+          en: 'No (flat line)'
+        },
+        n: 'r_asystole'
+      }, {
+        l: {
+          zh: '有',
+          en: 'Yes'
+        },
+        n: 'q_pea_vf'
+      }]
+    },
+    q_pea_vf: {
+      type: 'q',
+      text: {
+        zh: '可辨識到 P-QRS 波形嗎？',
+        en: 'Distinguishable P-QRS complexes?'
+      },
+      options: [{
+        l: {
+          zh: '可（但無脈搏）',
+          en: 'Yes (but no pulse)'
+        },
+        n: 'r_pea'
+      }, {
+        l: {
+          zh: '不可（混亂基線）',
+          en: 'No (chaotic baseline)'
+        },
+        n: 'r_vf'
+      }]
+    },
+    q_pwave: {
+      type: 'q',
+      text: {
+        zh: '能辨識到 P 波嗎？',
+        en: 'P waves identifiable?'
+      },
+      options: [{
+        l: {
+          zh: '有，每個 QRS 前都有 P',
+          en: 'Yes, P before every QRS'
+        },
+        n: 'q_p_qrs'
+      }, {
+        l: {
+          zh: '有，但有些 P 後沒有 QRS',
+          en: 'Yes, but some Ps not followed by QRS'
+        },
+        n: 'q_avblock_type'
+      }, {
+        l: {
+          zh: '無 P 波',
+          en: 'No P waves'
+        },
+        n: 'q_qrs_width_nop'
+      }]
+    },
+    q_p_qrs: {
+      type: 'q',
+      text: {
+        zh: '心率？',
+        en: 'Heart rate?'
+      },
+      options: [{
+        l: {
+          zh: '正常範圍',
+          en: 'Normal'
+        },
+        n: 'q_regularity'
+      }, {
+        l: {
+          zh: '快（犬 > 180、貓 > 220 bpm）',
+          en: 'Fast (dog > 180, cat > 220 bpm)'
+        },
+        n: 'r_sinus_tachy'
+      }, {
+        l: {
+          zh: '慢（犬 < 60、貓 < 100 bpm）',
+          en: 'Slow (dog < 60, cat < 100 bpm)'
+        },
+        n: 'r_sinus_brady'
+      }]
+    },
+    q_regularity: {
+      type: 'q',
+      text: {
+        zh: '心律規律性？',
+        en: 'Rhythm regularity?'
+      },
+      options: [{
+        l: {
+          zh: '完全規律',
+          en: 'Regular'
+        },
+        n: 'r_sinus_rhythm'
+      }, {
+        l: {
+          zh: '隨呼吸變化（regularly irregular）',
+          en: 'Varies with respiration'
+        },
+        n: 'r_sinus_arrhythmia'
+      }, {
+        l: {
+          zh: '不規律，有提早搏動',
+          en: 'Irregular with premature beats'
+        },
+        n: 'q_premature_width'
+      }]
+    },
+    q_premature_width: {
+      type: 'q',
+      text: {
+        zh: '提早搏動的 QRS？',
+        en: 'Premature QRS character?'
+      },
+      options: [{
+        l: {
+          zh: '窄，有前置 P 波',
+          en: 'Narrow, with preceding P'
+        },
+        n: 'r_apc'
+      }, {
+        l: {
+          zh: '寬，無前置 P 波',
+          en: 'Wide, no preceding P'
+        },
+        n: 'r_vpc'
+      }]
+    },
+    q_avblock_type: {
+      type: 'q',
+      text: {
+        zh: 'PR 間期形態？',
+        en: 'PR interval pattern?'
+      },
+      options: [{
+        l: {
+          zh: 'PR 漸長至 QRS 消失',
+          en: 'PR lengthens until QRS drops'
+        },
+        n: 'r_av2_mobitz1'
+      }, {
+        l: {
+          zh: 'PR 恆定，QRS 隨機消失',
+          en: 'PR constant, QRS drops randomly'
+        },
+        n: 'r_av2_mobitz2'
+      }, {
+        l: {
+          zh: 'P 與 QRS 完全分離',
+          en: 'P and QRS completely dissociated'
+        },
+        n: 'r_av3'
+      }]
+    },
+    q_qrs_width_nop: {
+      type: 'q',
+      text: {
+        zh: 'QRS 形態？',
+        en: 'QRS character?'
+      },
+      options: [{
+        l: {
+          zh: '窄、不規律',
+          en: 'Narrow, irregular'
+        },
+        n: 'r_afib'
+      }, {
+        l: {
+          zh: '窄、快且規律',
+          en: 'Narrow, fast and regular'
+        },
+        n: 'r_svt'
+      }, {
+        l: {
+          zh: '寬、單次提早',
+          en: 'Wide, single premature'
+        },
+        n: 'r_vpc'
+      }, {
+        l: {
+          zh: '寬、單次延遲（escape）',
+          en: 'Wide, single late (escape)'
+        },
+        n: 'r_vescape'
+      }, {
+        l: {
+          zh: '寬、連續 ≥ 3 次，快',
+          en: 'Wide, 3+ consecutive, fast'
+        },
+        n: 'r_vt'
+      }, {
+        l: {
+          zh: '寬、連續，慢（接近竇性）',
+          en: 'Wide, continuous, slow'
+        },
+        n: 'r_aivr'
+      }]
+    },
+    // Results
+    r_asystole: {
+      type: 'r',
+      severity: 'critical',
+      name: {
+        zh: 'Asystole 心搏停止',
+        en: 'Asystole'
+      },
+      desc: {
+        zh: '無電氣活動，平直線。',
+        en: 'No electrical activity; flat line.'
+      },
+      features: [{
+        zh: 'ECG 為平直線（先確認導極連接）',
+        en: 'Flat ECG (verify lead connections first)'
+      }, {
+        zh: '無 P、QRS、T',
+        en: 'No P, QRS, or T'
+      }],
+      tx: {
+        zh: '立即 CPR + Epinephrine。不電擊。',
+        en: 'Immediate CPR + Epinephrine. Do not defibrillate.'
+      }
+    },
+    r_pea: {
+      type: 'r',
+      severity: 'critical',
+      name: {
+        zh: 'PEA 無脈搏電氣活動',
+        en: 'Pulseless Electrical Activity'
+      },
+      desc: {
+        zh: 'ECG 顯示節律但無有效心搏輸出。',
+        en: 'Organized ECG but no effective cardiac output.'
+      },
+      features: [{
+        zh: '可辨識的 P-QRS 波',
+        en: 'Identifiable P-QRS'
+      }, {
+        zh: '無觸診脈搏／無血壓',
+        en: 'No palpable pulse / no BP'
+      }],
+      tx: {
+        zh: 'CPR + Epinephrine。同時找可逆原因（5H 5T）。',
+        en: 'CPR + Epinephrine. Identify reversible causes (5H 5T).'
+      }
+    },
+    r_vf: {
+      type: 'r',
+      severity: 'critical',
+      name: {
+        zh: 'Ventricular Fibrillation 心室顫動',
+        en: 'Ventricular Fibrillation'
+      },
+      desc: {
+        zh: '混亂無組織的電氣活動，心室無有效收縮。',
+        en: 'Chaotic disorganized activity; no effective contraction.'
+      },
+      features: [{
+        zh: '無可辨識的 P、QRS、T',
+        en: 'No identifiable P, QRS, or T'
+      }, {
+        zh: '不規則波形，振幅起伏',
+        en: 'Irregular waveform with varying amplitude'
+      }],
+      tx: {
+        zh: '立即電擊（biphasic 2–4 J/kg）+ CPR。頑固性：Amiodarone（貓）／Lidocaine（犬）／Esmolol。',
+        en: 'Immediate defibrillation (biphasic 2–4 J/kg) + CPR. Refractory: Amiodarone (cat), Lidocaine (dog), Esmolol (both).'
+      }
+    },
+    r_sinus_rhythm: {
+      type: 'r',
+      severity: 'normal',
+      name: {
+        zh: 'Sinus Rhythm 正常竇性心律',
+        en: 'Sinus Rhythm'
+      },
+      desc: {
+        zh: '正常心律。',
+        en: 'Normal cardiac rhythm.'
+      },
+      features: [{
+        zh: '每個 QRS 前有 P',
+        en: 'P wave before every QRS'
+      }, {
+        zh: 'PR 間期一致',
+        en: 'Constant PR interval'
+      }, {
+        zh: '心率與心律均正常',
+        en: 'Normal rate and rhythm'
+      }],
+      tx: {
+        zh: '無需治療。',
+        en: 'No treatment required.'
+      }
+    },
+    r_sinus_arrhythmia: {
+      type: 'r',
+      severity: 'normal',
+      name: {
+        zh: 'Sinus Arrhythmia 竇性心律不整',
+        en: 'Sinus Arrhythmia'
+      },
+      desc: {
+        zh: '吸氣加速、呼氣減速（迷走神經調節）。犬常見，貓少見。',
+        en: 'Rate accelerates on inspiration, slows on expiration (vagally mediated). Common in dogs, uncommon in cats.'
+      },
+      features: [{
+        zh: '隨呼吸週期變化',
+        en: 'Cyclic variation with respiration'
+      }, {
+        zh: 'P-QRS 關係正常',
+        en: 'Normal P-QRS relationship'
+      }],
+      tx: {
+        zh: '正常生理現象，無需治療。貓出現時應評估是否潛在病理。',
+        en: 'Normal physiologic finding. In cats, investigate for underlying pathology.'
+      }
+    },
+    r_sinus_tachy: {
+      type: 'r',
+      severity: 'mild',
+      name: {
+        zh: 'Sinus Tachycardia 竇性心搏過速',
+        en: 'Sinus Tachycardia'
+      },
+      desc: {
+        zh: '心率超過正常上限。常見原因：疼痛、低血容、發熱、興奮、藥物。',
+        en: 'Rate above normal. Causes: pain, hypovolemia, fever, excitement, drugs.'
+      },
+      features: [{
+        zh: '規律 P-QRS 形態',
+        en: 'Regular P-QRS pattern'
+      }, {
+        zh: '犬 > 180、貓 > 220 bpm',
+        en: 'Dog > 180, cat > 220 bpm'
+      }],
+      tx: {
+        zh: '處理原因（止痛、補液、退燒），非心律本身。',
+        en: 'Treat underlying cause (analgesia, fluids, antipyretics) rather than the rhythm itself.'
+      }
+    },
+    r_sinus_brady: {
+      type: 'r',
+      severity: 'mild',
+      name: {
+        zh: 'Sinus Bradycardia 竇性心搏過緩',
+        en: 'Sinus Bradycardia'
+      },
+      desc: {
+        zh: '心率低於正常。常見原因：高迷走神經張力、低體溫、opioid、高血鉀、Addison。',
+        en: 'Rate below normal. Causes: high vagal tone, hypothermia, opioids, hyperkalemia, Addison\'s.'
+      },
+      features: [{
+        zh: '規律 P-QRS 形態',
+        en: 'Regular P-QRS pattern'
+      }, {
+        zh: '犬 < 60、貓 < 100 bpm',
+        en: 'Dog < 60, cat < 100 bpm'
+      }],
+      tx: {
+        zh: '處理原因。有症狀時：Atropine（兔用 Glycopyrrolate）。',
+        en: 'Treat underlying cause. If symptomatic: Atropine (Glycopyrrolate for rabbits).'
+      }
+    },
+    r_apc: {
+      type: 'r',
+      severity: 'mild',
+      name: {
+        zh: 'Atrial Premature Contraction 心房提早收縮',
+        en: 'Atrial Premature Contraction'
+      },
+      desc: {
+        zh: '心房異位起搏點提早觸發；QRS 形態與正常竇性相似。',
+        en: 'Premature beat from ectopic atrial focus; QRS morphology similar to sinus.'
+      },
+      features: [{
+        zh: '提早出現的 QRS',
+        en: 'Premature QRS'
+      }, {
+        zh: 'QRS 窄',
+        en: 'Narrow QRS'
+      }, {
+        zh: '前置 P 波（可能形態異常）',
+        en: 'Preceded by P wave (may be abnormal)'
+      }],
+      tx: {
+        zh: '單次無需治療。頻繁／持續：找原因（心房擴大、電解質異常）。',
+        en: 'Isolated APCs: no treatment. Frequent/sustained: investigate (atrial enlargement, electrolyte abnormalities).'
+      }
+    },
+    r_vpc: {
+      type: 'r',
+      severity: 'mild',
+      name: {
+        zh: 'Ventricular Premature Contraction 心室提早收縮',
+        en: 'Ventricular Premature Contraction (VPC)'
+      },
+      desc: {
+        zh: '心室異位起搏點提早觸發。',
+        en: 'Premature beat from ectopic ventricular focus.'
+      },
+      features: [{
+        zh: '提早、寬大 QRS',
+        en: 'Premature, wide QRS'
+      }, {
+        zh: '無前置 P 波',
+        en: 'No preceding P wave'
+      }, {
+        zh: 'T 波極性與 QRS 相反',
+        en: 'T-wave opposite polarity to QRS'
+      }],
+      tx: {
+        zh: '偶發無需治療。頻繁、成對、R-on-T、轉成 VT：Lidocaine（犬）。處理原因（缺氧、電解質、心肌病）。',
+        en: 'Occasional: no treatment. Frequent, paired, R-on-T, or progressing to VT: Lidocaine (dog). Treat cause (hypoxia, electrolytes, cardiomyopathy).'
+      }
+    },
+    r_vescape: {
+      type: 'r',
+      severity: 'urgent',
+      name: {
+        zh: 'Ventricular Escape Beat 心室逸搏',
+        en: 'Ventricular Escape Beat'
+      },
+      desc: {
+        zh: '主導起搏點失能時，心室產生的救命代償節律。',
+        en: 'Life-sustaining compensatory beat when supraventricular pacemaker fails.'
+      },
+      features: [{
+        zh: '延遲、寬大 QRS',
+        en: 'Late, wide QRS'
+      }, {
+        zh: '出現於預期心跳之後',
+        en: 'Occurs later than expected sinus beat'
+      }, {
+        zh: '常見於 3° AV block',
+        en: 'Common in 3rd-degree AV block'
+      }],
+      tx: {
+        zh: '不要抑制！這是救命節律。處理潛在原因（如 AV block 需起搏器）。',
+        en: 'Do NOT suppress! Life-sustaining rhythm. Treat underlying cause (e.g., AV block may need pacemaker).'
+      }
+    },
+    r_vt: {
+      type: 'r',
+      severity: 'critical',
+      name: {
+        zh: 'Ventricular Tachycardia 心室搏動過速',
+        en: 'Ventricular Tachycardia'
+      },
+      desc: {
+        zh: '連續 3 次以上 VPC，心率快。可惡化為 VF。',
+        en: '3+ consecutive VPCs at fast rate. Can deteriorate to VF.'
+      },
+      features: [{
+        zh: '連續寬大 QRS',
+        en: 'Consecutive wide QRS'
+      }, {
+        zh: '快速（犬 > 180、貓 > 220 bpm）',
+        en: 'Fast rate (dog > 180, cat > 220 bpm)'
+      }, {
+        zh: '無 P 波相關',
+        en: 'No P wave association'
+      }],
+      tx: {
+        zh: '不穩定／無脈搏：電擊。穩定：Lidocaine（犬）、Amiodarone（貓）、Esmolol（皆可）。',
+        en: 'Unstable/pulseless: defibrillate. Stable: Lidocaine (dog), Amiodarone (cat), Esmolol (both).'
+      }
+    },
+    r_aivr: {
+      type: 'r',
+      severity: 'mild',
+      name: {
+        zh: 'Accelerated Idioventricular Rhythm 加速性心室自律',
+        en: 'Accelerated Idioventricular Rhythm (AIVR)'
+      },
+      desc: {
+        zh: '心室速率高於 escape 但未達 VT。常見於脾臟疾病、術後、右心衰竭。',
+        en: 'Ventricular rate above escape but below VT. Seen with splenic disease, post-op, RV failure.'
+      },
+      features: [{
+        zh: '連續寬大 QRS',
+        en: 'Consecutive wide QRS'
+      }, {
+        zh: '速率接近竇性（60–120 bpm）',
+        en: 'Rate near sinus (60–120 bpm)'
+      }],
+      tx: {
+        zh: '通常無症狀，不需 antiarrhythmic。處理原因。',
+        en: 'Usually asymptomatic. Antiarrhythmics not needed. Treat underlying cause.'
+      }
+    },
+    r_afib: {
+      type: 'r',
+      severity: 'urgent',
+      name: {
+        zh: 'Atrial Fibrillation 心房纖維顫動',
+        en: 'Atrial Fibrillation'
+      },
+      desc: {
+        zh: '心房紊亂顫動，房室結不規則傳導。',
+        en: 'Chaotic atrial activity; irregular AV conduction.'
+      },
+      features: [{
+        zh: '無 P 波（細小顫動波）',
+        en: 'No P waves (fine fibrillation)'
+      }, {
+        zh: 'QRS 窄、R-R 不規律',
+        en: 'Narrow QRS, irregularly irregular R-R'
+      }, {
+        zh: '常合併心房擴大',
+        en: 'Usually with atrial enlargement'
+      }],
+      tx: {
+        zh: '處理基礎心臟病。心率控制：Diltiazem 或 β-blocker。',
+        en: 'Treat underlying heart disease. Rate control: Diltiazem or β-blocker.'
+      }
+    },
+    r_svt: {
+      type: 'r',
+      severity: 'urgent',
+      name: {
+        zh: 'Supraventricular Tachycardia 室上性心搏過速',
+        en: 'Supraventricular Tachycardia'
+      },
+      desc: {
+        zh: '房室結以上來源的快速心律。',
+        en: 'Tachyarrhythmia originating above AV node.'
+      },
+      features: [{
+        zh: '窄 QRS',
+        en: 'Narrow QRS'
+      }, {
+        zh: '快且規律',
+        en: 'Fast and regular'
+      }, {
+        zh: 'P 波常埋於 T 波中',
+        en: 'P waves often hidden in T'
+      }],
+      tx: {
+        zh: '迷走神經刺激、Diltiazem、Esmolol、Adenosine（限犬）。',
+        en: 'Vagal maneuvers, Diltiazem, Esmolol, Adenosine (dogs only).'
+      }
+    },
+    r_av2_mobitz1: {
+      type: 'r',
+      severity: 'mild',
+      name: {
+        zh: '2° AV Block Mobitz I（Wenckebach）',
+        en: '2nd-Degree AV Block Mobitz I (Wenckebach)'
+      },
+      desc: {
+        zh: 'PR 漸長直至一次 QRS 消失。常因高迷走神經張力，多為良性。',
+        en: 'PR progressively lengthens until QRS drops. Usually high vagal tone; benign.'
+      },
+      features: [{
+        zh: 'PR 逐次延長',
+        en: 'PR progressively lengthens'
+      }, {
+        zh: '最終 P 後無 QRS',
+        en: 'P followed by dropped QRS'
+      }],
+      tx: {
+        zh: '通常無症狀無需治療。有症狀：Atropine（兔用 Glycopyrrolate）。',
+        en: 'Usually asymptomatic. Symptomatic: Atropine (Glycopyrrolate for rabbits).'
+      }
+    },
+    r_av2_mobitz2: {
+      type: 'r',
+      severity: 'urgent',
+      name: {
+        zh: '2° AV Block Mobitz II',
+        en: '2nd-Degree AV Block Mobitz II'
+      },
+      desc: {
+        zh: 'PR 恆定，QRS 隨機消失。較嚴重，易進展為 3°。',
+        en: 'PR constant, QRS drops randomly. More serious; risk of progression to 3rd-degree.'
+      },
+      features: [{
+        zh: 'PR 間期不變',
+        en: 'Constant PR interval'
+      }, {
+        zh: '突然 P 後無 QRS',
+        en: 'Sudden P without QRS'
+      }],
+      tx: {
+        zh: '常需起搏器。Atropine 反應差。',
+        en: 'Often requires pacemaker. Poor response to Atropine.'
+      }
+    },
+    r_av3: {
+      type: 'r',
+      severity: 'critical',
+      name: {
+        zh: '3° AV Block 完全房室阻斷',
+        en: '3rd-Degree AV Block (Complete)'
+      },
+      desc: {
+        zh: 'P 與 QRS 完全獨立，依靠心室 escape 維持輸出。',
+        en: 'Complete P-QRS dissociation; output sustained by ventricular escape.'
+      },
+      features: [{
+        zh: 'P 規律但與 QRS 無關',
+        en: 'Regular P dissociated from QRS'
+      }, {
+        zh: 'QRS 寬、慢（escape rhythm）',
+        en: 'Wide, slow QRS (escape rhythm)'
+      }, {
+        zh: '心率常 < 40 bpm',
+        en: 'HR often < 40 bpm'
+      }],
+      tx: {
+        zh: '通常需植入起搏器。多數藥物反應差。',
+        en: 'Usually requires pacemaker. Poor drug response.'
+      }
+    }
+  }
+};
 const FLUID_PROTOCOLS = {
   dog: {
     crystalloidShockFull: 90,
@@ -729,6 +1644,18 @@ const FLUID_PROTOCOLS = {
     bloodWhole: 15,
     pRBC: 10,
     plasma: 10
+  },
+  rabbit: {
+    crystalloidShockFull: 60,
+    crystalloidBolus: 25,
+    crystalloidBolusHigh: 25,
+    hypertonic: 3,
+    hypertonicHigh: 3,
+    colloid: 5,
+    maintenancePerHr: 4,
+    bloodWhole: 10,
+    pRBC: 5,
+    plasma: 5
   }
 };
 const DEFIB_DOSES = {
@@ -1283,7 +2210,12 @@ function VetShockCalculator() {
     className: `flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all ${species === 'cat' ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`
   }, /*#__PURE__*/React.createElement(Cat, {
     className: "w-4 h-4"
-  }), " ", lang === 'zh' ? '貓' : 'Cat')), /*#__PURE__*/React.createElement("div", {
+  }), " ", lang === 'zh' ? '貓' : 'Cat'), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSpecies('rabbit'),
+    className: `flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all ${species === 'rabbit' ? 'bg-violet-500/15 text-violet-300 border border-violet-500/30' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`
+  }, /*#__PURE__*/React.createElement(Rabbit, {
+    className: "w-4 h-4"
+  }), " ", lang === 'zh' ? '兔' : 'Rabbit')), /*#__PURE__*/React.createElement("div", {
     className: `flex items-center gap-3 rounded-xl border-2 px-4 py-2 transition-all ${hasWeight ? 'bg-emerald-500/10 border-emerald-500/50 shadow-lg shadow-emerald-500/10' : 'bg-red-500/10 border-red-500/60 shadow-lg shadow-red-500/20'}`
   }, /*#__PURE__*/React.createElement("span", {
     className: `text-xs font-mono uppercase tracking-widest font-bold ${hasWeight ? 'text-emerald-400' : 'text-red-400'}`
@@ -1369,6 +2301,13 @@ function EmergencyDrugsView({
     },
     color: 'cyan'
   }, {
+    key: 'emerald',
+    title: {
+      zh: '支持治療',
+      en: 'Adjunct Therapy'
+    },
+    color: 'emerald'
+  }, {
     key: 'indigo',
     title: {
       zh: '反轉藥物',
@@ -1438,6 +2377,14 @@ function DrugCard({
   const lang = useLang();
   const c = colorMap[drug.color];
   const cnText = T(drug.cn, lang);
+
+  // Filter doses by species (support array or string)
+  const matchesSpecies = d => {
+    if (!d.species) return true;
+    return Array.isArray(d.species) ? d.species.includes(species) : d.species === species;
+  };
+  const visibleDoses = drug.doses.filter(matchesSpecies);
+  const speciesAlertText = drug.speciesAlert && drug.speciesAlert[species];
   return /*#__PURE__*/React.createElement("div", {
     className: `rounded-xl border ${c.border} ${c.bg} p-4 sm:p-5`
   }, /*#__PURE__*/React.createElement("div", {
@@ -1446,9 +2393,13 @@ function DrugCard({
     className: "font-display text-lg font-semibold leading-tight"
   }, drug.name), /*#__PURE__*/React.createElement("p", {
     className: `text-sm ${c.text} font-mono`
-  }, cnText && /*#__PURE__*/React.createElement(React.Fragment, null, cnText, "\uFF0E"), drug.conc))), /*#__PURE__*/React.createElement("div", {
+  }, cnText && /*#__PURE__*/React.createElement(React.Fragment, null, cnText, "\uFF0E"), drug.conc))), speciesAlertText && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-500/40 bg-red-500/10 p-3 mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-red-200 leading-relaxed"
+  }, T(speciesAlertText, lang))), visibleDoses.length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "space-y-2.5"
-  }, drug.doses.filter(d => !d.species || d.species === species).map((dose, i) => {
+  }, visibleDoses.map((dose, i) => {
     let mgDose, volDose;
     if (dose.mgPerKg) {
       const lowMg = dose.mgPerKg * w;
@@ -1639,7 +2590,7 @@ function AntiarrhythmicView({
   const lang = useLang();
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-4"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(EcgWalker, null), /*#__PURE__*/React.createElement("div", {
     className: "text-sm text-slate-300 leading-relaxed border border-amber-500/30 bg-amber-500/5 rounded-lg p-3"
   }, /*#__PURE__*/React.createElement("p", null, lang === 'zh' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
     className: "text-amber-300 font-semibold"
@@ -1775,6 +2726,204 @@ function AntiarrhythmicCard({
 }
 
 // ───────────────────────────────────────────────────────────────
+// ECG identification walker (interactive diagnostic flow)
+// ───────────────────────────────────────────────────────────────
+
+const SEVERITY_COLORS = {
+  critical: 'red',
+  urgent: 'amber',
+  mild: 'cyan',
+  normal: 'emerald'
+};
+const SEVERITY_LABELS = {
+  critical: {
+    zh: '危急',
+    en: 'Critical'
+  },
+  urgent: {
+    zh: '緊迫',
+    en: 'Urgent'
+  },
+  mild: {
+    zh: '輕度',
+    en: 'Mild'
+  },
+  normal: {
+    zh: '正常',
+    en: 'Normal'
+  }
+};
+function EcgWalker() {
+  const lang = useLang();
+  const [open, setOpen] = useState(false);
+  const [path, setPath] = useState([ECG_TREE.start]);
+  const reset = () => setPath([ECG_TREE.start]);
+  const handleSelect = (stepIndex, optionIndex) => {
+    const node = ECG_TREE.nodes[path[stepIndex]];
+    if (node.type !== 'q') return;
+    const nextId = node.options[optionIndex].n;
+    // Truncate path at this step, then append new choice
+    setPath([...path.slice(0, stepIndex + 1), nextId]);
+  };
+
+  // Identify which option was chosen at a step (= the index of the option whose .n matches the next node in path)
+  const chosenAt = stepIndex => {
+    if (stepIndex >= path.length - 1) return null;
+    const node = ECG_TREE.nodes[path[stepIndex]];
+    if (!node || node.type !== 'q') return null;
+    const nextId = path[stepIndex + 1];
+    return node.options.findIndex(opt => opt.n === nextId);
+  };
+  return /*#__PURE__*/React.createElement("section", {
+    className: "rounded-xl border border-slate-700 bg-slate-900/50 overflow-hidden"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    className: "w-full flex items-center justify-between px-4 py-3 hover:bg-slate-900/80 transition-colors no-print"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1.5 h-5 bg-cyan-500 rounded-full"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "font-display text-lg font-semibold"
+  }, lang === 'zh' ? 'ECG 心律辨識流程' : 'ECG Rhythm Identification'), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-mono uppercase tracking-widest text-cyan-400/70"
+  }, "Lead II")), /*#__PURE__*/React.createElement("span", {
+    className: `text-cyan-400 text-xs font-mono transition-transform ${open ? 'rotate-180' : ''}`
+  }, "\u25BE")), open && /*#__PURE__*/React.createElement("div", {
+    className: "px-3 sm:px-4 pb-4"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500 mb-3 leading-relaxed"
+  }, lang === 'zh' ? '依序回答問題即可。任何步驟可點不同選項回去重走。' : 'Answer in order. Tap any past option to branch from there.'), /*#__PURE__*/React.createElement("div", null, path.map((nodeId, i) => {
+    const node = ECG_TREE.nodes[nodeId];
+    const isCurrent = i === path.length - 1;
+    const chosenIndex = chosenAt(i);
+    return /*#__PURE__*/React.createElement(React.Fragment, {
+      key: `${i}-${nodeId}`
+    }, i > 0 && /*#__PURE__*/React.createElement(ChainConnector, null), node.type === 'q' ? /*#__PURE__*/React.createElement(EcgQuestionNode, {
+      node: node,
+      step: i + 1,
+      isCurrent: isCurrent,
+      chosenIndex: chosenIndex,
+      onSelect: optIdx => handleSelect(i, optIdx)
+    }) : /*#__PURE__*/React.createElement(ResultCard, {
+      node: node
+    }));
+  })), path.length > 1 && /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 pt-3 border-t border-slate-800 flex items-center gap-2 no-print"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: reset,
+    className: "flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-slate-400 hover:text-red-300 px-3 py-1.5 rounded border border-slate-700 hover:border-red-500/40 transition-colors"
+  }, /*#__PURE__*/React.createElement(RotateCcw, {
+    className: "w-3 h-3"
+  }), lang === 'zh' ? '重新開始' : 'Restart'), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-mono text-slate-600"
+  }, lang === 'zh' ? `${path.length - 1} 步` : `${path.length - 1} steps`))));
+}
+function ChainConnector() {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "20",
+    height: "18",
+    viewBox: "0 0 20 18",
+    fill: "none",
+    className: "text-cyan-500/60"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "10",
+    y1: "0",
+    x2: "10",
+    y2: "13",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    strokeDasharray: "2 2"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M5 10 L10 16 L15 10",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    fill: "none"
+  })));
+}
+function EcgQuestionNode({
+  node,
+  step,
+  isCurrent,
+  chosenIndex,
+  onSelect
+}) {
+  const lang = useLang();
+  const isAnswered = chosenIndex !== null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl border p-3 sm:p-4 transition-all ${isCurrent ? 'border-cyan-500/50 bg-cyan-500/5 shadow-lg shadow-cyan-500/10' : 'border-slate-800 bg-slate-950/40'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `font-mono text-[10px] uppercase tracking-[0.18em] font-bold ${isCurrent ? 'text-cyan-300' : 'text-slate-500'}`
+  }, "Q", step), isAnswered && !isCurrent && /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-mono text-emerald-400/80"
+  }, "\u2713 ", lang === 'zh' ? '已選' : 'Selected'), isCurrent && /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-mono text-cyan-300 flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "inline-block w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"
+  }), lang === 'zh' ? '請選擇' : 'Choose')), /*#__PURE__*/React.createElement("h3", {
+    className: `font-display font-semibold leading-snug mb-3 ${isCurrent ? 'text-lg text-slate-100' : 'text-sm text-slate-300'}`
+  }, T(node.text, lang)), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-1.5 sm:gap-2"
+  }, node.options.map((opt, i) => {
+    const isChosen = chosenIndex === i;
+    const isPast = isAnswered && !isCurrent;
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => onSelect(i),
+      className: `text-left px-3 py-2 rounded-lg text-sm transition-all border flex items-center gap-1.5 ${isChosen ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-100 shadow-sm shadow-cyan-500/10' : isPast ? 'border-slate-800 bg-slate-950/40 text-slate-500 hover:border-slate-600 hover:text-slate-300' : 'border-slate-700 bg-slate-950/60 text-slate-200 hover:bg-cyan-500/10 hover:border-cyan-500/40 hover:text-cyan-100'}`
+    }, isChosen && /*#__PURE__*/React.createElement("span", {
+      className: "text-emerald-400 text-xs"
+    }, "\u25CF"), /*#__PURE__*/React.createElement("span", null, T(opt.l, lang)));
+  })));
+}
+function ResultCard({
+  node
+}) {
+  const lang = useLang();
+  const color = SEVERITY_COLORS[node.severity] || 'cyan';
+  const c = colorMap[color];
+  const severityLabel = T(SEVERITY_LABELS[node.severity] || {}, lang);
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl border ${c.border} ${c.bg} p-4`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline justify-between mb-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500"
+  }, lang === 'zh' ? '診斷' : 'Diagnosis'), /*#__PURE__*/React.createElement("span", {
+    className: `text-[10px] font-mono uppercase tracking-widest ${c.text} px-1.5 py-0.5 rounded bg-slate-950/60 border ${c.border}`
+  }, severityLabel)), /*#__PURE__*/React.createElement("h3", {
+    className: `font-display text-2xl font-bold ${c.accent} num-glow leading-tight mb-2`
+  }, T(node.name, lang)), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-300 leading-relaxed mb-3"
+  }, T(node.desc, lang)), node.features && node.features.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 mb-1.5"
+  }, lang === 'zh' ? '心電圖特徵' : 'ECG features'), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-1"
+  }, node.features.map((f, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    className: "text-xs text-slate-300 flex gap-2 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: c.accent
+  }, "\xB7"), /*#__PURE__*/React.createElement("span", null, T(f, lang)))))), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-slate-700 bg-slate-950/60 p-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 mb-1"
+  }, lang === 'zh' ? '處置方向' : 'Treatment'), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-200 leading-relaxed"
+  }, T(node.tx, lang))));
+}
+
+// ───────────────────────────────────────────────────────────────
 // Fluids & Defib View
 // ───────────────────────────────────────────────────────────────
 
@@ -1784,7 +2933,21 @@ function FluidsDefibView({
 }) {
   const lang = useLang();
   const f = FLUID_PROTOCOLS[species];
-  const speciesLabel = species === 'dog' ? lang === 'zh' ? '犬' : 'Dog' : lang === 'zh' ? '貓' : 'Cat';
+  const speciesLabels = {
+    dog: {
+      zh: '犬',
+      en: 'Dog'
+    },
+    cat: {
+      zh: '貓',
+      en: 'Cat'
+    },
+    rabbit: {
+      zh: '兔',
+      en: 'Rabbit'
+    }
+  };
+  const speciesLabel = T(speciesLabels[species], lang);
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
   }, /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
@@ -1816,7 +2979,9 @@ function FluidsDefibView({
     color: "emerald"
   })), species === 'cat' && /*#__PURE__*/React.createElement("p", {
     className: "mt-3 text-xs text-amber-300 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2"
-  }, lang === 'zh' ? '⚠ 貓對體液過載敏感：每次 bolus 後務必聽診肺音與評估呼吸窘迫，必要時放慢或停止。' : '⚠ Cats are sensitive to volume overload: auscultate lungs and assess respiratory distress after each bolus; slow or stop if needed.')), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+  }, lang === 'zh' ? '⚠ 貓對體液過載敏感：每次 bolus 後務必聽診肺音與評估呼吸窘迫，必要時放慢或停止。' : '⚠ Cats are sensitive to volume overload: auscultate lungs and assess respiratory distress after each bolus; slow or stop if needed.'), species === 'rabbit' && /*#__PURE__*/React.createElement("p", {
+    className: "mt-3 text-xs text-violet-300 bg-violet-500/5 border border-violet-500/20 rounded-lg px-3 py-2"
+  }, lang === 'zh' ? '⚠ 兔的 maintenance 速率較高（4 mL/kg/hr ≈ 100 mL/kg/day），代謝率高所需基礎水分多。同時兔對體液過載也敏感，bolus 要分次給。' : '⚠ Rabbit maintenance rate is higher (4 mL/kg/hr ≈ 100 mL/kg/day) due to higher metabolic rate. Rabbits are also sensitive to volume overload — give boluses in divided doses.')), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 mb-3"
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-1.5 h-6 bg-cyan-500 rounded-full"
