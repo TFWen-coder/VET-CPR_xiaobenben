@@ -483,7 +483,8 @@ const FLUID_PROTOCOLS = {
     maintenancePerHr: 2.5,
     bloodWhole: 20,
     pRBC: 10,
-    plasma: 10
+    plasma: 10,
+    plasmaHigh: 20
   },
   cat: {
     crystalloidShockFull: 55,
@@ -495,7 +496,8 @@ const FLUID_PROTOCOLS = {
     maintenancePerHr: 2,
     bloodWhole: 15,
     pRBC: 10,
-    plasma: 10
+    plasma: 10,
+    plasmaHigh: 20
   }
 };
 // ── 電解質 / 輸血 常數 ──────────────────────────────────────────
@@ -1124,7 +1126,7 @@ function VasopressorCard({
     className: "flex items-baseline justify-between mb-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] font-mono uppercase tracking-[0.18em] text-slate-400 font-bold"
-  }, "\u6CE8\u5C04\u5E6B\u6D66\u5FEB\u914D"), /*#__PURE__*/React.createElement("div", {
+  }, "\u6CE8\u5C04\u5E6B\u6D66\u901F\u7B97\u6CD5"), /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] font-mono text-slate-500"
   }, sr.totalVolume, " mL syringe @ ", sr.ratePerHr, " mL/hr")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-baseline gap-2 flex-wrap"
@@ -1221,13 +1223,19 @@ function FluidsDefibView({
     label: "\u5168\u8840",
     value: w > 0 ? fmt(w * f.bloodWhole) : '—',
     unit: "mL",
-    sub: `${f.bloodWhole} mL/kg．2–4 小時內輸完`,
+    sub: `${f.bloodWhole} mL/kg．依心血管耐受度調整速率`,
     color: "red"
   }), /*#__PURE__*/React.createElement(BigStat, {
-    label: "pRBC / FFP",
+    label: "pRBC 濃厚紅血球",
     value: w > 0 ? fmt(w * f.pRBC) : '—',
     unit: "mL",
-    sub: `${f.pRBC} mL/kg．依需求`,
+    sub: `${f.pRBC} mL/kg．依 PCV 目標調整`,
+    color: "red"
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: "FFP 新鮮冷凍血漿",
+    value: w > 0 ? `${fmt(w * f.plasma)}–${fmt(w * f.plasmaHigh)}` : '—',
+    unit: "mL",
+    sub: `${f.plasma}–${f.plasmaHigh} mL/kg．凝血病；詳見電解質 / 輸血`,
     color: "red"
   }))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 mb-3"
@@ -1576,7 +1584,7 @@ function TransfusionCard({
     onChange: setHours,
     unit: "hr",
     step: "0.5",
-    hint: "不得超過 4 小時"
+    hint: "依心血管耐受度設定"
   })), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 sm:grid-cols-3 gap-3"
   }, /*#__PURE__*/React.createElement(BigStat, {
@@ -1605,7 +1613,168 @@ function TransfusionCard({
     tone: "amber"
   }, "⚠ 計算出的速率超過建議上限（犬 10、貓 5 mL/kg/hr）。心血管疾病或容量過載風險者需更慢，必要時分袋輸注。"), /*#__PURE__*/React.createElement(Warn, {
     tone: "slate"
-  }, "前 15–30 分鐘以 0.25–1 mL/kg/hr 試打並監測輸血反應（體溫、HR、RR、黏膜、蕁麻疹、尿色）；單袋需在 4 小時內輸完。兩種預測值的差別在於是否計入輸入體積的稀釋：臨床標準公式不計（與需求體積公式一致，也對應「1 mL/kg pRBC ↑ 約 1%」的經驗法則），質量平衡式計入。預測僅適用於「無持續出血、無溶血」的穩定患者；持續失血時實測會更低。輸血後 1–2 小時回測 PCV 為準。"));
+  }, "前 15–30 分鐘以 0.25–1 mL/kg/hr 試打並監測輸血反應（體溫、HR、RR、黏膜、蕁麻疹、尿色）。兩種預測值的差別在於是否計入輸入體積的稀釋：臨床標準公式不計（與需求體積公式一致，也對應「1 mL/kg pRBC ↑ 約 1%」的經驗法則），質量平衡式計入。預測僅適用於「無持續出血、無溶血」的穩定患者；持續失血時實測會更低。輸血後 1–2 小時回測 PCV 為準。"));
+}
+
+// ───────────────────────────────────────────────────────────────
+// 1b. FFP 新鮮冷凍血漿
+// ───────────────────────────────────────────────────────────────
+
+const FFP_MONITOR = ['血型相容性：犬首次輸注風險低，貓務必配對血型（貓有天然同種抗體）', '解凍：37°C 水浴或專用解凍機，不可微波；解凍後冷藏 24 小時內用完', '必須使用 170–260 μm 輸血過濾器，不可用一般點滴套', '不可與含鈣輸液（LRS、Normosol-R）同管路 — citrate 結合鈣會形成凝塊', '前 15–30 分鐘慢速試打，監測體溫、HR、RR、黏膜、蕁麻疹、嘔吐', '大量輸注時監測離子鈣：citrate 中毒會造成顫抖、心律不整', '輸後回測 PT / aPTT 評估療效；滅鼠藥中毒仍必須併用 vitamin K1', '容量過載（TACO）：貓與心臟病患者尤須注意呼吸速率與肺音'];
+function FFPCard({
+  w,
+  species
+}) {
+  const f = FLUID_PROTOCOLS[species];
+  const [dose, setDose] = useState('10');
+  const [albNow, setAlbNow] = useState('');
+  const [albTarget, setAlbTarget] = useState('2');
+  const [albFFP, setAlbFFP] = useState('2.5');
+  const [hours, setHours] = useState('4');
+  const d = parseFloat(dose) || 0;
+  const aNow = parseFloat(albNow) || 0;
+  const aTgt = parseFloat(albTarget) || 0;
+  const aFFP = parseFloat(albFFP) || 0;
+  const h = parseFloat(hours) || 4;
+  const ready = w > 0 && d > 0;
+  const vol = d * w;
+  // 白蛋白分佈空間（含血管外）≈ 0.3 L/kg → 換成 dL
+  const distDl = 0.3 * w * 10;
+  const albGiven = vol * aFFP / 100;
+  const dAlb = distDl > 0 ? albGiven / distDl : 0;
+  const albAfter = aNow > 0 ? aNow + dAlb : 0;
+  // 反算：達到目標白蛋白所需的 FFP 體積
+  const deficitG = aNow > 0 && aTgt > aNow ? 10 * (aTgt - aNow) * w * 0.3 : 0;
+  const volForTarget = deficitG > 0 && aFFP > 0 ? deficitG / (aFFP / 100) : 0;
+  const mlkgForTarget = volForTarget > 0 ? volForTarget / w : 0;
+  const startRate = 0.5 * w;
+  const startVol = startRate * 0.5;
+  const restHrs = Math.max(h - 0.5, 0.1);
+  const restRate = vol > startVol ? (vol - startVol) / restHrs : 0;
+  const impractical = mlkgForTarget > 30;
+  const steps = ready ? [{
+    label: 'FFP 輸注體積',
+    expr: `V = ${d} mL/kg × ${nf(w, 1)} kg`,
+    out: `${nf(vol, 1)} mL`
+  }, {
+    label: `輸入的白蛋白總量（FFP 白蛋白約 ${aFFP} g/dL）`,
+    expr: `白蛋白 = ${nf(vol, 1)} mL × ${aFFP} g/dL ÷ 100 mL/dL`,
+    out: `${nf(albGiven, 2)} g`
+  }, {
+    label: '白蛋白分佈空間（僅約 40% 留在血管內，其餘進入組織間隙）',
+    expr: `分佈空間 = 0.3 L/kg × ${nf(w, 1)} kg = ${nf(0.3 * w, 2)} L`,
+    out: `${nf(distDl, 1)} dL`
+  }, {
+    label: '預估白蛋白上升',
+    expr: `ΔAlb = ${nf(albGiven, 2)} g ÷ ${nf(distDl, 1)} dL`,
+    out: `+${nf(dAlb, 2)} g/dL${aNow > 0 ? `．由 ${nf(aNow, 1)} → ${nf(albAfter, 2)} g/dL` : ''}`
+  }, {
+    label: `輸注速率（總時程 ${nf(h, 1)} hr，前 30 分鐘慢速試打）`,
+    expr: `起始 0.5 mL/kg/hr = ${nf(startRate, 1)} mL/hr × 0.5 hr = ${nf(startVol, 1)} mL；其餘 (${nf(vol, 1)} − ${nf(startVol, 1)}) ÷ ${nf(restHrs, 1)} hr`,
+    out: `${nf(restRate, 1)} mL/hr`
+  }] : [];
+  if (volForTarget > 0) {
+    steps.push({
+      label: `反算：白蛋白由 ${nf(aNow, 1)} 提升到 ${nf(aTgt, 1)} g/dL 所需的 FFP`,
+      expr: `缺乏量 = 10 × (${nf(aTgt, 1)} − ${nf(aNow, 1)}) × ${nf(w, 1)} × 0.3 = ${nf(deficitG, 1)} g；體積 = ${nf(deficitG, 1)} ÷ ${nf(aFFP / 100, 3)} g/mL`,
+      out: `${nf(volForTarget, 0)} mL＝${nf(mlkgForTarget, 0)} mL/kg`
+    });
+  }
+  return /*#__PURE__*/React.createElement(CalcCard, {
+    title: "Fresh Frozen Plasma",
+    cn: "新鮮冷凍血漿 FFP",
+    color: "amber",
+    sub: "凝血因子補充為主要適應症。白蛋白變化一併算出，用來說明「為什麼 FFP 不是白蛋白來源」。"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 sm:grid-cols-3 gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "col-span-2"
+  }, /*#__PURE__*/React.createElement(Seg, {
+    label: "劑量",
+    value: dose,
+    onChange: setDose,
+    color: "amber",
+    options: [{
+      value: '10',
+      label: '10 起始'
+    }, {
+      value: '15',
+      label: '15 中'
+    }, {
+      value: '20',
+      label: '20 上限'
+    }]
+  })), /*#__PURE__*/React.createElement(NumField, {
+    label: "自訂劑量",
+    value: dose,
+    onChange: setDose,
+    unit: "mL/kg",
+    step: "1",
+    hint: "常用 10–20，可 q8–12h 重複"
+  }), /*#__PURE__*/React.createElement(NumField, {
+    label: "現值白蛋白",
+    value: albNow,
+    onChange: setAlbNow,
+    unit: "g/dL",
+    step: "0.1",
+    hint: "選填"
+  }), /*#__PURE__*/React.createElement(NumField, {
+    label: "目標白蛋白",
+    value: albTarget,
+    onChange: setAlbTarget,
+    unit: "g/dL",
+    step: "0.1",
+    hint: "維持膠體滲透壓約 2.0"
+  }), /*#__PURE__*/React.createElement(NumField, {
+    label: "FFP 白蛋白濃度",
+    value: albFFP,
+    onChange: setAlbFFP,
+    unit: "g/dL",
+    step: "0.1",
+    hint: "血漿約 2.5–3.0"
+  }), /*#__PURE__*/React.createElement(NumField, {
+    label: "輸注總時程",
+    value: hours,
+    onChange: setHours,
+    unit: "hr",
+    step: "0.5",
+    hint: "依心血管耐受度設定"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 sm:grid-cols-3 gap-3"
+  }, /*#__PURE__*/React.createElement(BigStat, {
+    label: `FFP 輸注量（${d} mL/kg）`,
+    value: ready ? nf(vol, 1) : '—',
+    unit: "mL",
+    sub: ready ? `以 ${nf(restRate, 1)} mL/hr 輸注 ${nf(h, 1)} hr` : '輸入體重後計算',
+    color: "amber",
+    highlight: true
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: "預估白蛋白上升",
+    value: ready ? `+${nf(dAlb, 2)}` : '—',
+    unit: "g/dL",
+    sub: aNow > 0 ? `${nf(aNow, 1)} → ${nf(albAfter, 2)} g/dL` : '幅度極小，見下方說明',
+    color: "amber"
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: "達目標白蛋白所需量",
+    value: volForTarget > 0 ? nf(volForTarget, 0) : '—',
+    unit: "mL",
+    sub: volForTarget > 0 ? `${nf(mlkgForTarget, 0)} mL/kg` : '需填入現值與目標白蛋白',
+    color: impractical ? 'red' : 'emerald'
+  })), /*#__PURE__*/React.createElement(Formula, {
+    steps: steps,
+    color: "amber"
+  }), impractical && /*#__PURE__*/React.createElement(Warn, {
+    tone: "red"
+  }, "⚠ 達到目標白蛋白需要 ", nf(mlkgForTarget, 0), " mL/kg 的 FFP，遠超過單次可安全輸注的量（一般 ≤ 20–30 mL/kg/日），會造成容量過載。要提升白蛋白請改用濃縮製劑（犬白蛋白或 25% 人血清白蛋白），並同時處理低白蛋白的根本原因。"), /*#__PURE__*/React.createElement(Warn, {
+    tone: "amber"
+  }, "⚠ ", /*#__PURE__*/React.createElement("span", {
+    className: "font-mono"
+  }, "FFP 不是白蛋白來源"), "：血漿白蛋白濃度僅約 2.5–3 g/dL，且輸入後約六成會離開血管進入組織間隙。上方算式即在量化這件事 — 標準 10–20 mL/kg 的劑量通常只能提升 0.1–0.2 g/dL。FFP 的適應症是", /*#__PURE__*/React.createElement("span", {
+    className: "text-amber-200"
+  }, "凝血因子缺乏"), "（滅鼠藥中毒、DIC、肝衰竭、大量輸血時搭配 pRBC），不是低白蛋白血症，也不是容量擴充的首選。"), /*#__PURE__*/React.createElement(MonitorList, {
+    items: FFP_MONITOR,
+    color: "amber"
+  }));
 }
 
 // ───────────────────────────────────────────────────────────────
@@ -2053,6 +2222,9 @@ function ElectrolyteView({
   }, /*#__PURE__*/React.createElement("p", null, "每張卡片下方的 ", /*#__PURE__*/React.createElement("span", {
     className: "text-slate-200 font-mono"
   }, "詳細算式"), " 會將實際數值逐步代入，可直接抄錄於病歷。需先於上方輸入體重，再填入各卡片的檢驗數值。")), /*#__PURE__*/React.createElement(TransfusionCard, {
+    w: w,
+    species: species
+  }), /*#__PURE__*/React.createElement(FFPCard, {
     w: w,
     species: species
   }), /*#__PURE__*/React.createElement(SodiumCard, {
