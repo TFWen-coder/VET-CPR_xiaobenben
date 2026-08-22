@@ -1,0 +1,17 @@
+{
+  "name": "急救小本本 3.0",
+  "short_name": "急救小本本 3.0",
+  "description": "犬貓兔休克與心肺復甦劑量計算機 — RECOVER 2024",
+  "lang": "zh-TW",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0d14",
+  "theme_color": "#0a0d14",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

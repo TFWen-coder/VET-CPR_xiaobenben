@@ -1,0 +1,16 @@
+# Claude Code 本機設定（launch.json 有保留）
+.claude/settings.local.json
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 編輯器
+.vscode/
+.idea/
+
+# 相依套件 / 建置產物
+node_modules/
+dist/
+*.log
