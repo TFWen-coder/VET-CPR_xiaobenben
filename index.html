@@ -202,6 +202,9 @@ const Beaker = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.
   d: "M5.52 16h12.96"
 }));
 
+const ChevronDown = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "m6 9 6 6 6-6"
+}));
 const Rabbit = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
   d: "M13 16a3 3 0 0 1 2.24 5"
 }), /*#__PURE__*/React.createElement("path", {
@@ -1401,21 +1404,21 @@ function MonitorList({
   const list = l(items) || [];
   if (list.length === 0) return null;
   return /*#__PURE__*/React.createElement("div", {
-    className: "mt-3 pt-2.5 border-t border-slate-800/80"
+    className: "mt-3"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setOpen(o => !o),
     "aria-expanded": open,
-    className: "w-full flex items-center gap-2 text-left group no-print"
+    className: `w-full flex items-center gap-2 text-left px-3 py-2.5 rounded-lg border transition-all no-print ${open ? `${c.border} ${c.bg}` : 'border-slate-700 bg-slate-900/70 hover:border-slate-600 hover:bg-slate-900'}`
   }, /*#__PURE__*/React.createElement("span", {
-    className: `text-[10px] font-mono uppercase tracking-[0.18em] font-bold transition-colors ${open ? 'text-slate-400' : 'text-slate-500 group-hover:text-slate-400'}`
+    className: `text-[11px] font-mono uppercase tracking-[0.15em] font-bold ${open ? c.text : 'text-slate-300'}`
   }, t('monitoring')), /*#__PURE__*/React.createElement("span", {
-    className: `text-[10px] font-mono px-1.5 rounded ${c.bg} ${c.text}`
-  }, list.length), /*#__PURE__*/React.createElement("span", {
-    className: `ml-auto text-[10px] font-mono text-slate-600 transition-transform ${open ? 'rotate-180' : ''}`
-  }, "▾")), /*#__PURE__*/React.createElement("div", {
+    className: `text-[11px] font-mono font-bold px-1.5 py-0.5 rounded ${c.bg} ${c.text} border ${c.border}`
+  }, list.length), /*#__PURE__*/React.createElement(ChevronDown, {
+    className: `ml-auto w-5 h-5 shrink-0 transition-transform duration-200 ${open ? `rotate-180 ${c.accent}` : 'text-slate-300'}`
+  })), /*#__PURE__*/React.createElement("div", {
     className: "hidden print:block text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold"
   }, t('monitoring')), /*#__PURE__*/React.createElement("ul", {
-    className: `${open ? 'block' : 'hidden'} print:block space-y-1 mt-1.5`
+    className: `${open ? 'block' : 'hidden'} print:block space-y-1 mt-2 px-1`
   }, list.map((m, i) => /*#__PURE__*/React.createElement("li", {
     key: i,
     className: "flex gap-1.5 text-[11px] text-slate-400 leading-relaxed"
@@ -2986,9 +2989,9 @@ function ReferencesSection() {
     className: "font-display text-lg font-semibold"
   }, "References"), /*#__PURE__*/React.createElement("span", {
     className: "text-xs text-slate-500 font-mono"
-  }, REFERENCES.guidelines.length + REFERENCES.textbooks.length + REFERENCES.topics.length, " ", t('refsSources'))), /*#__PURE__*/React.createElement("span", {
-    className: `text-slate-400 text-xs font-mono transition-transform ${open ? 'rotate-180' : ''}`
-  }, "\u25BE")), /*#__PURE__*/React.createElement("div", {
+  }, REFERENCES.guidelines.length + REFERENCES.textbooks.length + REFERENCES.topics.length, " ", t('refsSources'))), /*#__PURE__*/React.createElement(ChevronDown, {
+    className: `w-5 h-5 shrink-0 transition-transform duration-200 ${open ? 'rotate-180 text-slate-300' : 'text-slate-400'}`
+  })), /*#__PURE__*/React.createElement("div", {
     className: `${open ? 'block' : 'hidden'} print:block px-4 pb-4 space-y-5`
   }, groups.map((g, gi) => /*#__PURE__*/React.createElement("div", {
     key: g.key
