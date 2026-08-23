@@ -68,7 +68,6 @@
   <script>
 const {
   useState,
-  useMemo,
   useEffect,
   useContext,
   createContext
@@ -291,33 +290,6 @@ const UI = {
 // ───────────────────────────────────────────────────────────────
 
 const EMERGENCY_DRUGS = [{
-  name: 'Epinephrine (Adrenaline)',
-  cn: { zh: '腎上腺素', en: 'Epinephrine', ja: 'アドレナリン' },
-  conc: '1 mg/mL (1:1000)',
-  color: 'red',
-  monitor: {
-    zh: ['ECG：給藥後心律變化、是否轉為 VF / pulseless VT', 'ETCO₂ > 15 mmHg 代表按壓有效；數值突然躍升提示 ROSC', '記錄每次給藥時間，每 3–5 分鐘（每 2 個 cycle）一次', 'ROSC 後：血壓、心搏過速、心肌缺血、乳酸', '不可與 sodium bicarbonate 同一管路（鹼性環境會失活）'],
-    en: ['ECG: rhythm change after each dose, watch for conversion to VF / pulseless VT', 'ETCO₂ > 15 mmHg indicates effective compressions; an abrupt rise suggests ROSC', 'Record every dose time — one dose every 3–5 min (every 2 cycles)', 'After ROSC: blood pressure, tachycardia, myocardial ischaemia, lactate', 'Never run in the same line as sodium bicarbonate (inactivated in alkaline solution)'],
-    ja: ['ECG：投与後の調律変化、VF / 無脈性 VT への移行の有無', 'ETCO₂ > 15 mmHg は有効な圧迫の指標。急上昇は ROSC を示唆', '投与時刻を毎回記録し、3–5 分ごと（2 サイクルごと）に 1 回', 'ROSC 後：血圧、頻脈、心筋虚血、乳酸', '炭酸水素ナトリウムと同一ラインで投与しない（アルカリ性で失活）']
-  },
-  doses: [{
-    label: { zh: 'Standard dose（每 3–5 分鐘）', en: 'Standard dose (every 3–5 min)', ja: '標準用量（3–5 分ごと）' },
-    mgPerKg: 0.01,
-    mlPerMg: 1,
-    route: 'IV / IO',
-    priority: true
-  }, {
-    label: { zh: 'Endotracheal（無血管路）', en: 'Endotracheal (no vascular access)', ja: '気管内投与（血管確保困難時）' },
-    mgPerKg: 0.1,
-    mlPerMg: 1,
-    route: { zh: 'IT，稀釋至 5–10 mL', en: 'IT, dilute to 5–10 mL', ja: 'IT、5–10 mL に希釈' }
-  }],
-  note: {
-    zh: 'RECOVER 2024：不再建議使用高劑量 epinephrine（潛在傷害大於效益）。',
-    en: 'RECOVER 2024: high-dose epinephrine is no longer recommended — potential harm outweighs benefit.',
-    ja: 'RECOVER 2024：高用量アドレナリンは推奨されない（利益より害が上回る）。'
-  }
-}, {
   name: 'Atropine',
   cn: { zh: '阿托品', en: 'Atropine', ja: 'アトロピン' },
   conc: '0.5 mg/mL',
@@ -354,6 +326,33 @@ const EMERGENCY_DRUGS = [{
     zh: 'RECOVER 2024：僅在首次使用，不重複給藥。',
     en: 'RECOVER 2024: give once only, do not repeat.',
     ja: 'RECOVER 2024：初回のみ、反復投与しない。'
+  }
+}, {
+  name: 'Epinephrine (Adrenaline)',
+  cn: { zh: '腎上腺素', en: 'Epinephrine', ja: 'アドレナリン' },
+  conc: '1 mg/mL (1:1000)',
+  color: 'red',
+  monitor: {
+    zh: ['ECG：給藥後心律變化、是否轉為 VF / pulseless VT', 'ETCO₂ > 15 mmHg 代表按壓有效；數值突然躍升提示 ROSC', '記錄每次給藥時間，每 3–5 分鐘（每 2 個 cycle）一次', 'ROSC 後：血壓、心搏過速、心肌缺血、乳酸', '不可與 sodium bicarbonate 同一管路（鹼性環境會失活）'],
+    en: ['ECG: rhythm change after each dose, watch for conversion to VF / pulseless VT', 'ETCO₂ > 15 mmHg indicates effective compressions; an abrupt rise suggests ROSC', 'Record every dose time — one dose every 3–5 min (every 2 cycles)', 'After ROSC: blood pressure, tachycardia, myocardial ischaemia, lactate', 'Never run in the same line as sodium bicarbonate (inactivated in alkaline solution)'],
+    ja: ['ECG：投与後の調律変化、VF / 無脈性 VT への移行の有無', 'ETCO₂ > 15 mmHg は有効な圧迫の指標。急上昇は ROSC を示唆', '投与時刻を毎回記録し、3–5 分ごと（2 サイクルごと）に 1 回', 'ROSC 後：血圧、頻脈、心筋虚血、乳酸', '炭酸水素ナトリウムと同一ラインで投与しない（アルカリ性で失活）']
+  },
+  doses: [{
+    label: { zh: 'Standard dose（每 3–5 分鐘）', en: 'Standard dose (every 3–5 min)', ja: '標準用量（3–5 分ごと）' },
+    mgPerKg: 0.01,
+    mlPerMg: 1,
+    route: 'IV / IO',
+    priority: true
+  }, {
+    label: { zh: 'Endotracheal（無血管路）', en: 'Endotracheal (no vascular access)', ja: '気管内投与（血管確保困難時）' },
+    mgPerKg: 0.1,
+    mlPerMg: 1,
+    route: { zh: 'IT，稀釋至 5–10 mL', en: 'IT, dilute to 5–10 mL', ja: 'IT、5–10 mL に希釈' }
+  }],
+  note: {
+    zh: 'RECOVER 2024：不再建議使用高劑量 epinephrine（潛在傷害大於效益）。',
+    en: 'RECOVER 2024: high-dose epinephrine is no longer recommended — potential harm outweighs benefit.',
+    ja: 'RECOVER 2024：高用量アドレナリンは推奨されない（利益より害が上回る）。'
   }
 }, {
   name: 'Glycopyrrolate',
@@ -835,17 +834,6 @@ const BLOOD_VOLUME = {
   rabbit: 57
 };
 
-// 輸血產品預設 PCV
-const BLOOD_PRODUCTS = [{
-  value: 'prbc',
-  label: 'pRBC 濃厚紅血球',
-  pcv: 70
-}, {
-  value: 'whole',
-  label: 'Whole blood 全血',
-  pcv: 40
-}];
-
 // 常見輸液的鈉濃度 (mEq/L)
 const NA_FLUIDS = [{
   value: 'nacl09',
@@ -1110,6 +1098,10 @@ function VetShockCalculator() {
       if (d && typeof d.value === 'number') setViews(d.value);
     }).catch(() => {});
   }, []);
+  // 讓 <html lang> 跟著語系走，螢幕閱讀器與瀏覽器翻譯才會判讀正確
+  useEffect(() => {
+    document.documentElement.lang = lang === 'zh' ? 'zh-TW' : lang;
+  }, [lang]);
   const t = k => {
     const e = UI[k];
     return e ? e[lang] !== undefined ? e[lang] : e.zh : k;
@@ -1337,7 +1329,7 @@ function DrugCard({
     className: "space-y-2.5"
   }, drug.doses.filter(d => !d.species || d.species === species).map((dose, i) => {
     // Compute dose
-    let mgDose, volDose, doseLabel, perKg;
+    let volDose, doseLabel, perKg;
     if (dose.mgPerKg) {
       const lowMg = dose.mgPerKg * w;
       const highMg = dose.mgPerKgHigh ? dose.mgPerKgHigh * w : null;
@@ -1405,13 +1397,25 @@ function MonitorList({
   const c = colorMap[color];
   const l = useL();
   const t = useT();
+  const [open, setOpen] = useState(false);
   const list = l(items) || [];
+  if (list.length === 0) return null;
   return /*#__PURE__*/React.createElement("div", {
     className: "mt-3 pt-2.5 border-t border-slate-800/80"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    "aria-expanded": open,
+    className: "w-full flex items-center gap-2 text-left group no-print"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `text-[10px] font-mono uppercase tracking-[0.18em] font-bold transition-colors ${open ? 'text-slate-400' : 'text-slate-500 group-hover:text-slate-400'}`
+  }, t('monitoring')), /*#__PURE__*/React.createElement("span", {
+    className: `text-[10px] font-mono px-1.5 rounded ${c.bg} ${c.text}`
+  }, list.length), /*#__PURE__*/React.createElement("span", {
+    className: `ml-auto text-[10px] font-mono text-slate-600 transition-transform ${open ? 'rotate-180' : ''}`
+  }, "▾")), /*#__PURE__*/React.createElement("div", {
+    className: "hidden print:block text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold"
   }, t('monitoring')), /*#__PURE__*/React.createElement("ul", {
-    className: "space-y-1"
+    className: `${open ? 'block' : 'hidden'} print:block space-y-1 mt-1.5`
   }, list.map((m, i) => /*#__PURE__*/React.createElement("li", {
     key: i,
     className: "flex gap-1.5 text-[11px] text-slate-400 leading-relaxed"
