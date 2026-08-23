@@ -205,6 +205,11 @@ const Beaker = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.
 const ChevronDown = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
   d: "m6 9 6 6 6-6"
 }));
+const HeartPulse = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"
+}));
 const Rabbit = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
   d: "M13 16a3 3 0 0 1 2.24 5"
 }), /*#__PURE__*/React.createElement("path", {
@@ -233,6 +238,22 @@ const UI = {
   tabCri: { zh: '升壓 / CRI', en: 'Vasopressors', ja: '昇圧薬 / CRI' },
   tabFluid: { zh: '輸液 / 電擊', en: 'Fluids / Defib', ja: '輸液 / 除細動' },
   tabLytes: { zh: '電解質 / 輸血', en: 'Lytes / Transfusion', ja: '電解質 / 輸血' },
+  tabEcg: { zh: '心電圖 / 抗心律不整', en: 'ECG / Antiarrhythmics', ja: '心電図 / 抗不整脈' },
+  ecgIntro: { zh: '依序回答問題，系統會沿著判讀流程走到最可能的心律不整診斷，並列出處置重點與相關藥物。判讀順序參考 VETgirl 心電圖辨識圖（Lead II）與標準心臟學教科書。', en: 'Answer each question and the tool walks the interpretation pathway to the most likely arrhythmia, with management priorities and the relevant drugs. The question sequence follows the VETgirl ECG identification chart (lead II) and standard cardiology texts.', ja: '質問に順に答えると、判読フローをたどって最も可能性の高い不整脈にたどり着き、対応の要点と関連薬を表示します。判読順序は VETgirl の心電図識別チャート（II 誘導）と標準的な循環器教科書に基づきます。' },
+  ecgFlowTitle: { zh: '心電圖判讀流程', en: 'ECG interpretation pathway', ja: '心電図判読フロー' },
+  ecgBack: { zh: '上一步', en: 'Back', ja: '戻る' },
+  ecgRestart: { zh: '重新開始', en: 'Restart', ja: '最初から' },
+  ecgResult: { zh: '判讀結果', en: 'Result', ja: '判読結果' },
+  ecgSubtypes: { zh: '再細分', en: 'Subtypes', ja: '細分類' },
+  ecgAction: { zh: '處置重點', en: 'Management', ja: '対応の要点' },
+  ecgRelatedDrugs: { zh: '相關藥物（見下方）', en: 'Related drugs (see below)', ja: '関連薬（下記参照）' },
+  ecgDrugsTitle: { zh: '抗心律不整藥物', en: 'Antiarrhythmic drugs', ja: '抗不整脈薬' },
+  ecgDrugsNote: { zh: '劑量為犬貓的一般參考範圍。點開每張卡片下方的「注意事項」可看到毒性徵象、禁忌症與交互作用。', en: 'Doses are general reference ranges for dogs and cats. Open "Cautions" on each card for toxicity signs, contraindications and interactions.', ja: '用量は犬猫の一般的な参考範囲です。各カード下部の「注意事項」を開くと中毒徴候・禁忌・相互作用を確認できます。' },
+  ecgIndication: { zh: '適應症', en: 'Indication', ja: '適応' },
+  ecgCautions: { zh: '注意事項', en: 'Cautions', ja: '注意事項' },
+  urg_critical: { zh: '緊急', en: 'Critical', ja: '緊急' },
+  urg_watch: { zh: '需評估', en: 'Assess', ja: '要評価' },
+  urg_normal: { zh: '正常', en: 'Normal', ja: '正常' },
   tabFlow: { zh: 'CPR 流程', en: 'CPR Algorithm', ja: 'CPR フロー' },
   tabChecklist: { zh: '檢查清單', en: 'Checklist', ja: 'チェックリスト' },
   needWeight: { zh: '請於上方輸入體重後產生個別劑量。流程與清單可不輸入體重直接查閱。', en: 'Enter body weight above to generate patient-specific doses. The algorithm and checklist tabs work without a weight.', ja: '上部に体重を入力すると個別用量が計算されます。フローとチェックリストは体重なしでも閲覧できます。' },
@@ -1033,6 +1054,497 @@ const CHECKLIST_SECTIONS = [{
     ja: ['飼い主へ状況説明と CPR の同意取得（DNR／開胸の意向）', '予後と費用の初期説明', '完全な時系列記録（時刻、処置、反応）', '申し送りは SBAR：Situation / Background / Assessment / Recommendation']
   }
 }];
+// ───────────────────────────────────────────────────────────────
+// ECG 判讀決策樹
+// 判讀順序參考 VETgirl "Common Arrhythmias: ECG Identification Chart (Lead II)" (2025)
+// 與標準心臟學教科書；內容為重新撰寫並補充心率標準與處置建議。
+// ───────────────────────────────────────────────────────────────
+
+const ECG_TREE = {
+  start: {
+    q: { zh: '聽診或觸診有心跳／脈搏嗎？', en: 'Is there an audible heartbeat or palpable pulse?', ja: '聴診・触診で心拍／脈拍がありますか？' },
+    hint: { zh: '先確認是否為心搏停止 — 沒有脈搏就走 CPR 路徑', en: 'Rule out arrest first — no pulse means the CPR pathway', ja: 'まず心停止を除外 — 脈がなければ CPR の経路へ' },
+    opts: [
+      { label: { zh: '有', en: 'Yes', ja: 'あり' }, next: 'pBeforeQrs', tone: 'emerald' },
+      { label: { zh: '沒有', en: 'No', ja: 'なし' }, next: 'electrical', tone: 'red' }
+    ]
+  },
+  electrical: {
+    q: { zh: '心電圖上還有電氣活動嗎？', en: 'Is there any electrical activity on the ECG?', ja: '心電図に電気活動がありますか？' },
+    opts: [
+      { label: { zh: '有', en: 'Yes', ja: 'あり' }, next: 'distinguishable', tone: 'amber' },
+      { label: { zh: '沒有（一直線）', en: 'No (flat line)', ja: 'なし（フラット）' }, dx: 'asystole', tone: 'red' }
+    ]
+  },
+  distinguishable: {
+    q: { zh: '能分辨出 P 波與 QRS 波嗎？', en: 'Can you distinguish P waves and QRS complexes?', ja: 'P 波と QRS 波を identify できますか？' },
+    opts: [
+      { label: { zh: '可以', en: 'Yes', ja: 'できる' }, dx: 'pea', tone: 'red' },
+      { label: { zh: '不行（雜亂顫動）', en: 'No (chaotic fibrillation)', ja: 'できない（無秩序な細動）' }, dx: 'vf', tone: 'red' }
+    ]
+  },
+  pBeforeQrs: {
+    q: { zh: '每個 QRS 前面都有 P 波嗎？', en: 'Is there a P wave before every QRS complex?', ja: 'すべての QRS の前に P 波がありますか？' },
+    opts: [
+      { label: { zh: '有', en: 'Yes', ja: 'ある' }, next: 'qrsAfterP', tone: 'emerald' },
+      { label: { zh: '沒有', en: 'No', ja: 'ない' }, next: 'earlyLate', tone: 'amber' }
+    ]
+  },
+  qrsAfterP: {
+    q: { zh: '每個 P 波後面都有 QRS 嗎？', en: 'Is there a QRS complex after every P wave?', ja: 'すべての P 波の後に QRS がありますか？' },
+    hint: { zh: '有 P 沒 QRS＝傳導被阻斷', en: 'A P wave with no QRS means conduction is blocked', ja: 'P はあるが QRS がない＝伝導ブロック' },
+    opts: [
+      { label: { zh: '有', en: 'Yes', ja: 'ある' }, next: 'narrowWide', tone: 'emerald' },
+      { label: { zh: '沒有（有 P 卻沒 QRS）', en: 'No (P without QRS)', ja: 'ない（P のみで QRS なし）' }, next: 'pWithEveryQrs', tone: 'amber' }
+    ]
+  },
+  narrowWide: {
+    q: { zh: 'QRS 波是窄的還是寬的？', en: 'Are the QRS complexes narrow or wide?', ja: 'QRS 波は幅が狭いか広いか？' },
+    hint: { zh: '犬 > 0.06 秒、貓 > 0.04 秒即算寬', en: 'Wide is > 0.06 s in dogs, > 0.04 s in cats', ja: '犬 > 0.06 秒、猫 > 0.04 秒で幅広' },
+    opts: [
+      { label: { zh: '窄', en: 'Narrow', ja: '狭い' }, next: 'rhythm', tone: 'emerald' },
+      { label: { zh: '寬', en: 'Wide', ja: '広い' }, next: 'upDown', tone: 'amber' }
+    ]
+  },
+  rhythm: {
+    q: { zh: '節律是規則、不規則，還是規則性不規則？', en: 'Is the rhythm regular, irregular, or regularly irregular?', ja: 'リズムは整、不整、それとも規則的な不整ですか？' },
+    hint: { zh: '規則性不規則＝隨呼吸週期性變快變慢', en: 'Regularly irregular = speeds up and slows with respiration', ja: '規則的な不整＝呼吸に伴い周期的に変動' },
+    opts: [
+      { label: { zh: '規則', en: 'Regular', ja: '整' }, next: 'rate', tone: 'emerald' },
+      { label: { zh: '規則性不規則', en: 'Regularly irregular', ja: '規則的な不整' }, dx: 'sinusArrhythmia', tone: 'emerald' },
+      { label: { zh: '不規則', en: 'Irregular', ja: '不整' }, dx: 'irregularSupra', tone: 'amber' }
+    ]
+  },
+  rate: {
+    q: { zh: '心率是正常、快、還是慢？', en: 'Is the heart rate normal, fast, or slow?', ja: '心拍数は正常、頻脈、徐脈のどれですか？' },
+    hint: { zh: '犬 60–160（幼犬／小型犬上限較高）、貓 140–220', en: 'Dog 60–160 (higher in puppies and toy breeds), cat 140–220', ja: '犬 60–160（幼犬・小型犬は上限が高い）、猫 140–220' },
+    opts: [
+      { label: { zh: '正常', en: 'Normal', ja: '正常' }, dx: 'sinus', tone: 'emerald' },
+      { label: { zh: '快', en: 'Fast', ja: '速い' }, dx: 'sinusTach', tone: 'amber' },
+      { label: { zh: '慢', en: 'Slow', ja: '遅い' }, dx: 'sinusBrady', tone: 'amber' }
+    ]
+  },
+  upDown: {
+    q: { zh: '寬 QRS 的主波方向大多向上還是向下？', en: 'Are the wide QRS complexes mostly positive or negative?', ja: '幅広 QRS の主棘波は主に上向きか下向きか？' },
+    hint: { zh: '看第 II 導程', en: 'Assess in lead II', ja: 'II 誘導で判定' },
+    opts: [
+      { label: { zh: '向上（正向）', en: 'Up (positive)', ja: '上向き（陽性）' }, dx: 'lbbb', tone: 'amber' },
+      { label: { zh: '向下（負向）', en: 'Down (negative)', ja: '下向き（陰性）' }, dx: 'rbbb', tone: 'amber' }
+    ]
+  },
+  earlyLate: {
+    q: { zh: '該 QRS 出現得比預期早還是晚？', en: 'Does the QRS complex occur earlier or later than expected?', ja: 'その QRS は予測より早いか遅いか？' },
+    hint: { zh: '比較前後 R–R 間期', en: 'Compare with the surrounding R–R intervals', ja: '前後の R–R 間隔と比較' },
+    opts: [
+      { label: { zh: '比預期晚', en: 'Later', ja: '遅い' }, dx: 'ventEscape', tone: 'red' },
+      { label: { zh: '比預期早', en: 'Earlier', ja: '早い' }, next: 'earlyNarrowWide', tone: 'amber' }
+    ]
+  },
+  earlyNarrowWide: {
+    q: { zh: '這個提早出現的 QRS 是窄還是寬？', en: 'Is the early QRS complex narrow or wide?', ja: 'その早期 QRS は幅が狭いか広いか？' },
+    opts: [
+      { label: { zh: '寬', en: 'Wide', ja: '広い' }, dx: 'ventEctopic', tone: 'red' },
+      { label: { zh: '窄', en: 'Narrow', ja: '狭い' }, dx: 'afib', tone: 'amber' }
+    ]
+  },
+  pWithEveryQrs: {
+    q: { zh: '每個 QRS 都有相對應的 P 波嗎？', en: 'Is there a P wave associated with every QRS complex?', ja: 'すべての QRS に対応する P 波がありますか？' },
+    hint: { zh: '若 P 與 QRS 完全各走各的＝房室分離', en: 'If P waves and QRS march independently, that is AV dissociation', ja: 'P と QRS が独立して出現＝房室解離' },
+    opts: [
+      { label: { zh: '有', en: 'Yes', ja: 'ある' }, next: 'prProlong', tone: 'amber' },
+      { label: { zh: '沒有（P 與 QRS 各自獨立）', en: 'No (P and QRS independent)', ja: 'ない（P と QRS が独立）' }, dx: 'avb3', tone: 'red' }
+    ]
+  },
+  prProlong: {
+    q: { zh: '在「有 P 沒 QRS」之前，PR 間期有逐漸拉長嗎？', en: 'Does the PR interval progressively lengthen before the dropped QRS?', ja: 'QRS が脱落する前に PR 間隔が徐々に延長しますか？' },
+    opts: [
+      { label: { zh: '有，逐搏拉長', en: 'Yes, lengthens beat to beat', ja: 'はい、拍ごとに延長' }, dx: 'mobitz1', tone: 'amber' },
+      { label: { zh: '沒有，PR 固定', en: 'No, PR stays constant', ja: 'いいえ、PR は一定' }, dx: 'mobitz2', tone: 'red' }
+    ]
+  }
+};
+
+const ECG_DX = {
+  asystole: {
+    name: { zh: '心搏停止 Asystole', en: 'Asystole', ja: '心静止 Asystole' },
+    urgency: 'critical',
+    desc: { zh: '完全沒有電氣活動的一直線。務必確認導程接觸與增益設定，並換一個導程再看一次，避免把細顫誤判成一直線。', en: 'A flat line with no electrical activity. Always check lead contact and gain, and look in a second lead — fine VF can masquerade as asystole.', ja: '電気活動のないフラットライン。必ず電極の接触と感度を確認し、別の誘導でも確認する — 細かい VF が心静止に見えることがある。' },
+    action: { zh: ['立即 CPR：胸外按壓 100–120 次/分，不電擊', 'Epinephrine 0.01 mg/kg IV/IO，每 3–5 分鐘', '疑迷走神經性可給 atropine 一次（兔用 glycopyrrolate）', '找可逆原因 5H 5T'], en: ['Start CPR immediately: 100–120 compressions/min. Do not defibrillate', 'Epinephrine 0.01 mg/kg IV/IO every 3–5 min', 'One dose of atropine if a vagal cause is suspected (glycopyrrolate in rabbits)', 'Search for reversible causes: 5H 5T'], ja: ['直ちに CPR：圧迫 100–120 回/分。除細動はしない', 'アドレナリン 0.01 mg/kg IV/IO を 3–5 分ごと', '迷走神経性が疑われればアトロピンを 1 回（ウサギはグリコピロレート）', '可逆的原因 5H 5T を検索'] },
+    drugs: ['epinephrine', 'atropineAA']
+  },
+  pea: {
+    name: { zh: '無脈性電氣活動 PEA', en: 'Pulseless Electrical Activity', ja: '無脈性電気活動 PEA' },
+    urgency: 'critical',
+    desc: { zh: '心電圖看得到有組織的波形，但完全摸不到脈搏、聽不到心音。屬於心搏停止的一種，同樣不電擊。', en: 'Organised complexes on the monitor but no palpable pulse or audible heart sounds. This is a form of cardiac arrest — do not defibrillate.', ja: 'モニタ上は整った波形だが脈も心音もない。心停止の一型で、除細動は行わない。' },
+    action: { zh: ['立即 CPR，不電擊', 'Epinephrine 0.01 mg/kg IV/IO，每 3–5 分鐘', '積極找可逆原因：低血容、缺氧、心包填塞、張力性氣胸、高血鉀、中毒'], en: ['Start CPR immediately. Do not defibrillate', 'Epinephrine 0.01 mg/kg IV/IO every 3–5 min', 'Hunt aggressively for reversible causes: hypovolaemia, hypoxia, tamponade, tension pneumothorax, hyperkalaemia, toxins'], ja: ['直ちに CPR。除細動はしない', 'アドレナリン 0.01 mg/kg IV/IO を 3–5 分ごと', '可逆的原因を積極的に検索：循環血液量減少、低酸素、心タンポナーデ、緊張性気胸、高カリウム血症、中毒'] },
+    drugs: ['epinephrine']
+  },
+  vf: {
+    name: { zh: '心室顫動 Ventricular Fibrillation', en: 'Ventricular Fibrillation', ja: '心室細動 Ventricular Fibrillation' },
+    urgency: 'critical',
+    desc: { zh: '雜亂無章、看不出 P 波與 QRS 的顫動波形。心室完全失去有效收縮，是少數可以電擊的心律。', en: 'Chaotic waveform with no identifiable P waves or QRS complexes. The ventricles are not contracting effectively — this is one of the shockable rhythms.', ja: 'P 波も QRS も判別できない無秩序な波形。心室は有効に収縮しておらず、除細動適応の調律。' },
+    action: { zh: ['立即去顫：雙相 2–4 J/kg、單相 4–6 J/kg', '電擊後立即恢復按壓，2 分鐘後再評估', '頑固性：amiodarone 5 mg/kg 或 lidocaine（犬 2 mg/kg）', '考慮 magnesium 30 mg/kg（尤其 torsades）'], en: ['Defibrillate immediately: biphasic 2–4 J/kg, monophasic 4–6 J/kg', 'Resume compressions straight after the shock, reassess in 2 min', 'Refractory: amiodarone 5 mg/kg or lidocaine (dog 2 mg/kg)', 'Consider magnesium 30 mg/kg, especially for torsades'], ja: ['直ちに除細動：二相性 2–4 J/kg、単相性 4–6 J/kg', '通電後は直ちに圧迫を再開し 2 分後に再評価', '難治例：アミオダロン 5 mg/kg またはリドカイン（犬 2 mg/kg）', 'マグネシウム 30 mg/kg を検討（特に torsades）'] },
+    drugs: ['amiodarone', 'lidocaine', 'magnesium']
+  },
+  sinus: {
+    name: { zh: '竇性節律 Sinus Rhythm', en: 'Sinus Rhythm', ja: '洞調律 Sinus Rhythm' },
+    urgency: 'normal',
+    desc: { zh: '正常節律：每個 QRS 前有 P 波、每個 P 波後有 QRS，節律規則、心率正常、QRS 窄。', en: 'Normal rhythm: a P before every QRS, a QRS after every P, regular, normal rate, narrow QRS.', ja: '正常調律：すべての QRS の前に P、すべての P の後に QRS、整、心拍数正常、QRS 幅は狭い。' },
+    action: { zh: ['無須抗心律不整治療', '若臨床上仍不穩定，重新評估灌流、血容量與疼痛'], en: ['No antiarrhythmic therapy needed', 'If the patient is still unstable, reassess perfusion, volume status and pain'], ja: ['抗不整脈治療は不要', '臨床的に不安定なら灌流・循環血液量・疼痛を再評価'] },
+    drugs: []
+  },
+  sinusTach: {
+    name: { zh: '竇性心搏過速 Sinus Tachycardia', en: 'Sinus Tachycardia', ja: '洞性頻脈 Sinus Tachycardia' },
+    urgency: 'watch',
+    desc: { zh: '節律規則、QRS 窄、每個 QRS 前都有 P 波，只是心率偏高。幾乎都是次發性的 — 它是症狀，不是診斷。', en: 'Regular, narrow QRS, P before every QRS, just fast. Almost always secondary — it is a sign, not a diagnosis.', ja: '整、QRS 幅は狭く、すべての QRS の前に P があり、心拍数のみ高い。ほぼ常に二次性 — 診断ではなく徴候。' },
+    action: { zh: ['找原因：疼痛、發燒、低血容、貧血、缺氧、壓力、甲亢、藥物', '治療病因，不要直接壓心率', '與 SVT 鑑別：竇速有 P 波、心率會隨處置逐漸變化；SVT 通常突發突止且更快'], en: ['Find the cause: pain, fever, hypovolaemia, anaemia, hypoxia, stress, hyperthyroidism, drugs', 'Treat the cause — do not simply slow the rate', 'Distinguish from SVT: sinus tachycardia has P waves and changes gradually; SVT starts and stops abruptly and is usually faster'], ja: ['原因を検索：疼痛、発熱、循環血液量減少、貧血、低酸素、ストレス、甲状腺機能亢進、薬物', '原因を治療する — 心拍数だけを下げない', 'SVT との鑑別：洞性頻脈は P 波があり緩やかに変化、SVT は突然発症・停止しより速い'] },
+    drugs: []
+  },
+  sinusBrady: {
+    name: { zh: '竇性心搏過緩 Sinus Bradycardia', en: 'Sinus Bradycardia', ja: '洞性徐脈 Sinus Bradycardia' },
+    urgency: 'watch',
+    desc: { zh: '節律規則、QRS 窄、P 波正常，心率偏低。運動犬與睡眠中可為正常；但若合併虛弱、暈厥或低血壓就要處理。', en: 'Regular, narrow QRS, normal P waves, slow rate. Can be normal in athletic dogs and during sleep, but needs treatment if there is weakness, syncope or hypotension.', ja: '整、QRS 幅は狭く、P 波正常で心拍数が低い。運動犬や睡眠中は正常のこともあるが、虚弱・失神・低血圧を伴えば治療対象。' },
+    action: { zh: ['找原因：高血鉀、低體溫、顱內壓上升、迷走神經張力、opioid／α2／β-blocker、Addison', '有症狀：atropine 0.02–0.04 mg/kg IV（兔用 glycopyrrolate）', '對 atropine 無反應且有症狀 → 考慮 isoproterenol CRI 或起搏', '務必先看血鉀 — 高血鉀是常見且可逆的原因'], en: ['Find the cause: hyperkalaemia, hypothermia, raised intracranial pressure, vagal tone, opioids/α2/β-blockers, Addison’s', 'Symptomatic: atropine 0.02–0.04 mg/kg IV (glycopyrrolate in rabbits)', 'Atropine-unresponsive and symptomatic → consider isoproterenol CRI or pacing', 'Always check potassium — hyperkalaemia is a common and reversible cause'], ja: ['原因を検索：高カリウム血症、低体温、頭蓋内圧上昇、迷走神経緊張、オピオイド／α2／β遮断薬、アジソン病', '症候性：アトロピン 0.02–0.04 mg/kg IV（ウサギはグリコピロレート）', 'アトロピン無効かつ症候性 → イソプロテレノール CRI やペーシングを検討', '必ずカリウムを確認 — 高カリウム血症は頻度が高く可逆的'] },
+    drugs: ['atropineAA', 'glycopyrrolateAA', 'isoproterenol', 'terbutaline']
+  },
+  sinusArrhythmia: {
+    name: { zh: '竇性心律不整 Sinus Arrhythmia', en: 'Sinus Arrhythmia', ja: '洞性不整脈 Sinus Arrhythmia' },
+    urgency: 'normal',
+    desc: { zh: '心率隨呼吸週期性加快（吸氣）與變慢（呼氣），P 波形態正常。犬的正常變異，代表迷走神經張力良好。', en: 'Rate speeds up on inspiration and slows on expiration, with normal P waves. A normal variant in dogs reflecting healthy vagal tone.', ja: '吸気で速く呼気で遅くなる周期性変動、P 波は正常。犬では正常変異で、良好な迷走神経緊張を反映。' },
+    action: { zh: ['犬：正常，不需治療', '貓：少見，若出現需注意是否有潛在疾病或高迷走張力', '在心衰竭的犬身上消失（交感神經張力上升）反而是壞徵兆'], en: ['Dogs: normal, no treatment', 'Cats: uncommon — look for underlying disease or high vagal tone if present', 'Its disappearance in a dog with heart failure is a poor sign (rising sympathetic tone)'], ja: ['犬：正常、治療不要', '猫：まれ — 認めた場合は基礎疾患や迷走神経緊張の亢進を検索', '心不全の犬で消失することは予後不良のサイン（交感神経緊張の上昇）'] },
+    drugs: []
+  },
+  irregularSupra: {
+    name: { zh: '不規則的窄 QRS 節律', en: 'Irregular narrow-QRS rhythm', ja: '不整な狭い QRS の調律' },
+    urgency: 'watch',
+    desc: { zh: '窄 QRS 但節律不規則，需再細分為以下三種之一。', en: 'Narrow QRS with an irregular rhythm — narrow it down to one of the following three.', ja: '狭い QRS で不整 — 以下の 3 つのいずれかに絞り込む。' },
+    subtypes: {
+      zh: ['竇房暫停／竇性停搏 Sinus Pause / Arrest：突然出現一段沒有任何波形的空白，之後恢復竇性節律。犬常見於高迷走張力（呼吸道疾病、腸胃疾病、短吻犬），> 6 秒或伴暈厥要處理。', '室上性心搏過速 SVT：突發突止、心率極快（犬常 > 220、貓 > 240）、QRS 窄、P 波常被埋沒。可試迷走神經刺激，藥物首選 diltiazem 或 esmolol。', '心房早期收縮 APC：提早出現的窄 QRS，前面有形態異常的 P′ 波，之後常有不完全代償間歇。常見於心房擴大，是心房顫動的前兆。'],
+      en: ['Sinus pause / arrest: a sudden gap with no complexes, then sinus rhythm resumes. Common in dogs with high vagal tone (airway disease, GI disease, brachycephalics). Treat if pauses exceed ~6 s or cause syncope.', 'Supraventricular tachycardia: abrupt onset and offset, very fast (dogs often > 220, cats > 240), narrow QRS, P waves often buried. Try a vagal manoeuvre; diltiazem or esmolol are first-line drugs.', 'Atrial premature contraction: an early narrow QRS preceded by an abnormally shaped P′ wave, usually with an incomplete compensatory pause. Common with atrial enlargement and a forerunner of atrial fibrillation.'],
+      ja: ['洞停止／洞休止：波形のない空白が突然生じ、その後洞調律が再開。迷走神経緊張の高い犬（気道疾患、消化器疾患、短頭種）に多い。6 秒を超える、または失神を伴う場合は治療。', '上室性頻拍：突然始まり突然止まる、非常に速い（犬 > 220、猫 > 240 が多い）、QRS は狭く P 波は埋もれがち。迷走神経刺激を試み、薬物はジルチアゼムかエスモロールが第一選択。', '心房期外収縮：異常な形の P′ 波を伴う早期の狭い QRS で、通常は不完全代償性休止を伴う。心房拡大でよくみられ、心房細動の前触れ。']
+    },
+    action: { zh: ['先分辨是哪一種：看有沒有長間歇、心率多快、有沒有異常 P′ 波', '穩定者先找病因（電解質、迷走張力、心臟結構）', 'SVT 不穩定 → 迷走刺激失敗即用 diltiazem 或 esmolol'], en: ['Decide which one: look for long pauses, how fast the rate is, and whether abnormal P′ waves are present', 'If stable, look for the cause first (electrolytes, vagal tone, cardiac structure)', 'Unstable SVT → vagal manoeuvre, then diltiazem or esmolol'], ja: ['どれかを判別：長い休止の有無、心拍数、異常な P′ 波の有無', '安定していればまず原因検索（電解質、迷走神経緊張、心臓の構造）', '不安定な SVT → 迷走神経刺激、次いでジルチアゼムかエスモロール'] },
+    drugs: ['diltiazem', 'esmolol', 'atropineAA']
+  },
+  lbbb: {
+    name: { zh: '左束支傳導阻滯 LBBB', en: 'Left Bundle Branch Block', ja: '左脚ブロック LBBB' },
+    urgency: 'watch',
+    desc: { zh: 'QRS 變寬且在第 II 導程主波向上，但每個 QRS 前仍有 P 波。心室去極化路徑異常，不是心律問題而是傳導問題。', en: 'Wide QRS, positive in lead II, but still a P before every QRS. The ventricles depolarise abnormally — a conduction problem rather than a rhythm problem.', ja: 'QRS 幅が広く II 誘導で上向きだが、すべての QRS の前に P がある。心室の脱分極経路の異常で、調律ではなく伝導の問題。' },
+    action: { zh: ['本身不需抗心律不整藥', '在犬常代表左心結構性疾病 — 建議心超', '注意：LBBB 會讓 QRS 看起來像室性心搏過速，別誤判', '若新出現且伴血行動力學惡化，找心肌缺血或心肌炎'], en: ['Needs no antiarrhythmic in itself', 'In dogs it usually indicates structural left heart disease — echocardiography is advised', 'Beware: LBBB can mimic ventricular tachycardia — do not misclassify', 'If new and accompanied by haemodynamic deterioration, look for myocardial ischaemia or myocarditis'], ja: ['それ自体に抗不整脈薬は不要', '犬では左心の構造的疾患を示すことが多い — 心エコーを推奨', '注意：LBBB は心室頻拍に似て見えるため誤判定しない', '新規発症で血行動態が悪化する場合は心筋虚血や心筋炎を検索'] },
+    drugs: []
+  },
+  rbbb: {
+    name: { zh: '右束支傳導阻滯 RBBB', en: 'Right Bundle Branch Block', ja: '右脚ブロック RBBB' },
+    urgency: 'watch',
+    desc: { zh: 'QRS 變寬且在第 II 導程主波向下，每個 QRS 前仍有 P 波。', en: 'Wide QRS, negative in lead II, with a P before every QRS.', ja: 'QRS 幅が広く II 誘導で下向き、すべての QRS の前に P がある。' },
+    action: { zh: ['本身不需抗心律不整藥', '可為健康犬貓的偶發變異，也可能代表右心疾病、心絲蟲、肺高壓', '建議影像學評估右心'], en: ['Needs no antiarrhythmic in itself', 'Can be an incidental finding in healthy dogs and cats, or indicate right heart disease, heartworm or pulmonary hypertension', 'Imaging of the right heart is advised'], ja: ['それ自体に抗不整脈薬は不要', '健康な犬猫の偶発所見のこともあれば、右心疾患・フィラリア・肺高血圧を示すこともある', '右心の画像評価を推奨'] },
+    drugs: []
+  },
+  ventEscape: {
+    name: { zh: '心室逸搏 Ventricular Escape Beat', en: 'Ventricular Escape Beat', ja: '心室補充収縮 Ventricular Escape Beat' },
+    urgency: 'critical',
+    desc: { zh: '在一段過長的停頓之後才出現的寬 QRS，是心室在上位節律點失效時的保命機制。', en: 'A wide QRS appearing only after an excessively long pause — the ventricle rescuing the heart when higher pacemakers fail.', ja: '過度に長い休止の後に現れる幅広 QRS。上位ペースメーカが機能しないときに心室が心臓を救う機構。' },
+    action: { zh: ['絕對不可以抑制它 — 給 lidocaine 等抗心律不整藥會造成心搏停止', '要治療的是背後的心搏過緩或傳導阻滯', '處理高血鉀、竇房結功能不全、第三度房室阻滯', '常需 atropine 試驗、isoproterenol，最終多需植入節律器'], en: ['Never suppress it — giving lidocaine or another antiarrhythmic can cause asystole', 'Treat the underlying bradycardia or block instead', 'Address hyperkalaemia, sick sinus syndrome, third-degree AV block', 'Usually needs an atropine response test, isoproterenol, and ultimately a pacemaker'], ja: ['絶対に抑制しない — リドカインなどの抗不整脈薬投与は心静止を招く', '治療すべきは背後の徐脈や伝導ブロック', '高カリウム血症、洞不全症候群、完全房室ブロックに対応', 'アトロピン試験、イソプロテレノールを経て、最終的にペースメーカが必要なことが多い'] },
+    drugs: ['atropineAA', 'isoproterenol']
+  },
+  ventEctopic: {
+    name: { zh: '心室異位節律（VPC／AIVR／VT）', en: 'Ventricular ectopy (VPC / AIVR / VT)', ja: '心室性期外収縮群（VPC／AIVR／VT）' },
+    urgency: 'critical',
+    desc: { zh: '提早出現的寬 QRS，前面沒有相關的 P 波，T 波方向常與 QRS 相反。依連續數目與速率再細分。', en: 'Early wide QRS with no related P wave and a T wave usually opposite in direction. Subclassified by how many in a row and how fast.', ja: '関連する P 波を伴わない早期の幅広 QRS で、T 波は QRS と逆向きのことが多い。連続数と速度で細分類。' },
+    subtypes: {
+      zh: ['心室早期收縮 VPC：單發的提早寬 QRS。偶發且無症狀者常不需治療。', '加速性心室自主節律 AIVR：連續的寬 QRS 但速率不快（犬約 60–160）。血行動力學通常穩定，常見於 GDV、脾臟疾病、創傷，多半只需治療病因與觀察。', '心室性心搏過速 VT：連續 ≥ 3 個寬 QRS 且速率快（犬 > 160–180）。需治療的門檻：速率 > 180、R-on-T、多形性、伴低血壓或虛弱。'],
+      en: ['Ventricular premature contraction: an isolated early wide QRS. Occasional and asymptomatic VPCs often need no treatment.', 'Accelerated idioventricular rhythm: runs of wide QRS at a modest rate (about 60–160 in dogs). Usually haemodynamically stable; common with GDV, splenic disease and trauma, and generally needs only treatment of the cause plus observation.', 'Ventricular tachycardia: three or more consecutive wide complexes at a fast rate (dogs > 160–180). Treat if the rate exceeds ~180, there is R-on-T, polymorphic morphology, hypotension or weakness.'],
+      ja: ['心室期外収縮 VPC：単発の早期幅広 QRS。散発性で無症候なら治療不要のことが多い。', '促進型心室固有調律 AIVR：連続する幅広 QRS だが速度は速くない（犬で約 60–160）。血行動態は安定していることが多く、GDV・脾疾患・外傷でよくみられ、原因治療と経過観察で足りることが多い。', '心室頻拍 VT：幅広 QRS が 3 拍以上連続し速度が速い（犬 > 160–180）。治療基準：心拍数 > 180、R on T、多形性、低血圧や虚弱を伴う場合。']
+    },
+    action: { zh: ['先問：血行動力學穩定嗎？不穩定＋無脈 → 立即電擊', '穩定的 AIVR：治病因（GDV、脾臟、創傷、貧血、缺氧、疼痛）並觀察', '需治療的 VT：犬 lidocaine 2 mg/kg IV bolus（可重複至 8 mg/kg）→ CRI 25–80 μg/kg/min', 'Lidocaine 無效：procainamide 或 amiodarone；務必同時矯正低血鉀與低血鎂', '貓：lidocaine 極易中毒，劑量僅 0.25–0.5 mg/kg，首選常為 esmolol'], en: ['Ask first: is the patient haemodynamically stable? Unstable and pulseless → defibrillate immediately', 'Stable AIVR: treat the cause (GDV, splenic disease, trauma, anaemia, hypoxia, pain) and observe', 'VT needing treatment: dog lidocaine 2 mg/kg IV bolus (repeat to 8 mg/kg total) → CRI 25–80 μg/kg/min', 'If lidocaine fails: procainamide or amiodarone; always correct hypokalaemia and hypomagnesaemia at the same time', 'Cats: highly sensitive to lidocaine toxicity — only 0.25–0.5 mg/kg; esmolol is often preferred'], ja: ['まず問う：血行動態は安定か？不安定かつ無脈 → 直ちに除細動', '安定した AIVR：原因治療（GDV、脾疾患、外傷、貧血、低酸素、疼痛）と経過観察', '治療が必要な VT：犬はリドカイン 2 mg/kg IV ボーラス（計 8 mg/kg まで反復可）→ CRI 25–80 μg/kg/min', 'リドカイン無効時：プロカインアミドまたはアミオダロン。低カリウム・低マグネシウムの是正も同時に', '猫：リドカイン中毒に非常に弱く 0.25–0.5 mg/kg のみ。エスモロールが選ばれることが多い'] },
+    drugs: ['lidocaine', 'procainamide', 'amiodarone', 'esmolol', 'sotalol', 'mexiletine', 'magnesium']
+  },
+  afib: {
+    name: { zh: '心房顫動 Atrial Fibrillation', en: 'Atrial Fibrillation', ja: '心房細動 Atrial Fibrillation' },
+    urgency: 'watch',
+    desc: { zh: '完全不規則、沒有 P 波、基線有細微顫動波（f 波）的窄 QRS 節律，心率通常偏快。聽診像「一袋滾動的石頭」。', en: 'Irregularly irregular narrow-QRS rhythm with no P waves and a finely undulating baseline (f waves), usually fast. Classically sounds like "a bag of rocks tumbling".', ja: 'P 波がなく基線が細かく揺れる（f 波）、完全に不整な狭い QRS 調律で通常は頻脈。聴診は「袋の中で転がる石」に例えられる。' },
+    action: { zh: ['目標是控制心室率，不是硬轉回竇性節律', '大型犬常伴擴張型心肌病或嚴重心房擴大 — 一定要做心超', '心室率控制：diltiazem ± digoxin；急性可用 diltiazem IV', '巨型犬偶見「孤立性心房顫動」，心臟結構正常且心率不快者可只觀察', '貓的心房顫動幾乎都代表嚴重心臟病'], en: ['The goal is ventricular rate control, not forcing a return to sinus rhythm', 'In large dogs it often accompanies dilated cardiomyopathy or marked atrial enlargement — always echo', 'Rate control: diltiazem ± digoxin; diltiazem IV for acute control', 'Giant breeds occasionally have "lone AF" with a structurally normal heart and a controlled rate, which may just be monitored', 'AF in cats almost always signals severe cardiac disease'], ja: ['目標は心室応答の調節であり、無理に洞調律へ戻すことではない', '大型犬では拡張型心筋症や著明な心房拡大を伴うことが多い — 必ず心エコー', 'レートコントロール：ジルチアゼム ± ジゴキシン。急性期はジルチアゼム静注', '超大型犬ではまれに構造的異常のない「孤立性心房細動」があり、心拍数が保たれていれば経過観察も可', '猫の心房細動はほぼ常に重度の心疾患を意味する'] },
+    drugs: ['diltiazem', 'digoxin', 'esmolol', 'atenolol']
+  },
+  avb3: {
+    name: { zh: '第三度（完全）房室阻滯', en: 'Third-degree (complete) AV block', ja: '第 3 度（完全）房室ブロック' },
+    urgency: 'critical',
+    desc: { zh: 'P 波與 QRS 完全各自獨立（房室分離），心房速率快於心室速率，心室靠逸搏節律維持，通常很慢且 QRS 寬。', en: 'P waves and QRS complexes march completely independently (AV dissociation). The atrial rate exceeds the ventricular rate, which is maintained by a slow, usually wide escape rhythm.', ja: 'P 波と QRS が完全に独立（房室解離）。心房レートが心室レートを上回り、心室は遅く幅広い補充調律で維持される。' },
+    action: { zh: ['絕不可抑制逸搏節律', '先排除可逆原因：高血鉀、藥物（β-blocker、鈣離子阻斷劑、digoxin）、萊姆病、心肌炎', 'Atropine 反應試驗：0.04 mg/kg IV，多數不會有反應', '有症狀者的確定治療是植入永久性節律器；等待期間可用 isoproterenol CRI 或暫時性起搏', '常伴暈厥、運動不耐、鬱血性心衰竭'], en: ['Never suppress the escape rhythm', 'Exclude reversible causes first: hyperkalaemia, drugs (β-blockers, calcium-channel blockers, digoxin), Lyme disease, myocarditis', 'Atropine response test 0.04 mg/kg IV — most cases do not respond', 'Definitive treatment for symptomatic patients is a permanent pacemaker; isoproterenol CRI or temporary pacing can bridge the gap', 'Often presents with syncope, exercise intolerance or congestive failure'], ja: ['補充調律を絶対に抑制しない', 'まず可逆的原因を除外：高カリウム血症、薬物（β遮断薬、Ca 拮抗薬、ジゴキシン）、ライム病、心筋炎', 'アトロピン反応試験 0.04 mg/kg IV — 多くは無反応', '症候性では恒久型ペースメーカが根治的治療。それまではイソプロテレノール CRI や一時ペーシングでつなぐ', '失神、運動不耐、うっ血性心不全を伴うことが多い'] },
+    drugs: ['atropineAA', 'isoproterenol', 'terbutaline']
+  },
+  mobitz1: {
+    name: { zh: '第二度房室阻滯 Mobitz I（Wenckebach）', en: 'Second-degree AV block, Mobitz I (Wenckebach)', ja: '第 2 度房室ブロック Mobitz I（Wenckebach）' },
+    urgency: 'watch',
+    desc: { zh: 'PR 間期逐搏拉長，直到某個 P 波後面沒有 QRS（漏掉一拍），然後循環重來。阻滯位置多在房室結，較良性。', en: 'The PR interval lengthens beat by beat until a P wave is not followed by a QRS (a dropped beat), then the cycle repeats. The block is usually at the AV node and relatively benign.', ja: 'PR 間隔が拍ごとに延長し、ある P 波の後に QRS が続かなくなり（脱落）、周期が繰り返す。ブロック部位は房室結節が多く比較的良性。' },
+    action: { zh: ['常見於高迷走神經張力的犬，多半不需治療', '找可逆原因：opioid、α2 agonist、digoxin、高血鉀、呼吸道或腸胃疾病', '無症狀者觀察即可；有暈厥或虛弱才處理', 'Atropine 通常有反應（可用來確認是迷走神經介導）'], en: ['Common in dogs with high vagal tone and usually needs no treatment', 'Look for reversible causes: opioids, α2 agonists, digoxin, hyperkalaemia, airway or GI disease', 'Observe if asymptomatic; treat only for syncope or weakness', 'Usually responds to atropine, which also confirms a vagally mediated block'], ja: ['迷走神経緊張の高い犬でよくみられ、通常は治療不要', '可逆的原因を検索：オピオイド、α2 作動薬、ジゴキシン、高カリウム血症、気道・消化器疾患', '無症候なら経過観察。失神や虚弱があれば治療', 'アトロピンに反応することが多く、迷走神経性であることの確認にもなる'] },
+    drugs: ['atropineAA', 'glycopyrrolateAA']
+  },
+  mobitz2: {
+    name: { zh: '第二度房室阻滯 Mobitz II', en: 'Second-degree AV block, Mobitz II', ja: '第 2 度房室ブロック Mobitz II' },
+    urgency: 'critical',
+    desc: { zh: 'PR 間期固定不變，卻突然有 P 波後面沒有 QRS。阻滯位置在房室結以下，比 Mobitz I 危險得多，容易進展成完全房室阻滯。', en: 'The PR interval stays constant, then a P wave is suddenly not conducted. The block is below the AV node — considerably more dangerous than Mobitz I and liable to progress to complete AV block.', ja: 'PR 間隔は一定のまま、突然 P 波が伝導されなくなる。ブロック部位は房室結節より下位で、Mobitz I より危険であり完全房室ブロックへ進展しやすい。' },
+    action: { zh: ['視為進展成第三度房室阻滯的前兆，需積極評估', 'Atropine 通常沒有反應，甚至可能惡化（心房率上升但傳導沒改善）', '排除心肌炎、浸潤性疾病、藥物毒性、高血鉀', '高比例（2:1 以上）阻滯或有症狀者 → 轉診評估植入節律器', '避免使用會抑制房室傳導的藥物：β-blocker、diltiazem、digoxin'], en: ['Treat it as a precursor to complete AV block and evaluate actively', 'Usually does not respond to atropine and can even worsen (the atrial rate rises without improving conduction)', 'Exclude myocarditis, infiltrative disease, drug toxicity and hyperkalaemia', 'High-grade (2:1 or worse) block or symptoms → refer for pacemaker assessment', 'Avoid drugs that suppress AV conduction: β-blockers, diltiazem, digoxin'], ja: ['完全房室ブロックへの前段階とみなし積極的に評価する', 'アトロピンには通常反応せず、悪化することもある（心房レートのみ上昇し伝導は改善しない）', '心筋炎、浸潤性疾患、薬物毒性、高カリウム血症を除外', '高度（2:1 以上）ブロックや症候性 → ペースメーカ評価のため紹介', '房室伝導を抑制する薬剤（β遮断薬、ジルチアゼム、ジゴキシン）は避ける'] },
+    drugs: ['isoproterenol', 'terbutaline']
+  }
+};
+// ───────────────────────────────────────────────────────────────
+// 抗心律不整藥物
+// ───────────────────────────────────────────────────────────────
+
+const AA_CLASSES = [
+  { key: 'I', title: { zh: 'Class I — 鈉離子通道阻斷劑', en: 'Class I — Sodium channel blockers', ja: 'Class I — ナトリウムチャネル遮断薬' }, color: 'red' },
+  { key: 'II', title: { zh: 'Class II — β 受體阻斷劑', en: 'Class II — Beta blockers', ja: 'Class II — β遮断薬' }, color: 'amber' },
+  { key: 'III', title: { zh: 'Class III — 鉀離子通道阻斷劑', en: 'Class III — Potassium channel blockers', ja: 'Class III — カリウムチャネル遮断薬' }, color: 'cyan' },
+  { key: 'IV', title: { zh: 'Class IV — 鈣離子通道阻斷劑', en: 'Class IV — Calcium channel blockers', ja: 'Class IV — カルシウム拮抗薬' }, color: 'indigo' },
+  { key: 'brady', title: { zh: '心搏過緩用藥', en: 'Drugs for bradyarrhythmias', ja: '徐脈性不整脈の薬' }, color: 'emerald' },
+  { key: 'other', title: { zh: '其他', en: 'Others', ja: 'その他' }, color: 'cyan' }
+];
+
+const ANTIARRHYTHMICS = [{
+  id: 'lidocaine',
+  name: 'Lidocaine',
+  cls: 'I',
+  sub: 'Ib',
+  cn: { zh: '利多卡因', en: 'Lidocaine', ja: 'リドカイン' },
+  indication: { zh: '心室性心律不整首選（VPC、VT、VF）', en: 'First-line for ventricular arrhythmias (VPC, VT, VF)', ja: '心室性不整脈の第一選択（VPC、VT、VF）' },
+  doses: {
+    zh: ['犬 bolus：2 mg/kg IV slow，每 5 分鐘可重複，累積上限 8 mg/kg', '犬 CRI：25–80 μg/kg/min', '貓 bolus：0.25–0.5 mg/kg IV very slow', '貓 CRI：10–20 μg/kg/min（若非必要盡量不用）'],
+    en: ['Dog bolus: 2 mg/kg IV slow, repeat every 5 min to a total of 8 mg/kg', 'Dog CRI: 25–80 μg/kg/min', 'Cat bolus: 0.25–0.5 mg/kg IV very slow', 'Cat CRI: 10–20 μg/kg/min (avoid unless necessary)'],
+    ja: ['犬ボーラス：2 mg/kg IV 緩徐、5 分ごとに反復可、累積上限 8 mg/kg', '犬 CRI：25–80 μg/kg/min', '猫ボーラス：0.25–0.5 mg/kg IV きわめて緩徐', '猫 CRI：10–20 μg/kg/min（必要でなければ避ける）']
+  },
+  detail: {
+    zh: ['只作用在心室，對室上性心律不整無效 — 用錯地方等於沒治療', '毒性徵象依序出現：嗜睡 → 肌肉顫動 → 眼球震顫 → 癲癇 → 心血管抑制。出現即停藥', '貓對神經與心血管毒性極度敏感，劑量約為犬的 1/5', '低血鉀與低血鎂會使 lidocaine 失效 — 給藥同時務必矯正電解質', '肝功能不良、低心輸出量、併用 cimetidine 或 propranolol 時清除率下降，需減量', '含腎上腺素的局麻劑型絕對不可靜脈注射', '在心室逸搏節律中禁用 — 抑制逸搏會造成心搏停止'],
+    en: ['Acts only on the ventricle and is ineffective for supraventricular arrhythmias — using it in the wrong place is no treatment at all', 'Toxicity appears in order: sedation → muscle tremor → nystagmus → seizures → cardiovascular depression. Stop at the first sign', 'Cats are extremely sensitive to neurological and cardiovascular toxicity — roughly one fifth of the canine dose', 'Hypokalaemia and hypomagnesaemia make lidocaine ineffective — correct electrolytes at the same time', 'Clearance falls with hepatic dysfunction, low cardiac output, or concurrent cimetidine or propranolol — reduce the dose', 'Never give epinephrine-containing local anaesthetic preparations intravenously', 'Contraindicated in ventricular escape rhythms — suppressing the escape causes asystole'],
+    ja: ['心室にのみ作用し上室性不整脈には無効 — 適応を誤れば治療にならない', '中毒徴候は順に出現：鎮静 → 筋振戦 → 眼振 → 痙攣 → 心血管抑制。出現時点で中止', '猫は神経・心血管毒性に極めて感受性が高く、用量は犬の約 1/5', '低カリウム・低マグネシウム血症下では無効 — 投与と同時に電解質を是正', '肝機能低下、低心拍出、シメチジンやプロプラノロール併用でクリアランス低下 — 減量が必要', 'アドレナリン含有の局所麻酔製剤は静脈内投与厳禁', '心室補充調律では禁忌 — 補充調律を抑制すると心静止を招く']
+  }
+}, {
+  id: 'procainamide',
+  name: 'Procainamide',
+  cls: 'I',
+  sub: 'Ia',
+  cn: { zh: '普魯卡因醯胺', en: 'Procainamide', ja: 'プロカインアミド' },
+  indication: { zh: 'Lidocaine 無效的心室性心律不整；部分室上性', en: 'Ventricular arrhythmias refractory to lidocaine; some supraventricular arrhythmias', ja: 'リドカイン無効の心室性不整脈、一部の上室性不整脈' },
+  doses: {
+    zh: ['犬 bolus：2 mg/kg IV over 2 min，可重複至 20 mg/kg', '犬 CRI：25–50 μg/kg/min', '犬 IM：6–20 mg/kg q4–6h', '貓：資料有限，1–2 mg/kg IV slow，極謹慎'],
+    en: ['Dog bolus: 2 mg/kg IV over 2 min, repeat to a total of 20 mg/kg', 'Dog CRI: 25–50 μg/kg/min', 'Dog IM: 6–20 mg/kg q4–6h', 'Cat: limited data, 1–2 mg/kg IV slow with great caution'],
+    ja: ['犬ボーラス：2 mg/kg を 2 分かけて IV、計 20 mg/kg まで反復可', '犬 CRI：25–50 μg/kg/min', '犬 IM：6–20 mg/kg q4–6h', '猫：データ限定的、1–2 mg/kg IV 緩徐、きわめて慎重に']
+  },
+  detail: {
+    zh: ['給藥速度太快會造成低血壓 — 務必稀釋後慢推並持續監測血壓', 'ECG 監測 QRS 寬度與 QT 間期：QRS 增寬超過 25% 即停止', '會延長 QT，有誘發 torsades de pointes 的風險', '腎功能不良者代謝產物 NAPA 會蓄積，需減量', '禁用於第三度房室阻滯與心室逸搏節律', '同樣需先矯正低血鉀與低血鎂才會有效'],
+    en: ['Rapid administration causes hypotension — dilute, give slowly and monitor blood pressure throughout', 'Monitor QRS duration and QT on ECG: stop if QRS widens by more than 25%', 'Prolongs QT and can precipitate torsades de pointes', 'The metabolite NAPA accumulates in renal dysfunction — reduce the dose', 'Contraindicated in third-degree AV block and ventricular escape rhythms', 'Also requires correction of hypokalaemia and hypomagnesaemia to work'],
+    ja: ['急速投与で低血圧 — 希釈して緩徐に投与し、血圧を継続監視', 'ECG で QRS 幅と QT を監視：QRS が 25% 以上延長したら中止', 'QT を延長させ torsades de pointes を誘発しうる', '腎機能低下では代謝物 NAPA が蓄積 — 減量が必要', '完全房室ブロックと心室補充調律では禁忌', '効果を得るには低カリウム・低マグネシウム血症の是正が必要']
+  }
+}, {
+  id: 'mexiletine',
+  name: 'Mexiletine',
+  cls: 'I',
+  sub: 'Ib',
+  cn: { zh: '美西律', en: 'Mexiletine', ja: 'メキシレチン' },
+  indication: { zh: '慢性心室性心律不整的口服維持（lidocaine 的口服版）', en: 'Oral maintenance for chronic ventricular arrhythmias — the oral counterpart of lidocaine', ja: '慢性心室性不整脈の経口維持（リドカインの経口版）' },
+  doses: {
+    zh: ['犬：5–8 mg/kg PO q8h', '常與 sotalol 或 atenolol 併用以增強效果', '貓：不建議'],
+    en: ['Dog: 5–8 mg/kg PO q8h', 'Often combined with sotalol or atenolol for added effect', 'Cat: not recommended'],
+    ja: ['犬：5–8 mg/kg PO q8h', '効果増強のためソタロールやアテノロールと併用されることが多い', '猫：推奨されない']
+  },
+  detail: {
+    zh: ['隨餐給予可減少嘔吐、食慾不振等腸胃副作用', '可能出現顫抖、共濟失調等神經症狀', '主要用於 Boxer 的心律不整型心肌病與 Doberman 的擴張型心肌病', '起效需數日，不適合急性控制', '定期追蹤 Holter 評估療效'],
+    en: ['Give with food to reduce vomiting, inappetence and other GI effects', 'Tremor and ataxia are possible neurological effects', 'Mainly used for arrhythmogenic cardiomyopathy in Boxers and dilated cardiomyopathy in Dobermans', 'Takes days to reach effect — not for acute control', 'Follow up with Holter monitoring to judge efficacy'],
+    ja: ['食後投与で嘔吐・food欲不振などの消化器症状を軽減', '振戦や運動失調などの神経症状が出ることがある', '主にボクサーの不整脈原性心筋症、ドーベルマンの拡張型心筋症に使用', '効果発現に数日かかり急性期の管理には不向き', 'ホルター心電図で効果を追跡']
+  }
+}, {
+  id: 'esmolol',
+  name: 'Esmolol',
+  cls: 'II',
+  cn: { zh: '艾司洛爾', en: 'Esmolol', ja: 'エスモロール' },
+  indication: { zh: '室上性心搏過速、心房顫動的急性心室率控制；貓的心室性心律不整', en: 'Acute rate control in SVT and atrial fibrillation; ventricular arrhythmias in cats', ja: 'SVT・心房細動の急性レートコントロール、猫の心室性不整脈' },
+  doses: {
+    zh: ['負荷：0.05–0.5 mg/kg IV slow over 1–2 min', 'CRI：25–200 μg/kg/min', '半衰期僅約 9 分鐘，停藥後很快消退'],
+    en: ['Loading: 0.05–0.5 mg/kg IV slow over 1–2 min', 'CRI: 25–200 μg/kg/min', 'Half-life is only about 9 minutes, so effects wear off quickly'],
+    ja: ['負荷：0.05–0.5 mg/kg を 1–2 分かけて IV 緩徐', 'CRI：25–200 μg/kg/min', '半減期は約 9 分と短く、中止後速やかに消退']
+  },
+  detail: {
+    zh: ['超短效是最大優點 — 適合心功能不明、想「試打看看」的情況', '會降低心肌收縮力，鬱血性心衰竭失代償期慎用或禁用', '氣喘與支氣管疾病的貓慎用（雖為 β1 選擇性，高劑量仍會影響 β2）', '禁用於第二度以上房室阻滯、竇房結功能不全、嚴重心搏過緩', '與 diltiazem 併用會加成抑制心肌與傳導，需極謹慎', '突然停藥可能反彈性心搏過速'],
+    en: ['Its ultra-short action is the main advantage — ideal when cardiac function is unknown and you want a reversible trial', 'Reduces contractility — use with caution or avoid in decompensated congestive heart failure', 'Caution in cats with asthma or bronchial disease (β1-selective, but selectivity is lost at higher doses)', 'Contraindicated in second-degree or higher AV block, sick sinus syndrome and severe bradycardia', 'Combined with diltiazem the depression of contractility and conduction is additive — great caution needed', 'Abrupt withdrawal can cause rebound tachycardia'],
+    ja: ['超短時間作用が最大の利点 — 心機能が不明で可逆的に試したい場面に適する', '心収縮力を低下させるため非代償性うっ血性心不全では慎重投与または禁忌', '喘息・気管支疾患の猫では注意（β1 選択性だが高用量では選択性が失われる）', '第 2 度以上の房室ブロック、洞不全症候群、高度徐脈では禁忌', 'ジルチアゼム併用で心筋抑制と伝導抑制が相加的 — 厳重な注意が必要', '急な中止でリバウンド頻脈を起こしうる']
+  }
+}, {
+  id: 'atenolol',
+  name: 'Atenolol',
+  cls: 'II',
+  cn: { zh: '阿替洛爾', en: 'Atenolol', ja: 'アテノロール' },
+  indication: { zh: '口服長期控制：室上性心搏過速、心房顫動輔助、貓肥厚性心肌病', en: 'Oral long-term control: SVT, adjunct in atrial fibrillation, feline hypertrophic cardiomyopathy', ja: '経口長期管理：SVT、心房細動の補助、猫の肥大型心筋症' },
+  doses: {
+    zh: ['犬：0.25–1 mg/kg PO q12–24h', '貓：6.25–12.5 mg/貓 PO q12–24h（約 1/4–1/2 顆 25 mg）', '需由低劑量起始並逐步調整'],
+    en: ['Dog: 0.25–1 mg/kg PO q12–24h', 'Cat: 6.25–12.5 mg per cat PO q12–24h (a quarter to half of a 25 mg tablet)', 'Start low and titrate upwards'],
+    ja: ['犬：0.25–1 mg/kg PO q12–24h', '猫：1 頭あたり 6.25–12.5 mg PO q12–24h（25 mg 錠の 1/4–1/2）', '低用量から開始し漸増する']
+  },
+  detail: {
+    zh: ['β1 選擇性，對氣喘貓相對安全但仍非完全無風險', '腎臟排除為主 — 腎功能不良需延長給藥間隔', '鬱血性心衰竭未穩定前不要開始使用', '不可突然停藥，需 1–2 週逐步減量以免反彈', '貓用於 HCM 時主要目的是降低心率與流出道阻塞，不改善存活率'],
+    en: ['β1-selective, relatively safe in asthmatic cats but not risk-free', 'Mainly renally eliminated — lengthen the interval in renal dysfunction', 'Do not start until congestive heart failure is stabilised', 'Never stop abruptly; taper over 1–2 weeks to avoid rebound', 'In feline HCM the aim is rate control and reducing outflow obstruction — it does not improve survival'],
+    ja: ['β1 選択性で喘息の猫にも比較的安全だが無risk ではない', '主に腎排泄 — 腎機能低下では投与間隔を延長', 'うっ血性心不全が安定するまで開始しない', '急に中止せず 1–2 週かけて漸減しリバウンドを防ぐ', '猫の HCM では心拍数低下と流出路閉塞の軽減が目的で、生存期間は改善しない']
+  }
+}, {
+  id: 'sotalol',
+  name: 'Sotalol',
+  cls: 'III',
+  cn: { zh: '索他洛爾', en: 'Sotalol', ja: 'ソタロール' },
+  indication: { zh: '心室性心律不整的口服長期控制（兼具 class II 與 III 作用）', en: 'Oral long-term control of ventricular arrhythmias (combined class II and III action)', ja: '心室性不整脈の経口長期管理（class II と III の作用を併せ持つ）' },
+  doses: {
+    zh: ['犬：1–2 mg/kg PO q12h', '貓：10–20 mg/貓 PO q12h', '常與 mexiletine 併用'],
+    en: ['Dog: 1–2 mg/kg PO q12h', 'Cat: 10–20 mg per cat PO q12h', 'Often combined with mexiletine'],
+    ja: ['犬：1–2 mg/kg PO q12h', '猫：1 頭あたり 10–20 mg PO q12h', 'メキシレチンと併用されることが多い']
+  },
+  detail: {
+    zh: ['同時具 β 阻斷作用，會降低心肌收縮力 — 嚴重心衰竭慎用', '延長 QT，有促心律不整（proarrhythmia）風險，起始後應回診做 ECG 或 Holter', '低血鉀會放大 QT 延長與 torsades 風險 — 用藥期間務必維持血鉀正常', '腎臟排除，腎功能不良需減量', 'Boxer 心律不整型心肌病的常用一線口服藥'],
+    en: ['Also blocks β receptors and reduces contractility — caution in severe heart failure', 'Prolongs QT with a real proarrhythmic risk; recheck ECG or Holter after starting', 'Hypokalaemia magnifies QT prolongation and torsades risk — keep potassium normal throughout', 'Renally eliminated — reduce the dose in renal dysfunction', 'A common first-line oral drug for arrhythmogenic cardiomyopathy in Boxers'],
+    ja: ['β遮断作用も持ち心収縮力を低下させる — 重度心不全では慎重に', 'QT を延長し催不整脈作用のリスクがある。開始後は ECG またはホルターで再評価', '低カリウム血症は QT 延長と torsades のリスクを増大 — 投与中はカリウムを正常に保つ', '腎排泄のため腎機能低下では減量', 'ボクサーの不整脈原性心筋症で一般的な第一選択の経口薬']
+  }
+}, {
+  id: 'amiodarone',
+  name: 'Amiodarone',
+  cls: 'III',
+  cn: { zh: '安碘酮', en: 'Amiodarone', ja: 'アミオダロン' },
+  indication: { zh: '頑固性 VF／無脈性 VT；對其他藥物無效的心室性心律不整', en: 'Refractory VF / pulseless VT; ventricular arrhythmias unresponsive to other drugs', ja: '難治性 VF／無脈性 VT、他剤無効の心室性不整脈' },
+  doses: {
+    zh: ['急救：5 mg/kg IV over 10 min（CPR 中可較快推）', '口服負荷：10 mg/kg PO q24h × 7 天，之後 5 mg/kg q24h', '先以 D5W 稀釋'],
+    en: ['Resuscitation: 5 mg/kg IV over 10 min (may be given faster during CPR)', 'Oral loading: 10 mg/kg PO q24h for 7 days, then 5 mg/kg q24h', 'Dilute in D5W first'],
+    ja: ['蘇生時：5 mg/kg を 10 分かけて IV（CPR 中はより速く投与可）', '経口負荷：10 mg/kg PO q24h を 7 日間、その後 5 mg/kg q24h', 'D5W で希釈してから使用']
+  },
+  detail: {
+    zh: ['犬靜脈給藥常見過敏樣反應：低血壓、蕁麻疹、臉部水腫（溶劑 polysorbate 80 引起的組織胺釋放）', '務必慢推並全程監測血壓', '長期口服會造成肝毒性 — 每 1–3 個月追蹤肝指數', '也會影響甲狀腺功能（T4 上升或下降），需定期監測', '半衰期極長（數週），停藥後作用仍持續', '與 digoxin 併用會使 digoxin 濃度上升，需減半'],
+    en: ['Anaphylactoid reactions are common with IV use in dogs: hypotension, urticaria, facial oedema (histamine release from the polysorbate 80 vehicle)', 'Always give slowly with continuous blood pressure monitoring', 'Long-term oral use causes hepatotoxicity — check liver values every 1–3 months', 'Also alters thyroid function (T4 up or down) — monitor periodically', 'Extremely long half-life (weeks); effects persist long after stopping', 'Raises digoxin concentrations — halve the digoxin dose if combined'],
+    ja: ['犬の静脈内投与でアナフィラキシー様反応が多い：低血圧、蕁麻疹、顔面浮腫（溶媒ポリソルベート 80 によるヒスタミン遊離）', '必ず緩徐に投与し血圧を全程監視', '長期経口投与で肝毒性 — 1–3 か月ごとに肝酵素を確認', '甲状腺機能にも影響（T4 上昇または低下） — 定期的に監視', '半減期が非常に長く（数週間）、中止後も作用が持続', 'ジゴキシン濃度を上昇させるため併用時は半量に']
+  }
+}, {
+  id: 'diltiazem',
+  name: 'Diltiazem',
+  cls: 'IV',
+  cn: { zh: '地爾硫卓', en: 'Diltiazem', ja: 'ジルチアゼム' },
+  indication: { zh: '室上性心搏過速、心房顫動的心室率控制（首選）', en: 'SVT and ventricular rate control in atrial fibrillation (first-line)', ja: 'SVT、心房細動のレートコントロール（第一選択）' },
+  doses: {
+    zh: ['犬／貓 IV：0.05–0.25 mg/kg IV over 5 min，可每 5–10 分重複至總量 0.75 mg/kg', 'CRI：1–6 μg/kg/min', '犬 PO：0.5–2 mg/kg q8h（緩釋劑型 q12h）', '貓 PO：7.5 mg/貓 q8h 或緩釋 30–60 mg/貓 q24h'],
+    en: ['Dog/cat IV: 0.05–0.25 mg/kg over 5 min, repeat every 5–10 min to a total of 0.75 mg/kg', 'CRI: 1–6 μg/kg/min', 'Dog PO: 0.5–2 mg/kg q8h (sustained release q12h)', 'Cat PO: 7.5 mg per cat q8h, or sustained release 30–60 mg per cat q24h'],
+    ja: ['犬・猫 IV：0.05–0.25 mg/kg を 5 分かけて、5–10 分ごとに総量 0.75 mg/kg まで反復可', 'CRI：1–6 μg/kg/min', '犬 PO：0.5–2 mg/kg q8h（徐放製剤は q12h）', '猫 PO：1 頭あたり 7.5 mg q8h、徐放製剤なら 30–60 mg q24h']
+  },
+  detail: {
+    zh: ['對心肌收縮力的抑制比 β-blocker 輕，心衰竭病患相對安全', '主要副作用是低血壓與心搏過緩 — 給藥全程監測血壓與 ECG', '禁用於第二度以上房室阻滯、竇房結功能不全、Wolff-Parkinson-White', '不可與 β-blocker 併用（心肌抑制與房室阻滯加成），必要時需大幅減量並密切監測', '會使 digoxin 濃度上升', '貓的緩釋劑型（Dilacor XR）分裝需注意劑量準確性'],
+    en: ['Depresses contractility less than β-blockers, so is relatively safe in heart failure', 'Main adverse effects are hypotension and bradycardia — monitor blood pressure and ECG throughout', 'Contraindicated in second-degree or higher AV block, sick sinus syndrome and Wolff-Parkinson-White', 'Do not combine with a β-blocker (additive myocardial and AV node depression); if unavoidable, reduce doses substantially and monitor closely', 'Raises digoxin concentrations', 'Take care with dose accuracy when splitting sustained-release preparations for cats'],
+    ja: ['β遮断薬より心収縮力の抑制が軽く、心不全例でも比較的安全', '主な副作用は低血圧と徐脈 — 投与中は血圧と ECG を監視', '第 2 度以上の房室ブロック、洞不全症候群、WPW 症候群では禁忌', 'β遮断薬との併用は避ける（心筋抑制と房室ブロックが相加的）。やむを得ない場合は大幅減量と厳重監視', 'ジゴキシン濃度を上昇させる', '猫で徐放製剤を分割する際は用量の正確性に注意']
+  }
+}, {
+  id: 'digoxin',
+  name: 'Digoxin',
+  cls: 'other',
+  cn: { zh: '地高辛', en: 'Digoxin', ja: 'ジゴキシン' },
+  indication: { zh: '心房顫動的心室率控制（多與 diltiazem 併用）；合併心衰竭時', en: 'Ventricular rate control in atrial fibrillation (usually with diltiazem); useful when heart failure coexists', ja: '心房細動のレートコントロール（通常ジルチアゼムと併用）、心不全合併時に有用' },
+  doses: {
+    zh: ['犬：0.003–0.005 mg/kg PO q12h（依瘦體重計算，勿用實際體重）', '大型犬上限約 0.25 mg q12h', '貓：0.007–0.015 mg/kg PO q48h（極少用）'],
+    en: ['Dog: 0.003–0.005 mg/kg PO q12h — dose on lean body weight, not actual weight', 'Cap at about 0.25 mg q12h in large dogs', 'Cat: 0.007–0.015 mg/kg PO q48h (rarely used)'],
+    ja: ['犬：0.003–0.005 mg/kg PO q12h（実体重ではなく除脂肪体重で計算）', '大型犬では約 0.25 mg q12h を上限とする', '猫：0.007–0.015 mg/kg PO q48h（使用はまれ）']
+  },
+  detail: {
+    zh: ['治療窗極窄 — 開始後 7–10 天務必測血中濃度（給藥後 8–12 小時採血），目標 0.8–1.5 ng/mL', '中毒徵象：厭食、嘔吐、下痢（最早出現）、各種心律不整、房室阻滯', '低血鉀會大幅增加中毒風險 — 併用利尿劑時尤其危險', '腎功能不良、脫水、瘦體型、甲狀腺功能低下者需減量', '與 amiodarone、diltiazem、quinidine 併用會使濃度上升', '起效慢，不適合急性心室率控制', '肥胖動物用實際體重會嚴重過量 — 務必用瘦體重'],
+    en: ['Very narrow therapeutic index — measure serum concentration 7–10 days after starting (sample 8–12 h post-dose), target 0.8–1.5 ng/mL', 'Toxicity: inappetence, vomiting and diarrhoea appear first, then arrhythmias and AV block', 'Hypokalaemia greatly increases toxicity — particularly dangerous alongside diuretics', 'Reduce the dose with renal dysfunction, dehydration, a lean body type or hypothyroidism', 'Amiodarone, diltiazem and quinidine all raise digoxin concentrations', 'Slow in onset — not suitable for acute rate control', 'Dosing an obese animal on actual weight causes serious overdose — always use lean body weight'],
+    ja: ['治療域が非常に狭い — 開始 7–10 日後に血中濃度を測定（投与 8–12 時間後に採血）、目標 0.8–1.5 ng/mL', '中毒徴候：食欲不振、嘔吐、下痢が先行し、続いて各種不整脈や房室ブロック', '低カリウム血症は中毒リスクを大幅に高める — 利尿薬併用時は特に危険', '腎機能低下、脱水、痩せ型、甲状腺機能低下では減量', 'アミオダロン、ジルチアゼム、キニジンはジゴキシン濃度を上昇させる', '効果発現が遅く急性のレートコントロールには不適', '肥満動物で実体重を用いると重大な過量となる — 必ず除脂肪体重で計算']
+  }
+}, {
+  id: 'magnesium',
+  name: 'Magnesium sulfate',
+  cls: 'other',
+  cn: { zh: '硫酸鎂', en: 'Magnesium sulfate', ja: '硫酸マグネシウム' },
+  indication: { zh: 'Torsades de pointes、頑固性 VF、低血鎂相關心律不整', en: 'Torsades de pointes, refractory VF, arrhythmias associated with hypomagnesaemia', ja: 'Torsades de pointes、難治性 VF、低マグネシウム血症に伴う不整脈' },
+  doses: {
+    zh: ['30 mg/kg IV over 5–15 分鐘（急救時可較快）', '後續 CRI：0.75–1 mg/kg/hr'],
+    en: ['30 mg/kg IV over 5–15 min (faster during resuscitation)', 'Follow-on CRI: 0.75–1 mg/kg/hr'],
+    ja: ['30 mg/kg を 5–15 分かけて IV（蘇生時はより速く）', '継続 CRI：0.75–1 mg/kg/hr']
+  },
+  detail: {
+    zh: ['難以矯正的低血鉀常常是因為同時有低血鎂 — 補鎂後鉀才補得進去', '快速推注會造成低血壓', '過量徵象：肌無力、深部腱反射消失、呼吸抑制、房室阻滯', '腎功能不良者會蓄積，需減量並監測血鎂', '不可與含鈣輸液同時快速給予'],
+    en: ['Hypokalaemia that resists correction is often driven by coexisting hypomagnesaemia — potassium only replaces properly once magnesium is corrected', 'Rapid injection causes hypotension', 'Overdose: weakness, loss of deep tendon reflexes, respiratory depression, AV block', 'Accumulates in renal dysfunction — reduce the dose and monitor magnesium', 'Do not give rapidly alongside calcium-containing fluids'],
+    ja: ['補正困難な低カリウム血症は低マグネシウム血症の合併が原因のことが多い — マグネシウムを補ってはじめてカリウムが入る', '急速投与で低血圧', '過量徴候：筋力低下、深部腱反射消失、呼吸抑制、房室ブロック', '腎機能低下では蓄積するため減量しマグネシウムを監視', 'カルシウム含有輸液と同時に急速投与しない']
+  }
+}, {
+  id: 'atropineAA',
+  name: 'Atropine',
+  cls: 'brady',
+  cn: { zh: '阿托品', en: 'Atropine', ja: 'アトロピン' },
+  indication: { zh: '迷走神經介導的心搏過緩、第一／二度房室阻滯；atropine 反應試驗', en: 'Vagally mediated bradycardia, first- and second-degree AV block; the atropine response test', ja: '迷走神経性徐脈、第 1・2 度房室ブロック、アトロピン反応試験' },
+  doses: {
+    zh: ['犬貓：0.02–0.04 mg/kg IV（心停時 0.04 mg/kg）', '反應試驗：0.04 mg/kg IV 或 IM，15–20 分鐘後重新做 ECG', '兔：0.1–0.2 mg/kg，但效果不可靠'],
+    en: ['Dog and cat: 0.02–0.04 mg/kg IV (0.04 mg/kg in arrest)', 'Response test: 0.04 mg/kg IV or IM, repeat the ECG after 15–20 min', 'Rabbit: 0.1–0.2 mg/kg, but the response is unreliable'],
+    ja: ['犬猫：0.02–0.04 mg/kg IV（心停止時は 0.04 mg/kg）', '反応試験：0.04 mg/kg を IV または IM し、15–20 分後に ECG を再検', 'ウサギ：0.1–0.2 mg/kg だが効果は不確実']
+  },
+  detail: {
+    zh: ['低劑量或給藥太慢反而會先造成心搏過緩（中樞迷走效應）— 要給就給足量並快速推', '對第三度房室阻滯與 Mobitz II 通常無效，因為阻滯位置在房室結以下', '反應試驗的意義：有反應代表迷走神經介導，可能藥物治療；無反應通常需節律器', '會造成腸蠕動下降、口乾、瞳孔散大（干擾神經學評估）', '青光眼、心搏過速、腸阻塞者慎用', '兔多具 atropinesterase，首選 glycopyrrolate'],
+    en: ['A low dose or slow injection can paradoxically cause bradycardia first (central vagal effect) — give a full dose rapidly', 'Usually ineffective in third-degree AV block and Mobitz II, because the block sits below the AV node', 'Meaning of the response test: a response indicates a vagally mediated block that may respond to drugs; no response usually means a pacemaker is needed', 'Causes reduced gut motility, dry mouth and mydriasis (which confounds neurological assessment)', 'Caution with glaucoma, tachycardia and intestinal obstruction', 'Most rabbits carry atropinesterase — use glycopyrrolate instead'],
+    ja: ['低用量や緩徐な投与ではむしろ一過性の徐脈を招く（中枢性迷走神経作用）— 投与するなら十分量を速やかに', '完全房室ブロックや Mobitz II には通常無効。ブロック部位が房室結節より下位のため', '反応試験の意義：反応があれば迷走神経性で薬物治療の可能性、無反応なら通常ペースメーカが必要', '腸蠕動低下、口渇、散瞳（神経学的評価を妨げる）を起こす', '緑内障、頻脈、腸閉塞では慎重に', 'ウサギの多くはアトロピンエステラーゼを持つためグリコピロレートを選ぶ']
+  }
+}, {
+  id: 'glycopyrrolateAA',
+  name: 'Glycopyrrolate',
+  cls: 'brady',
+  cn: { zh: '格隆溴銨', en: 'Glycopyrrolate', ja: 'グリコピロレート' },
+  indication: { zh: '心搏過緩；兔的抗膽鹼首選', en: 'Bradycardia; the anticholinergic of choice in rabbits', ja: '徐脈、ウサギの抗コリン薬第一選択' },
+  doses: {
+    zh: ['犬貓：0.005–0.01 mg/kg IV', '兔：0.01–0.02 mg/kg IV', '起效較 atropine 慢（約 2–3 分鐘），作用較久'],
+    en: ['Dog and cat: 0.005–0.01 mg/kg IV', 'Rabbit: 0.01–0.02 mg/kg IV', 'Slower onset than atropine (about 2–3 min) with a longer duration'],
+    ja: ['犬猫：0.005–0.01 mg/kg IV', 'ウサギ：0.01–0.02 mg/kg IV', 'アトロピンより発現が遅く（約 2–3 分）作用時間は長い']
+  },
+  detail: {
+    zh: ['不通過血腦屏障，中樞副作用較少，也較少造成初期反常性心搏過緩', '不被 atropinesterase 分解 — 這是兔用它的關鍵理由', '抑制唾液與腸蠕動的作用比 atropine 強且久 — 兔要注意術後腸道停滯', '心停急救時因起效較慢，仍以 atropine 為主（兔除外）'],
+    en: ['Does not cross the blood-brain barrier, so fewer central effects and less initial paradoxical bradycardia', 'Not degraded by atropinesterase — the key reason it is used in rabbits', 'Suppresses salivation and gut motility more strongly and for longer than atropine — watch for postoperative ileus in rabbits', 'Because of its slower onset, atropine remains the first choice during arrest (rabbits excepted)'],
+    ja: ['血液脳関門を通過せず中枢性副作用が少なく、初期の逆説的徐脈も起こりにくい', 'アトロピンエステラーゼで分解されない — ウサギで用いる決定的な理由', '唾液分泌と腸蠕動の抑制はアトロピンより強く持続する — ウサギでは術後の腸うっ滞に注意', '発現が遅いため心停止時は（ウサギを除き）アトロピンが第一選択']
+  }
+}, {
+  id: 'isoproterenol',
+  name: 'Isoproterenol',
+  cls: 'brady',
+  cn: { zh: '異丙腎上腺素', en: 'Isoproterenol', ja: 'イソプロテレノール' },
+  indication: { zh: '對 atropine 無反應的嚴重心搏過緩、第三度房室阻滯 — 植入節律器前的橋接', en: 'Atropine-unresponsive severe bradycardia and third-degree AV block — a bridge to pacemaker implantation', ja: 'アトロピン無効の高度徐脈、完全房室ブロック — ペースメーカ植込みまでのつなぎ' },
+  doses: {
+    zh: ['CRI：0.04–0.08 μg/kg/min，依心率反應調整', '配製：1 mg → 500 mL D5W（2 μg/mL）'],
+    en: ['CRI: 0.04–0.08 μg/kg/min, titrated to heart rate', 'Preparation: 1 mg in 500 mL D5W (2 μg/mL)'],
+    ja: ['CRI：0.04–0.08 μg/kg/min、心拍反応に応じて調整', '調製：1 mg を 500 mL の D5W に（2 μg/mL）']
+  },
+  detail: {
+    zh: ['純 β 作用（β1＋β2）：提升心率的同時會擴張血管造成低血壓', '會大幅增加心肌耗氧，並可能誘發心室性心律不整 — 需持續 ECG', '效果常不如預期，且無法長期使用 — 定位是「撐到裝節律器」', '對心肌缺血的病患特別危險', '需持續監測血壓與心律，備妥抗心律不整藥'],
+    en: ['Pure β action (β1 and β2): raises heart rate but also vasodilates and causes hypotension', 'Markedly increases myocardial oxygen demand and can provoke ventricular arrhythmias — continuous ECG required', 'Often less effective than hoped and unsuitable long term — its role is to bridge to a pacemaker', 'Particularly hazardous with myocardial ischaemia', 'Monitor blood pressure and rhythm continuously and have antiarrhythmics ready'],
+    ja: ['純粋な β 作用（β1＋β2）：心拍数を上げる一方で血管を拡張し低血圧を招く', '心筋酸素消費を大幅に増やし心室性不整脈を誘発しうる — 持続 ECG が必要', '期待ほど効かないことが多く長期使用にも不向き — 位置づけはペースメーカまでのつなぎ', '心筋虚血のある症例では特に危険', '血圧と調律を持続監視し抗不整脈薬を準備']
+  }
+}, {
+  id: 'terbutaline',
+  name: 'Terbutaline',
+  cls: 'brady',
+  cn: { zh: '特布他林', en: 'Terbutaline', ja: 'テルブタリン' },
+  indication: { zh: '症狀性心搏過緩、房室阻滯的口服支持（節律器前或飼主拒絕手術時）', en: 'Oral support for symptomatic bradycardia and AV block (before pacing, or when owners decline surgery)', ja: '症候性徐脈・房室ブロックの経口サポート（ペーシング前や手術を希望しない場合）' },
+  doses: {
+    zh: ['犬：0.2 mg/kg PO q8–12h', '貓：0.625 mg/貓 PO q12h'],
+    en: ['Dog: 0.2 mg/kg PO q8–12h', 'Cat: 0.625 mg per cat PO q12h'],
+    ja: ['犬：0.2 mg/kg PO q8–12h', '猫：1 頭あたり 0.625 mg PO q12h']
+  },
+  detail: {
+    zh: ['β2 為主的作用，提升心率的效果溫和且個體差異大', '副作用：顫抖、興奮、心搏過速、低血鉀', '只是症狀緩解，不改變傳導阻滯本身 — 有症狀的第三度房室阻滯仍應以節律器為目標', '長期使用會產生耐受性'],
+    en: ['Predominantly β2 action; the increase in heart rate is modest and varies widely between individuals', 'Adverse effects: tremor, excitement, tachycardia, hypokalaemia', 'Purely symptomatic — it does not alter the block itself, so a pacemaker remains the goal in symptomatic third-degree AV block', 'Tolerance develops with long-term use'],
+    ja: ['主に β2 作用で、心拍数上昇の効果は緩やかで個体差が大きい', '副作用：振戦、興奮、頻脈、低カリウム血症', '対症的なもので伝導ブロック自体は変えられない — 症候性の完全房室ブロックではペースメーカが目標', '長期使用で耐性が生じる']
+  }
+}, {
+  id: 'epinephrine',
+  name: 'Epinephrine',
+  cls: 'other',
+  cn: { zh: '腎上腺素', en: 'Epinephrine', ja: 'アドレナリン' },
+  indication: { zh: '心搏停止（asystole、PEA、VF／無脈性 VT）', en: 'Cardiac arrest (asystole, PEA, VF / pulseless VT)', ja: '心停止（心静止、PEA、VF／無脈性 VT）' },
+  doses: {
+    zh: ['0.01 mg/kg IV／IO，每 3–5 分鐘（每 2 個 CPR cycle）一次', '無血管路：0.1 mg/kg 氣管內，稀釋至 5–10 mL'],
+    en: ['0.01 mg/kg IV/IO every 3–5 min (every 2 CPR cycles)', 'No vascular access: 0.1 mg/kg endotracheally, diluted to 5–10 mL'],
+    ja: ['0.01 mg/kg IV／IO を 3–5 分ごと（CPR 2 サイクルごと）', '血管確保困難時：0.1 mg/kg を気管内、5–10 mL に希釈']
+  },
+  detail: {
+    zh: ['RECOVER 2024 不再建議高劑量（0.1 mg/kg IV），潛在傷害大於效益', '不可與 sodium bicarbonate 同一管路 — 鹼性環境會使其失活', 'ROSC 後會造成心搏過速、心肌耗氧上升與乳酸／血糖上升', '本身可能誘發心室性心律不整'],
+    en: ['RECOVER 2024 no longer recommends high dose (0.1 mg/kg IV) — potential harm outweighs benefit', 'Never share a line with sodium bicarbonate — the alkaline environment inactivates it', 'After ROSC it causes tachycardia, increased myocardial oxygen demand and raised lactate and glucose', 'Can itself provoke ventricular arrhythmias'],
+    ja: ['RECOVER 2024 では高用量（0.1 mg/kg IV）はもはや推奨されない — 利益より害が上回る', '炭酸水素ナトリウムと同一ラインで投与しない — アルカリ環境で失活する', 'ROSC 後は頻脈、心筋酸素消費の増加、乳酸・血糖の上昇を招く', 'それ自体が心室性不整脈を誘発しうる']
+  }
+}];
 const colorMap = {
   red: {
     border: 'border-red-500/30',
@@ -1132,6 +1644,10 @@ function VetShockCalculator() {
     id: 'lytes',
     key: 'tabLytes',
     icon: Beaker
+  }, {
+    id: 'ecg',
+    key: 'tabEcg',
+    icon: HeartPulse
   }, {
     id: 'flow',
     key: 'tabFlow',
@@ -1253,7 +1769,7 @@ function VetShockCalculator() {
   }), tab === 'lytes' && /*#__PURE__*/React.createElement(ElectrolyteView, {
     w: w,
     species: species
-  }), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
+  }), tab === 'ecg' && /*#__PURE__*/React.createElement(ECGView, null), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
     checked: checked,
     toggleCheck: toggleCheck,
     resetChecks: resetChecks
@@ -3131,6 +3647,232 @@ function ElectrolyteView({
     w: w, species: species
   }));
 }
+// ───────────────────────────────────────────────────────────────
+// ECG 判讀 / 抗心律不整分頁
+// ───────────────────────────────────────────────────────────────
+
+const URGENCY_TONE = { critical: 'red', watch: 'amber', normal: 'emerald' };
+
+function ECGFlow() {
+  const l = useL();
+  const t = useT();
+  const [path, setPath] = useState([]);
+  const [nodeId, setNodeId] = useState('start');
+  const [dxId, setDxId] = useState(null);
+  const node = ECG_TREE[nodeId];
+  const dx = dxId ? ECG_DX[dxId] : null;
+  const choose = opt => {
+    setPath(p => [...p, { q: l(node.q), a: l(opt.label), node: nodeId }]);
+    if (opt.dx) setDxId(opt.dx);else setNodeId(opt.next);
+  };
+  const back = () => {
+    if (path.length === 0) return;
+    const prev = path[path.length - 1];
+    setPath(p => p.slice(0, -1));
+    setDxId(null);
+    setNodeId(prev.node);
+  };
+  const reset = () => {
+    setPath([]);
+    setNodeId('start');
+    setDxId(null);
+  };
+  return /*#__PURE__*/React.createElement("section", {
+    className: "rounded-xl border border-slate-700 bg-slate-900/40 overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "px-4 py-3 border-b border-slate-700 flex items-center justify-between gap-3 flex-wrap"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1.5 h-6 bg-red-500 rounded-full"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "font-display text-xl font-semibold"
+  }, t('ecgFlowTitle'))), (path.length > 0 || dx) && /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 no-print"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: back,
+    className: "px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-mono text-slate-300 hover:border-slate-500 hover:text-slate-100 transition-all"
+  }, "← ", t('ecgBack')), /*#__PURE__*/React.createElement("button", {
+    onClick: reset,
+    className: "px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-mono text-slate-300 hover:border-red-500/60 hover:text-red-300 transition-all"
+  }, t('ecgRestart')))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 space-y-4"
+  },
+  // 已回答路徑
+  path.length > 0 && /*#__PURE__*/React.createElement("ol", {
+    className: "space-y-1.5"
+  }, path.map((p, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    className: "flex items-start gap-2 text-[11px] leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-mono text-slate-600 shrink-0"
+  }, String(i + 1).padStart(2, '0')), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-500 flex-1"
+  }, p.q), /*#__PURE__*/React.createElement("span", {
+    className: "font-mono text-cyan-300 shrink-0 px-1.5 rounded bg-cyan-500/10 border border-cyan-500/30"
+  }, p.a)))),
+  // 目前問題
+  !dx && node && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-slate-700 bg-slate-950/60 p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-display text-lg font-semibold text-slate-100 leading-snug mb-1"
+  }, l(node.q)), node.hint && /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-slate-500 mb-3 leading-relaxed"
+  }, l(node.hint)), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3"
+  }, node.opts.map((o, i) => {
+    const oc = colorMap[o.tone] || colorMap.cyan;
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => choose(o),
+      className: `text-left px-4 py-3 rounded-lg border-2 transition-all font-medium ${oc.border} ${oc.bg} ${oc.text} hover:brightness-150`
+    }, l(o.label));
+  }))),
+  // 診斷結果
+  dx && /*#__PURE__*/React.createElement(ECGResult, {
+    dx: dx,
+    dxId: dxId
+  })));
+}
+function ECGResult({
+  dx,
+  dxId
+}) {
+  const l = useL();
+  const t = useT();
+  const tone = URGENCY_TONE[dx.urgency] || 'cyan';
+  const c = colorMap[tone];
+  const subtypes = dx.subtypes ? l(dx.subtypes) : null;
+  const drugs = (dx.drugs || []).map(id => ANTIARRHYTHMICS.find(d => d.id === id)).filter(Boolean);
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl border-2 ${c.border} ${c.bg} overflow-hidden`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `px-4 py-3 border-b ${c.border} flex items-center gap-3 flex-wrap`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `text-[10px] font-mono uppercase tracking-[0.2em] font-bold ${c.text}`
+  }, t('ecgResult')), /*#__PURE__*/React.createElement("h3", {
+    className: `font-display text-xl font-bold ${c.accent}`
+  }, l(dx.name)), /*#__PURE__*/React.createElement("span", {
+    className: `ml-auto text-[10px] font-mono px-2 py-0.5 rounded border ${c.border} ${c.text}`
+  }, t('urg_' + dx.urgency))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 space-y-3"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-200 leading-relaxed"
+  }, l(dx.desc)), subtypes && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold"
+  }, t('ecgSubtypes')), subtypes.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "rounded-lg border border-slate-700 bg-slate-950/50 px-3 py-2 text-[12px] text-slate-300 leading-relaxed"
+  }, s))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5"
+  }, t('ecgAction')), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-1"
+  }, l(dx.action).map((a, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    className: "flex gap-2 text-[12px] text-slate-200 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `${c.accent} shrink-0 font-mono`
+  }, "▸"), /*#__PURE__*/React.createElement("span", null, a))))), drugs.length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5"
+  }, t('ecgRelatedDrugs')), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-1.5"
+  }, drugs.map(d => /*#__PURE__*/React.createElement("span", {
+    key: d.id,
+    className: "text-[11px] font-mono px-2 py-1 rounded border border-slate-700 bg-slate-950/60 text-slate-300"
+  }, d.name))))));
+}
+function AntiarrhythmicCard({
+  drug
+}) {
+  const l = useL();
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const cls = AA_CLASSES.find(c => c.key === drug.cls) || AA_CLASSES[5];
+  const c = colorMap[cls.color];
+  const details = l(drug.detail) || [];
+  const doses = l(drug.doses) || [];
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl border ${c.border} ${c.bg} p-4`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline justify-between gap-3 mb-2 flex-wrap"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display text-lg font-semibold leading-tight"
+  }, drug.name, drug.sub && /*#__PURE__*/React.createElement("span", {
+    className: `ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded ${c.bg} ${c.text} border ${c.border}`
+  }, "Class ", drug.sub)), /*#__PURE__*/React.createElement("p", {
+    className: `text-sm ${c.text} font-mono`
+  }, l(drug.cn))), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-slate-500 font-mono"
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "text-[12px] text-slate-300 leading-relaxed mb-2.5"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `${c.accent} font-mono text-[10px] uppercase tracking-wider mr-1.5`
+  }, t('ecgIndication')), l(drug.indication)), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-1 mb-1"
+  }, doses.map((d, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    className: "flex gap-1.5 text-[12px] font-mono text-slate-200 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `${c.accent} shrink-0`
+  }, "\xB7"), /*#__PURE__*/React.createElement("span", null, d)))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    "aria-expanded": open,
+    className: `w-full flex items-center gap-2 text-left px-3 py-2.5 rounded-lg border transition-all no-print ${open ? `${c.border} ${c.bg}` : 'border-slate-700 bg-slate-900/70 hover:border-slate-600 hover:bg-slate-900'}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `text-[11px] font-mono uppercase tracking-[0.15em] font-bold ${open ? c.text : 'text-slate-300'}`
+  }, t('ecgCautions')), /*#__PURE__*/React.createElement("span", {
+    className: `text-[11px] font-mono font-bold px-1.5 py-0.5 rounded ${c.bg} ${c.text} border ${c.border}`
+  }, details.length), /*#__PURE__*/React.createElement(ChevronDown, {
+    className: `ml-auto w-5 h-5 shrink-0 transition-transform duration-200 ${open ? `rotate-180 ${c.accent}` : 'text-slate-300'}`
+  })), /*#__PURE__*/React.createElement("ul", {
+    className: `${open ? 'block' : 'hidden'} print:block space-y-1 mt-2 px-1`
+  }, details.map((d, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    className: "flex gap-1.5 text-[11px] text-slate-400 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `${c.accent} shrink-0 font-mono`
+  }, "\xB7"), /*#__PURE__*/React.createElement("span", null, d))))));
+}
+function ECGView() {
+  const t = useT();
+  const l = useL();
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 leading-relaxed border border-slate-800 rounded-lg p-3 bg-slate-900/40"
+  }, /*#__PURE__*/React.createElement("p", null, t('ecgIntro'))), /*#__PURE__*/React.createElement(ECGFlow, null), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mb-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1.5 h-6 bg-amber-500 rounded-full"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "font-display text-xl font-semibold"
+  }, t('ecgDrugsTitle'))), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500 mb-3 leading-relaxed"
+  }, t('ecgDrugsNote')), AA_CLASSES.map(cls => {
+    const list = ANTIARRHYTHMICS.filter(d => d.cls === cls.key);
+    if (list.length === 0) return null;
+    const c = colorMap[cls.color];
+    return /*#__PURE__*/React.createElement("div", {
+      key: cls.key,
+      className: "mb-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2 mb-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `w-1 h-4 ${c.dot} rounded-full`
+    }), /*#__PURE__*/React.createElement("h3", {
+      className: `text-sm font-semibold ${c.text}`
+    }, l(cls.title))), /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-1 lg:grid-cols-2 gap-3"
+    }, list.map(d => /*#__PURE__*/React.createElement(AntiarrhythmicCard, {
+      key: d.id,
+      drug: d
+    }))));
+  })));
+}
 function CPRFlowView() {
   const l = useL();
   const t = useT();
@@ -3303,6 +4045,15 @@ const REFERENCES = {
   }, {
     cite: 'de Morais HA, Leisewitz AL. Mixed acid-base disorders. In: DiBartola SP, ed. FEABD. 4th ed. Saunders Elsevier; 2012:302–315.',
     note: { zh: '犬貓的預期代償公式（代謝性 0.7；呼吸性急性 0.15 / 慢性 0.35）與混合型判讀', en: 'Expected compensation formulas for dogs and cats (metabolic 0.7; respiratory acute 0.15 / chronic 0.35) and mixed-disorder interpretation', ja: '犬猫の予測代償式（代謝性 0.7、呼吸性は急性 0.15／慢性 0.35）と混合型の判読' }
+  }, {
+    cite: 'VETgirl. Common Arrhythmias: ECG Identification Chart (Lead II). VETgirl; 2025.',
+    note: { zh: '本工具心電圖判讀流程的問題順序參考此圖；內容為重新撰寫並補充心率標準與處置建議', en: 'The question sequence of the ECG pathway in this tool follows this chart; the content is rewritten with added rate criteria and management guidance', ja: '本ツールの心電図判読フローの質問順序はこのチャートに基づく。内容は書き直し、心拍基準と対応指針を追加' }
+  }, {
+    cite: 'Santilli R, Moïse NS, Pariaut R, Perego M. Electrocardiography of the Dog and Cat: Diagnosis of Arrhythmias. 2nd ed. Edra; 2018.',
+    note: { zh: '心律不整的心電圖診斷準則與分類', en: 'ECG diagnostic criteria and classification of arrhythmias', ja: '不整脈の心電図診断基準と分類' }
+  }, {
+    cite: 'Côté E, Ettinger SJ. Electrocardiography and cardiac arrhythmias. In: Ettinger SJ, Feldman EC, Côté E, eds. Textbook of Veterinary Internal Medicine. 8th ed. Elsevier; 2017.',
+    note: { zh: '抗心律不整藥物的適應症、劑量與監測', en: 'Indications, dosing and monitoring of antiarrhythmic drugs', ja: '抗不整脈薬の適応・用量・モニタリング' }
   }, {
     cite: 'Constable PD. Clinical assessment of acid-base status: strong ion difference theory. Vet Clin North Am Food Anim Pract. 1999;15(3):447–471.',
     note: { zh: 'SID 與強離子理論，本工具 SID 與校正氯離子的依據', en: 'Strong ion difference theory — the basis for the SID and corrected chloride used here', ja: 'SID と強イオン理論 — 本ツールの SID・補正クロールの根拠' }
