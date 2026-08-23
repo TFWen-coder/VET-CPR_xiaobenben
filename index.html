@@ -490,9 +490,9 @@ const EMERGENCY_DRUGS = [{
     route: 'IV slow'
   }],
   note: {
-    zh: '需與 epinephrine 分流給予；確保通氣足夠才用。',
-    en: 'Give through a separate line from epinephrine; only use once ventilation is adequate.',
-    ja: 'アドレナリンとは別ラインで投与し、換気が十分な場合にのみ使用する。'
+    zh: '需與 epinephrine 分流給予；確保通氣足夠才用。→ 血氣判讀、酸中毒分型與依 BE 計算的給法，見「電解質 / 輸血」分頁的 Acid-Base & Bicarbonate。',
+    en: 'Give through a separate line from epinephrine; only use once ventilation is adequate. → For blood gas interpretation, acidosis subtyping and BE-based dosing see Acid-Base & Bicarbonate on the Lytes / Transfusion tab.',
+    ja: 'アドレナリンとは別ラインで投与し、換気が十分な場合にのみ使用する。→ 血液ガスの判読、アシドーシスの病型分類、BE に基づく投与量は「電解質 / 輸血」タブの Acid-Base & Bicarbonate を参照。'
   }
 }, {
   name: 'Calcium gluconate 10%',
@@ -2764,6 +2764,350 @@ function PhosphateCard({
 // 電解質 / 輸血 — 分頁
 // ───────────────────────────────────────────────────────────────
 
+// ───────────────────────────────────────────────────────────────
+// 酸鹼分析 — 參考值與判讀
+// ───────────────────────────────────────────────────────────────
+
+const AB_REF = {
+  dog: { pH: [7.35, 7.45], paco2: [35, 45], paco2N: 37, hco3: [20, 24], hco3N: 22, ag: [12, 24], na: 145, cl: 110, albN: 3.2, naclN: 35 },
+  cat: { pH: [7.30, 7.40], paco2: [28, 38], paco2N: 31, hco3: [17, 22], hco3N: 20, ag: [13, 27], na: 152, cl: 120, albN: 3.0, naclN: 32 },
+  rabbit: { pH: [7.35, 7.45], paco2: [32, 42], paco2N: 37, hco3: [20, 25], hco3N: 22, ag: [12, 24], na: 142, cl: 102, albN: 3.0, naclN: 40 }
+};
+
+// NaHCO₃ 製劑（mEq/mL）
+const BICARB_PRODUCTS = [
+  { value: '0.83', label: '7% (0.83 mEq/mL)' },
+  { value: '1', label: '8.4% (1 mEq/mL)' },
+  { value: '0.6', label: '5% (0.6 mEq/mL)' }
+];
+const AB_S = {
+  zh: {
+    cn: '血氣判讀與 NaHCO₃ 給法', sub: '輸入 pH、PaCO₂、HCO₃⁻／BE 與電解質，判定原發性酸鹼異常、代償是否適當、屬高 AG 或高氯（正常 AG）型，再據此決定要不要給碳酸氫鈉。',
+    ph: 'pH', paco2: 'PaCO₂', hco3: 'HCO₃⁻', be: 'BE（可留空）', na: 'Na⁺', k: 'K⁺', cl: 'Cl⁻',
+    alb: '白蛋白', lac: '乳酸（可留空）', req: '必填', opt: '選填',
+    hco3Hint: 'HCO₃⁻ 與 BE 擇一填即可', beHint: '留空則由 pH 與 HCO₃⁻ 反推',
+    albHint: '{sp}正常約 {v} g/dL', course: '呼吸性病程', acute: '急性', chronic: '慢性 > 2–5 天',
+    target: '目標 HCO₃⁻', targetHint: '部分矯正即可，勿補到正常',
+    product: 'NaHCO₃ 製劑',
+    primaryLabel: '原發性異常', agLabel: '陰離子間隙（白蛋白校正）', doseLabel: 'NaHCO₃ 首劑',
+    doseSub: '總缺乏 {t} mEq 的 1/3，20–30 分鐘給完', doseNone: '本型不建議給碳酸氫鈉',
+    agSub: '參考 {a}–{b}．未校正 {u}', needAll: '需填入 Na⁺、K⁺、Cl⁻',
+    s1: 'pH 判讀', s2: '原發性異常判定', s3: '預期代償（{c}）', s3ok: '代償在預期範圍內，為單純性異常',
+    s3hi: '實測高於預期上限 → 併有呼吸性酸中毒（混合型）', s3lo: '實測低於預期下限 → 併有呼吸性鹼中毒（混合型）',
+    s3hiM: '實測高於預期 → 併有代謝性鹼中毒（混合型）', s3loM: '實測低於預期 → 併有代謝性酸中毒（混合型）',
+    s4: '陰離子間隙 AG = (Na⁺ + K⁺) − (Cl⁻ + HCO₃⁻)',
+    s5: '白蛋白校正 AG（每低 1 g/dL，AG 低估約 2.5）',
+    s6: '酸中毒分型', s7: '校正氯離子 Cl⁻corr = Cl⁻ × (Na⁺正常 ÷ Na⁺實測)',
+    s8: '強離子差 SID = (Na⁺ + K⁺) − (Cl⁻ + 乳酸)', s9: 'Base excess（Van Slyke 反推）',
+    s10: 'HCO₃⁻ 缺乏總量 = 0.3 × BW × (目標 − 實測)', s11: '首劑（總缺乏的 1/3）與體積',
+    acidemia: '酸血症', alkalemia: '鹼血症', phNormal: 'pH 在參考範圍內',
+    metAcid: '代謝性酸中毒', metAlk: '代謝性鹼中毒', respAcid: '呼吸性酸中毒', respAlk: '呼吸性鹼中毒',
+    mixed: '混合型', compensated: '完全代償或混合型（pH 正常但 HCO₃⁻ 與 PaCO₂ 皆偏離）', normalAB: '無明顯酸鹼異常',
+    highAG: '高 AG 型（有機酸堆積）', normalAG: '正常 AG／高氯型（HCO₃⁻ 實質流失）', lowAG: '低 AG',
+    highAGnote: '乳酸、酮酸、尿毒、乙二醇、水楊酸等未測定陰離子堆積。',
+    normalAGnote: '腹瀉、腎小管酸中毒、大量 0.9% NaCl、carbonic anhydrase 抑制劑。',
+    lowAGnote: '多為低白蛋白血症（白蛋白是主要未測定陰離子），也可能是實驗室誤差。低白蛋白會遮蔽高 AG，務必看校正後的 AG。',
+    giveYes: '建議給予', giveNo: '不建議給予', giveCaution: '謹慎考慮',
+    whyNoHighAG: '高 AG 型酸中毒（乳酸、酮酸）應治療病因 — 有機酸代謝後會還原成 HCO₃⁻，補鹼反而可能造成反彈性鹼中毒、細胞內酸化與離子鈣下降。僅在 pH < 7.1 且對病因治療無反應時才考慮。',
+    whyNoResp: '呼吸性酸中毒禁用碳酸氫鈉 — 它會產生更多 CO₂，通氣不足時只會加重酸中毒。必須先建立有效通氣。',
+    whyNoPh: 'pH ≥ 7.2 一般不需補鹼，處理原發病因並維持灌流即可。',
+    whyYes: '正常 AG（高氯）型酸中毒代表 HCO₃⁻ 確實流失，補鹼是合理的。仍須先確保通氣與灌流。',
+    warnVent: '⚠ 給藥前必須確認通氣足夠（有自主呼吸或已插管給予 IPPV）。碳酸氫鈉會產生 CO₂，若無法排出將加重細胞內酸中毒。',
+    monitor: '監測項目', mixedNoComp: '混合型異常無法用單一代償公式評估，需逐項排查'
+  },
+  en: {
+    cn: 'Blood gas interpretation & NaHCO₃ dosing', sub: 'Enter pH, PaCO₂, HCO₃⁻/BE and electrolytes to identify the primary acid-base disorder, judge whether compensation is appropriate, separate high-AG from hyperchloraemic (normal-AG) acidosis, and decide whether bicarbonate is actually indicated.',
+    ph: 'pH', paco2: 'PaCO₂', hco3: 'HCO₃⁻', be: 'BE (optional)', na: 'Na⁺', k: 'K⁺', cl: 'Cl⁻',
+    alb: 'Albumin', lac: 'Lactate (optional)', req: 'required', opt: 'optional',
+    hco3Hint: 'enter either HCO₃⁻ or BE', beHint: 'blank = derived from pH and HCO₃⁻',
+    albHint: '{sp} normal about {v} g/dL', course: 'Respiratory course', acute: 'Acute', chronic: 'Chronic > 2–5 days',
+    target: 'Target HCO₃⁻', targetHint: 'partial correction only — do not normalise',
+    product: 'NaHCO₃ product',
+    primaryLabel: 'Primary disorder', agLabel: 'Anion gap (albumin-corrected)', doseLabel: 'NaHCO₃ first dose',
+    doseSub: 'one third of the {t} mEq deficit, over 20–30 min', doseNone: 'bicarbonate not advised for this pattern',
+    agSub: 'reference {a}–{b} · uncorrected {u}', needAll: 'enter Na⁺, K⁺ and Cl⁻',
+    s1: 'pH interpretation', s2: 'Primary disorder', s3: 'Expected compensation ({c})', s3ok: 'compensation is within the expected range — a simple disorder',
+    s3hi: 'measured above the expected ceiling → concurrent respiratory acidosis (mixed)', s3lo: 'measured below the expected floor → concurrent respiratory alkalosis (mixed)',
+    s3hiM: 'measured above expected → concurrent metabolic alkalosis (mixed)', s3loM: 'measured below expected → concurrent metabolic acidosis (mixed)',
+    s4: 'Anion gap AG = (Na⁺ + K⁺) − (Cl⁻ + HCO₃⁻)',
+    s5: 'Albumin correction (AG is underestimated by about 2.5 per 1 g/dL of albumin below normal)',
+    s6: 'Acidosis subtype', s7: 'Corrected chloride Cl⁻corr = Cl⁻ × (normal Na⁺ ÷ measured Na⁺)',
+    s8: 'Strong ion difference SID = (Na⁺ + K⁺) − (Cl⁻ + lactate)', s9: 'Base excess (Van Slyke)',
+    s10: 'Total HCO₃⁻ deficit = 0.3 × BW × (target − measured)', s11: 'First dose (one third of the deficit) and volume',
+    acidemia: 'Acidaemia', alkalemia: 'Alkalaemia', phNormal: 'pH within the reference range',
+    metAcid: 'Metabolic acidosis', metAlk: 'Metabolic alkalosis', respAcid: 'Respiratory acidosis', respAlk: 'Respiratory alkalosis',
+    mixed: 'Mixed', compensated: 'Fully compensated or mixed (pH normal but both HCO₃⁻ and PaCO₂ deviate)', normalAB: 'No significant acid-base disturbance',
+    highAG: 'High-AG (organic acid accumulation)', normalAG: 'Normal-AG / hyperchloraemic (true HCO₃⁻ loss)', lowAG: 'Low AG',
+    highAGnote: 'Unmeasured anions accumulating: lactate, ketoacids, uraemic acids, ethylene glycol, salicylate.',
+    normalAGnote: 'Diarrhoea, renal tubular acidosis, large-volume 0.9% NaCl, carbonic anhydrase inhibitors.',
+    lowAGnote: 'Usually hypoalbuminaemia (albumin is the main unmeasured anion), sometimes laboratory error. Low albumin masks a high AG — always read the corrected value.',
+    giveYes: 'Indicated', giveNo: 'Not indicated', giveCaution: 'Consider with caution',
+    whyNoHighAG: 'High-AG acidosis (lactate, ketoacids) calls for treating the cause — the organic anions regenerate bicarbonate once metabolised, so giving bicarbonate risks rebound alkalosis, intracellular acidification and a fall in ionised calcium. Consider it only if pH < 7.1 and the patient is unresponsive to treatment of the cause.',
+    whyNoResp: 'Bicarbonate is contraindicated in respiratory acidosis — it generates more CO₂ and will worsen the acidosis unless ventilation is adequate. Establish effective ventilation first.',
+    whyNoPh: 'At pH ≥ 7.2 bicarbonate is generally unnecessary; treat the underlying cause and maintain perfusion.',
+    whyYes: 'Normal-AG (hyperchloraemic) acidosis reflects genuine bicarbonate loss, so replacement is rational. Ventilation and perfusion still come first.',
+    warnVent: '⚠ Confirm adequate ventilation before dosing (spontaneous breathing or intubated with IPPV). Bicarbonate generates CO₂; if it cannot be exhaled, intracellular acidosis worsens.',
+    monitor: 'Monitoring', mixedNoComp: 'a mixed disorder cannot be assessed with a single compensation formula — work through each component'
+  },
+  ja: {
+    cn: '血液ガス判読と NaHCO₃ の投与法', sub: 'pH、PaCO₂、HCO₃⁻／BE と電解質を入力すると、原発性の酸塩基異常、代償の適否、高 AG 型か高クロール（正常 AG）型かを判定し、炭酸水素ナトリウムを投与すべきかを判断します。',
+    ph: 'pH', paco2: 'PaCO₂', hco3: 'HCO₃⁻', be: 'BE（任意）', na: 'Na⁺', k: 'K⁺', cl: 'Cl⁻',
+    alb: 'アルブミン', lac: '乳酸（任意）', req: '必須', opt: '任意',
+    hco3Hint: 'HCO₃⁻ か BE のどちらかを入力', beHint: '空欄なら pH と HCO₃⁻ から逆算',
+    albHint: '{sp}の正常値は約 {v} g/dL', course: '呼吸性の経過', acute: '急性', chronic: '慢性 > 2–5 日',
+    target: '目標 HCO₃⁻', targetHint: '部分補正にとどめ、正常化させない',
+    product: 'NaHCO₃ 製剤',
+    primaryLabel: '原発性異常', agLabel: 'アニオンギャップ（アルブミン補正）', doseLabel: 'NaHCO₃ 初回量',
+    doseSub: '総不足 {t} mEq の 1/3 を 20–30 分で', doseNone: 'この病型では炭酸水素ナトリウムは推奨されない',
+    agSub: '参考値 {a}–{b}・未補正 {u}', needAll: 'Na⁺、K⁺、Cl⁻ を入力',
+    s1: 'pH の判読', s2: '原発性異常の判定', s3: '予測される代償（{c}）', s3ok: '代償は予測範囲内 — 単純性の異常',
+    s3hi: '実測が予測上限を超える → 呼吸性アシドーシスの合併（混合型）', s3lo: '実測が予測下限を下回る → 呼吸性アルカローシスの合併（混合型）',
+    s3hiM: '実測が予測を上回る → 代謝性アルカローシスの合併（混合型）', s3loM: '実測が予測を下回る → 代謝性アシドーシスの合併（混合型）',
+    s4: 'アニオンギャップ AG = (Na⁺ + K⁺) − (Cl⁻ + HCO₃⁻)',
+    s5: 'アルブミン補正（正常より 1 g/dL 低いごとに AG は約 2.5 過小評価）',
+    s6: 'アシドーシスの病型', s7: '補正クロール Cl⁻corr = Cl⁻ × (Na⁺正常 ÷ Na⁺実測)',
+    s8: '強イオン差 SID = (Na⁺ + K⁺) − (Cl⁻ + 乳酸)', s9: 'Base excess（Van Slyke 式）',
+    s10: 'HCO₃⁻ 総不足量 = 0.3 × BW × (目標 − 実測)', s11: '初回量（総不足の 1/3）と容量',
+    acidemia: 'アシデミア', alkalemia: 'アルカレミア', phNormal: 'pH は参考範囲内',
+    metAcid: '代謝性アシドーシス', metAlk: '代謝性アルカローシス', respAcid: '呼吸性アシドーシス', respAlk: '呼吸性アルカローシス',
+    mixed: '混合型', compensated: '完全代償または混合型（pH は正常だが HCO₃⁻ と PaCO₂ が両方とも偏位）', normalAB: '明らかな酸塩基異常なし',
+    highAG: '高 AG 型（有機酸の蓄積）', normalAG: '正常 AG／高クロール型（HCO₃⁻ の実質的喪失）', lowAG: '低 AG',
+    highAGnote: '乳酸、ケト酸、尿毒症性酸、エチレングリコール、サリチル酸などの未測定陰イオンの蓄積。',
+    normalAGnote: '下痢、尿細管性アシドーシス、大量の 0.9% NaCl、炭酸脱水酵素阻害薬。',
+    lowAGnote: '多くは低アルブミン血症（アルブミンが主要な未測定陰イオン）、検査誤差のこともある。低アルブミンは高 AG を覆い隠すため、必ず補正値で判断すること。',
+    giveYes: '適応あり', giveNo: '適応なし', giveCaution: '慎重に検討',
+    whyNoHighAG: '高 AG 型アシドーシス（乳酸、ケト酸）は原因治療が原則 — 有機酸は代謝されると HCO₃⁻ に戻るため、補正するとリバウンドのアルカローシス、細胞内酸性化、イオン化カルシウムの低下を招きうる。pH < 7.1 かつ原因治療に反応しない場合にのみ検討する。',
+    whyNoResp: '呼吸性アシドーシスでは炭酸水素ナトリウムは禁忌 — CO₂ をさらに産生し、換気が不十分ならアシドーシスを悪化させる。まず有効な換気を確立すること。',
+    whyNoPh: 'pH ≥ 7.2 では通常補正は不要。原疾患の治療と灌流の維持を優先する。',
+    whyYes: '正常 AG（高クロール）型アシドーシスは HCO₃⁻ が実際に失われている状態であり、補充は理にかなう。ただし換気と灌流の確保が先。',
+    warnVent: '⚠ 投与前に換気が十分であることを確認（自発呼吸あり、または挿管して IPPV）。炭酸水素ナトリウムは CO₂ を産生し、排出できなければ細胞内アシドーシスが悪化する。',
+    monitor: 'モニタリング', mixedNoComp: '混合型異常は単一の代償式では評価できないため、各要素を個別に検討する'
+  }
+};
+const AB_MONITOR = {
+  zh: ['給藥後 20–30 分鐘回測血氣（pH、PaCO₂、HCO₃⁻），依結果再決定是否續給', '離子鈣：碳酸氫鈉會使 pH 上升而降低離子鈣 — 可能誘發抽搐與心律不整', '血鉀：矯正酸中毒會把鉀帶回細胞內，原本正常的血鉀可能急速下降', '血鈉：每 1 mEq NaHCO₃ 也帶入 1 mEq Na⁺，大量使用會造成高血鈉與高滲透壓', 'PaCO₂ 與呼吸型態：確保產生的 CO₂ 排得出去', '不可與含鈣輸液或 catecholamine 同管路（沉澱／失活）', '外滲會造成組織壞死，高濃度製劑務必稀釋並走大血管', '同時追蹤原發病因的指標：乳酸、酮體、腎功能、電解質'],
+  en: ['Recheck the blood gas 20–30 min after dosing (pH, PaCO₂, HCO₃⁻) and decide on further doses from the result', 'Ionised calcium: the rise in pH lowers ionised calcium — can precipitate seizures and arrhythmias', 'Potassium: correcting acidosis drives potassium back into cells, so a normal potassium can fall sharply', 'Sodium: every 1 mEq of NaHCO₃ delivers 1 mEq of Na⁺; large doses cause hypernatraemia and hyperosmolality', 'PaCO₂ and respiratory pattern: make sure the CO₂ generated can be exhaled', 'Never share a line with calcium-containing fluids or catecholamines (precipitation / inactivation)', 'Extravasation causes tissue necrosis — dilute concentrated products and use a large vein', 'Track the underlying cause in parallel: lactate, ketones, renal values, electrolytes'],
+  ja: ['投与 20–30 分後に血液ガスを再検（pH、PaCO₂、HCO₃⁻）し、結果をみて追加投与を判断する', 'イオン化カルシウム：pH 上昇によりイオン化カルシウムが低下 — 痙攣や不整脈を誘発しうる', 'カリウム：アシドーシスの補正でカリウムが細胞内へ移動し、正常値でも急激に低下しうる', 'ナトリウム：NaHCO₃ 1 mEq ごとに Na⁺ も 1 mEq 入るため、大量投与で高ナトリウム血症と高浸透圧に', 'PaCO₂ と呼吸様式：産生された CO₂ を排出できているか確認', 'カルシウム含有輸液やカテコラミンと同一ラインで投与しない（沈殿・失活）', '血管外漏出で組織壊死 — 高濃度製剤は必ず希釈し太い血管を使う', '原疾患の指標も並行して追跡：乳酸、ケトン、腎機能、電解質']
+};
+function AcidBaseCard({
+  w,
+  species
+}) {
+  const lang = useLang();
+  const t = useT();
+  const S = AB_S[lang] || AB_S.zh;
+  const R = AB_REF[species];
+  const [pH, setPH] = useState('');
+  const [paco2, setPaco2] = useState('');
+  const [hco3In, setHco3In] = useState('');
+  const [beIn, setBeIn] = useState('');
+  const [na, setNa] = useState('');
+  const [k, setK] = useState('');
+  const [cl, setCl] = useState('');
+  const [alb, setAlb] = useState('');
+  const [lac, setLac] = useState('');
+  const [course, setCourse] = useState('acute');
+  const [target, setTarget] = useState('15');
+  const [prod, setProd] = useState('0.83');
+
+  const nPH = parseFloat(pH) || 0;
+  const nCO2 = parseFloat(paco2) || 0;
+  const nNa = parseFloat(na) || 0;
+  const nK = parseFloat(k) || 0;
+  const nCl = parseFloat(cl) || 0;
+  const nAlb = parseFloat(alb) || 0;
+  const nLac = parseFloat(lac) || 0;
+  const nTarget = parseFloat(target) || 15;
+  const conc = parseFloat(prod) || 0.83;
+
+  // HCO₃⁻ 與 BE 互推（Van Slyke）
+  let hco3 = parseFloat(hco3In) || 0;
+  let be = beIn !== '' ? parseFloat(beIn) : NaN;
+  let hco3Derived = false;
+  if (!hco3 && isFinite(be) && nPH) {
+    hco3 = be / 0.9287 + 24.4 - 14.83 * (nPH - 7.4);
+    hco3Derived = true;
+  }
+  if (!isFinite(be) && hco3 && nPH) be = 0.9287 * (hco3 - 24.4 + 14.83 * (nPH - 7.4));
+
+  const hasGas = nPH > 0 && hco3 > 0;
+  const hasLytes = nNa > 0 && nK > 0 && nCl > 0;
+
+  // 原發性異常
+  const acidemia = hasGas && nPH < R.pH[0];
+  const alkalemia = hasGas && nPH > R.pH[1];
+  const lowHco3 = hco3 < R.hco3[0];
+  const highHco3 = hco3 > R.hco3[1];
+  const lowCO2 = nCO2 > 0 && nCO2 < R.paco2[0];
+  const highCO2 = nCO2 > R.paco2[1];
+  let primary = null;
+  if (hasGas) {
+    if (acidemia) primary = lowHco3 && highCO2 ? 'mixedAcid' : lowHco3 ? 'metAcid' : highCO2 ? 'respAcid' : 'metAcid';
+    else if (alkalemia) primary = highHco3 && lowCO2 ? 'mixedAlk' : highHco3 ? 'metAlk' : lowCO2 ? 'respAlk' : 'metAlk';
+    else primary = lowHco3 || highHco3 || lowCO2 || highCO2 ? 'compensated' : 'normal';
+  }
+  const primaryName = { metAcid: S.metAcid, metAlk: S.metAlk, respAcid: S.respAcid, respAlk: S.respAlk, mixedAcid: `${S.mixed}：${S.metAcid} + ${S.respAcid}`, mixedAlk: `${S.mixed}：${S.metAlk} + ${S.respAlk}`, compensated: S.compensated, normal: S.normalAB }[primary] || '—';
+
+  // 預期代償
+  let expLabel = '', expVal = null, compVerdict = '', isMetabolic = primary === 'metAcid' || primary === 'metAlk';
+  if (hasGas && isMetabolic && nCO2 > 0) {
+    expVal = R.paco2N + 0.7 * (hco3 - R.hco3N);
+    expLabel = `PaCO₂ = ${R.paco2N} + 0.7 × (${nf(hco3, 1)} − ${R.hco3N}) = ${nf(expVal, 1)} ± 3 mmHg`;
+    compVerdict = nCO2 > expVal + 3 ? S.s3hi : nCO2 < expVal - 3 ? S.s3lo : S.s3ok;
+  } else if (hasGas && (primary === 'respAcid' || primary === 'respAlk') && nCO2 > 0) {
+    const f = primary === 'respAcid' ? course === 'chronic' ? 0.35 : 0.15 : course === 'chronic' ? 0.55 : 0.25;
+    expVal = R.hco3N + f * (nCO2 - R.paco2N);
+    expLabel = `HCO₃⁻ = ${R.hco3N} + ${f} × (${nf(nCO2, 0)} − ${R.paco2N}) = ${nf(expVal, 1)} ± 2 mmol/L`;
+    compVerdict = hco3 > expVal + 2 ? S.s3hiM : hco3 < expVal - 2 ? S.s3loM : S.s3ok;
+  }
+
+  // AG 與分型
+  const ag = hasLytes && hco3 ? nNa + nK - (nCl + hco3) : 0;
+  const agCorr = ag && nAlb > 0 ? ag + 2.5 * (R.albN - nAlb) : ag;
+  const agUse = agCorr;
+  const agHigh = agUse > R.ag[1];
+  const agLow = agUse < R.ag[0];
+  const clCorr = hasLytes ? nCl * (R.na / nNa) : 0;
+  const sid = hasLytes ? nNa + nK - (nCl + nLac) : 0;
+  const acidType = !acidemia && primary !== 'metAcid' ? null : agHigh ? 'high' : agLow ? 'low' : 'normal';
+  const acidTypeName = acidType === 'high' ? S.highAG : acidType === 'low' ? S.lowAG : acidType === 'normal' ? S.normalAG : '—';
+  const acidTypeNote = acidType === 'high' ? S.highAGnote : acidType === 'low' ? S.lowAGnote : acidType === 'normal' ? S.normalAGnote : '';
+
+  // 是否給碳酸氫鈉
+  let verdict = null, why = '';
+  if (hasGas) {
+    if (primary === 'respAcid' || primary === 'mixedAcid') { verdict = 'no'; why = S.whyNoResp; }
+    else if (!acidemia || nPH >= 7.2) { verdict = 'no'; why = S.whyNoPh; }
+    else if (acidType === 'high') { verdict = 'caution'; why = S.whyNoHighAG; }
+    else if (primary === 'metAcid') { verdict = 'yes'; why = S.whyYes; }
+    else { verdict = 'no'; why = S.whyNoPh; }
+  }
+  const deficit = w > 0 && hco3 > 0 && nTarget > hco3 ? 0.3 * w * (nTarget - hco3) : 0;
+  const firstDose = deficit / 3;
+  const firstMl = firstDose / conc;
+  const showDose = verdict === 'yes' || verdict === 'caution';
+
+  const steps = [];
+  if (hasGas) {
+    steps.push({
+      label: S.s1,
+      expr: `pH ${nf(nPH, 2)}（${species === 'dog' ? '犬' : species === 'cat' ? '貓' : '兔'} ${R.pH[0]}–${R.pH[1]}）`,
+      out: acidemia ? S.acidemia : alkalemia ? S.alkalemia : S.phNormal
+    });
+    steps.push({
+      label: S.s2,
+      expr: `HCO₃⁻ ${nf(hco3, 1)}（${R.hco3[0]}–${R.hco3[1]}）${hco3Derived ? ' ← BE 反推' : ''}；PaCO₂ ${nCO2 ? nf(nCO2, 0) : '—'}（${R.paco2[0]}–${R.paco2[1]}）`,
+      out: primaryName
+    });
+    if (expVal !== null) {
+      steps.push({
+        label: fill(S.s3, { c: primary === 'respAcid' || primary === 'respAlk' ? course === 'chronic' ? S.chronic : S.acute : (species === 'dog' ? '犬' : species === 'cat' ? '貓' : '兔') }),
+        expr: expLabel,
+        out: compVerdict
+      });
+    }
+    steps.push({
+      label: S.s9,
+      expr: `BE = 0.9287 × (${nf(hco3, 1)} − 24.4 + 14.83 × (${nf(nPH, 2)} − 7.4))`,
+      out: `${be > 0 ? '+' : ''}${nf(be, 1)} mmol/L`
+    });
+  }
+  if (hasLytes && hco3) {
+    steps.push({
+      label: S.s4,
+      expr: `AG = (${nf(nNa, 0)} + ${nf(nK, 1)}) − (${nf(nCl, 0)} + ${nf(hco3, 1)})`,
+      out: `${nf(ag, 1)} mEq/L（${R.ag[0]}–${R.ag[1]}）`
+    });
+    if (nAlb > 0) {
+      steps.push({
+        label: S.s5,
+        expr: `AGcorr = ${nf(ag, 1)} + 2.5 × (${R.albN} − ${nf(nAlb, 1)})`,
+        out: `${nf(agCorr, 1)} mEq/L`
+      });
+    }
+    if (acidType) {
+      steps.push({ label: S.s6, expr: `AG ${nf(agUse, 1)} vs ${R.ag[0]}–${R.ag[1]}`, out: acidTypeName });
+    }
+    steps.push({
+      label: S.s7,
+      expr: `Cl⁻corr = ${nf(nCl, 0)} × (${R.na} ÷ ${nf(nNa, 0)})`,
+      out: `${nf(clCorr, 1)} mEq/L（${R.cl} 附近為正常）`
+    });
+    steps.push({
+      label: S.s8,
+      expr: `SID = (${nf(nNa, 0)} + ${nf(nK, 1)}) − (${nf(nCl, 0)} + ${nf(nLac, 1)})`,
+      out: `${nf(sid, 1)} mEq/L（Na⁻Cl ${nf(nNa - nCl, 0)}，參考 ${R.naclN}）`
+    });
+  }
+  if (showDose && deficit > 0) {
+    steps.push({
+      label: S.s10,
+      expr: `= 0.3 × ${nf(w, 1)} kg × (${nf(nTarget, 0)} − ${nf(hco3, 1)})`,
+      out: `${nf(deficit, 1)} mEq`
+    });
+    steps.push({
+      label: S.s11,
+      expr: `${nf(deficit, 1)} ÷ 3 = ${nf(firstDose, 1)} mEq ÷ ${conc} mEq/mL`,
+      out: `${nf(firstMl, 1)} mL，20–30 分鐘輸完`
+    });
+  }
+  return /*#__PURE__*/React.createElement(CalcCard, {
+    title: "Acid-Base & Bicarbonate",
+    cn: S.cn,
+    color: "cyan",
+    sub: S.sub
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 sm:grid-cols-4 gap-3"
+  }, /*#__PURE__*/React.createElement(NumField, { label: S.ph, value: pH, onChange: setPH, step: "0.01", hint: S.req }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.paco2, value: paco2, onChange: setPaco2, unit: "mmHg", step: "1", hint: S.req }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.hco3, value: hco3In, onChange: setHco3In, unit: "mmol/L", step: "0.1", hint: S.hco3Hint }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.be, value: beIn, onChange: setBeIn, unit: "mmol/L", step: "0.1", hint: S.beHint }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.na, value: na, onChange: setNa, unit: "mEq/L", step: "1" }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.k, value: k, onChange: setK, unit: "mEq/L", step: "0.1" }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.cl, value: cl, onChange: setCl, unit: "mEq/L", step: "1" }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.alb, value: alb, onChange: setAlb, unit: "g/dL", step: "0.1", hint: fill(S.albHint, { sp: t(species), v: R.albN }) }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.lac, value: lac, onChange: setLac, unit: "mmol/L", step: "0.1", hint: S.opt }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.target, value: target, onChange: setTarget, unit: "mmol/L", step: "1", hint: S.targetHint }),
+    /*#__PURE__*/React.createElement("div", { className: "col-span-2" }, /*#__PURE__*/React.createElement(SelectField, {
+      label: S.product, value: prod, onChange: setProd, options: BICARB_PRODUCTS
+    })),
+    /*#__PURE__*/React.createElement("div", { className: "col-span-2 sm:col-span-4" }, /*#__PURE__*/React.createElement(Seg, {
+      label: S.course, value: course, onChange: setCourse, color: "cyan",
+      options: [{ value: 'acute', label: S.acute }, { value: 'chronic', label: S.chronic }]
+    }))
+  ), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 sm:grid-cols-3 gap-3"
+  }, /*#__PURE__*/React.createElement(BigStat, {
+    label: S.primaryLabel,
+    value: hasGas ? '' : '—',
+    unit: hasGas ? primaryName : '',
+    sub: hasGas ? compVerdict || S.mixedNoComp : S.req,
+    color: "cyan",
+    highlight: true
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: S.agLabel,
+    value: hasLytes && hco3 ? nf(agUse, 1) : '—',
+    unit: "mEq/L",
+    sub: hasLytes && hco3 ? fill(S.agSub, { a: R.ag[0], b: R.ag[1], u: nf(ag, 1) }) : S.needAll,
+    color: agHigh ? 'red' : agLow ? 'amber' : 'emerald'
+  }), /*#__PURE__*/React.createElement(BigStat, {
+    label: S.doseLabel,
+    value: showDose && firstMl > 0 ? nf(firstMl, 1) : '—',
+    unit: "mL",
+    sub: showDose && deficit > 0 ? fill(S.doseSub, { t: nf(deficit, 1) }) : verdict === 'no' ? S.doseNone : '—',
+    color: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
+  })), acidType && /*#__PURE__*/React.createElement(Warn, {
+    tone: acidType === 'high' ? 'red' : acidType === 'low' ? 'amber' : 'emerald'
+  }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, acidTypeName), " — ", acidTypeNote), verdict && /*#__PURE__*/React.createElement(Warn, {
+    tone: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
+  }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, "NaHCO₃ ", verdict === 'yes' ? S.giveYes : verdict === 'caution' ? S.giveCaution : S.giveNo), " — ", why), /*#__PURE__*/React.createElement(Formula, {
+    steps: steps, color: "cyan"
+  }), showDose && /*#__PURE__*/React.createElement(Warn, {
+    tone: "red"
+  }, S.warnVent), /*#__PURE__*/React.createElement(MonitorList, {
+    items: AB_MONITOR, color: "cyan"
+  }));
+}
 function ElectrolyteView({
   w,
   species
@@ -2782,6 +3126,8 @@ function ElectrolyteView({
   }), /*#__PURE__*/React.createElement(PotassiumCard, {
     w: w
   }), /*#__PURE__*/React.createElement(PhosphateCard, {
+    w: w, species: species
+  }), /*#__PURE__*/React.createElement(AcidBaseCard, {
     w: w, species: species
   }));
 }
@@ -2954,6 +3300,15 @@ const REFERENCES = {
   }, {
     cite: 'DiBartola SP, ed. Fluid, Electrolyte, and Acid-Base Disorders in Small Animal Practice. 4th ed. Saunders Elsevier; 2012.',
     note: { zh: '補鉀滑動量表（0.5 mEq/kg/hr 上限）、磷酸鹽補充與自由水缺乏計算', en: 'Potassium sliding scale (0.5 mEq/kg/hr ceiling), phosphate supplementation and free water deficit calculations', ja: 'カリウムのスライディングスケール（上限 0.5 mEq/kg/hr）、リン酸補充、自由水欠乏の計算' }
+  }, {
+    cite: 'de Morais HA, Leisewitz AL. Mixed acid-base disorders. In: DiBartola SP, ed. FEABD. 4th ed. Saunders Elsevier; 2012:302–315.',
+    note: { zh: '犬貓的預期代償公式（代謝性 0.7；呼吸性急性 0.15 / 慢性 0.35）與混合型判讀', en: 'Expected compensation formulas for dogs and cats (metabolic 0.7; respiratory acute 0.15 / chronic 0.35) and mixed-disorder interpretation', ja: '犬猫の予測代償式（代謝性 0.7、呼吸性は急性 0.15／慢性 0.35）と混合型の判読' }
+  }, {
+    cite: 'Constable PD. Clinical assessment of acid-base status: strong ion difference theory. Vet Clin North Am Food Anim Pract. 1999;15(3):447–471.',
+    note: { zh: 'SID 與強離子理論，本工具 SID 與校正氯離子的依據', en: 'Strong ion difference theory — the basis for the SID and corrected chloride used here', ja: 'SID と強イオン理論 — 本ツールの SID・補正クロールの根拠' }
+  }, {
+    cite: 'Figge J, Jabor A, Kazda A, Fencl V. Anion gap and hypoalbuminemia. Crit Care Med. 1998;26(11):1807–1810.',
+    note: { zh: '低白蛋白會遮蔽高 AG，本工具每 1 g/dL 校正 2.5 mEq/L 的來源', en: 'Hypoalbuminaemia masks a raised anion gap — source of the 2.5 mEq/L per g/dL correction used here', ja: '低アルブミン血症は高 AG を覆い隠す — 本ツールの 1 g/dL あたり 2.5 mEq/L 補正の出典' }
   }, {
     cite: 'de Morais HA, Biondo AW. Disorders of phosphorus. In: DiBartola SP, ed. FEABD. 4th ed. 2012:212–229.',
     note: { zh: '低血磷輸注速率 0.01–0.03（嚴重者 0.06–0.12）mmol/kg/hr × 6 hr', en: 'Hypophosphataemia infusion rate 0.01–0.03 (severe 0.06–0.12) mmol/kg/hr over 6 hr', ja: '低リン血症の投与速度 0.01–0.03（重度は 0.06–0.12）mmol/kg/hr × 6 時間' }
