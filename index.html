@@ -1948,6 +1948,121 @@ const SEIZURE_DRUGS = [{
 // conc 為該劑型的常用濃度 mg/mL；口服固體劑型不設 conc，只算 mg
 // ───────────────────────────────────────────────────────────────
 
+// ───────────────────────────────────────────────────────────────
+// 抗心律不整藥物：結構化劑量（依體重換算 mL）
+// ───────────────────────────────────────────────────────────────
+
+const AA_DOSING = {
+  lidocaine: {
+    concLabel: '20 mg/mL（2%，不含腎上腺素）',
+    calc: [
+      { label: { zh: '犬 bolus．每 5 分鐘可重複，累積上限 8 mg/kg', en: 'Dog bolus · repeat q5min, cumulative max 8 mg/kg', ja: '犬ボーラス・5 分ごと反復可、累積上限 8 mg/kg' }, route: 'IV slow', mgPerKg: 2, conc: 20, species: 'dog', priority: true },
+      { label: { zh: '犬 CRI', en: 'Dog CRI', ja: '犬 CRI' }, route: 'CRI', ugPerKgMin: 25, ugPerKgMinHigh: 80, conc: 20, species: 'dog' },
+      { label: { zh: '貓 bolus．極慢推，心毒性敏感', en: 'Cat bolus · give very slowly, cardiotoxicity risk', ja: '猫ボーラス・きわめて緩徐に、心毒性に注意' }, route: 'IV slow', mgPerKg: 0.25, mgPerKgHigh: 0.5, conc: 20, species: 'cat', priority: true },
+      { label: { zh: '貓 CRI．非必要盡量不用', en: 'Cat CRI · avoid unless necessary', ja: '猫 CRI・必要でなければ避ける' }, route: 'CRI', ugPerKgMin: 10, ugPerKgMinHigh: 20, conc: 20, species: 'cat' },
+      { label: { zh: '兔．資料有限，易神經毒性', en: 'Rabbit · limited data, prone to neurotoxicity', ja: 'ウサギ・データ限定的、神経毒性に注意' }, route: 'IV slow', mgPerKg: 1, conc: 20, species: 'rabbit', priority: true }
+    ]
+  },
+  procainamide: {
+    concLabel: '100 mg/mL',
+    calc: [
+      { label: { zh: '犬 bolus．over 2 min，可重複至 20 mg/kg', en: 'Dog bolus · over 2 min, repeat to 20 mg/kg total', ja: '犬ボーラス・2 分かけて、計 20 mg/kg まで反復可' }, route: 'IV', mgPerKg: 2, conc: 100, species: 'dog', priority: true },
+      { label: { zh: '犬 CRI', en: 'Dog CRI', ja: '犬 CRI' }, route: 'CRI', ugPerKgMin: 25, ugPerKgMinHigh: 50, conc: 100, species: 'dog' },
+      { label: { zh: '犬 IM．q4–6h', en: 'Dog IM · q4–6h', ja: '犬 IM・q4–6h' }, route: 'IM', mgPerKg: 6, mgPerKgHigh: 20, conc: 100, species: 'dog' },
+      { label: { zh: '貓．資料有限，極謹慎', en: 'Cat · limited data, great caution', ja: '猫・データ限定的、きわめて慎重に' }, route: 'IV slow', mgPerKg: 1, mgPerKgHigh: 2, conc: 100, species: 'cat', priority: true }
+    ]
+  },
+  mexiletine: {
+    calc: [
+      { label: { zh: '犬．PO q8h，隨餐給予', en: 'Dog · PO q8h, give with food', ja: '犬・PO q8h、食後投与' }, route: 'PO', mgPerKg: 5, mgPerKgHigh: 8, form: 'solid', species: 'dog', priority: true }
+    ]
+  },
+  esmolol: {
+    concLabel: '10 mg/mL',
+    calc: [
+      { label: { zh: '負荷．over 1–2 min', en: 'Loading · over 1–2 min', ja: '負荷・1–2 分かけて' }, route: 'IV slow', mgPerKg: 0.05, mgPerKgHigh: 0.5, conc: 10, priority: true },
+      { label: { zh: 'CRI．半衰期僅約 9 分鐘', en: 'CRI · half-life only about 9 min', ja: 'CRI・半減期は約 9 分' }, route: 'CRI', ugPerKgMin: 25, ugPerKgMinHigh: 200, conc: 10 }
+    ]
+  },
+  atenolol: {
+    calc: [
+      { label: { zh: '犬．PO q12–24h，低劑量起始', en: 'Dog · PO q12–24h, start low', ja: '犬・PO q12–24h、低用量から' }, route: 'PO', mgPerKg: 0.25, mgPerKgHigh: 1, form: 'solid', species: 'dog', priority: true },
+      { label: { zh: '貓．每隻固定量 PO q12–24h', en: 'Cat · fixed per-cat dose PO q12–24h', ja: '猫・1 頭あたり固定量 PO q12–24h' }, route: 'PO', perAnimalMg: 6.25, perAnimalMgHigh: 12.5, species: 'cat', priority: true }
+    ]
+  },
+  sotalol: {
+    calc: [
+      { label: { zh: '犬．PO q12h', en: 'Dog · PO q12h', ja: '犬・PO q12h' }, route: 'PO', mgPerKg: 1, mgPerKgHigh: 2, form: 'solid', species: 'dog', priority: true },
+      { label: { zh: '貓．每隻固定量 PO q12h', en: 'Cat · fixed per-cat dose PO q12h', ja: '猫・1 頭あたり固定量 PO q12h' }, route: 'PO', perAnimalMg: 10, perAnimalMgHigh: 20, species: 'cat', priority: true }
+    ]
+  },
+  amiodarone: {
+    concLabel: '50 mg/mL（先以 D5W 稀釋）',
+    calc: [
+      { label: { zh: '急救．IV over 10 min，全程監測血壓', en: 'Resuscitation · IV over 10 min, monitor BP throughout', ja: '蘇生時・10 分かけて IV、血圧を全経過監視' }, route: 'IV', mgPerKg: 5, conc: 50, priority: true },
+      { label: { zh: '口服負荷．PO q24h × 7 天', en: 'Oral loading · PO q24h for 7 days', ja: '経口負荷・PO q24h を 7 日間' }, route: 'PO', mgPerKg: 10, form: 'solid' },
+      { label: { zh: '口服維持．PO q24h', en: 'Oral maintenance · PO q24h', ja: '経口維持・PO q24h' }, route: 'PO', mgPerKg: 5, form: 'solid' }
+    ]
+  },
+  diltiazem: {
+    concLabel: '注射劑 5 mg/mL',
+    calc: [
+      { label: { zh: 'IV．over 5 min，可每 5–10 分重複至總量 0.75 mg/kg', en: 'IV · over 5 min, repeat q5–10min to 0.75 mg/kg total', ja: 'IV・5 分かけて、5–10 分ごとに計 0.75 mg/kg まで反復可' }, route: 'IV slow', mgPerKg: 0.05, mgPerKgHigh: 0.25, conc: 5, priority: true },
+      { label: { zh: 'CRI', en: 'CRI', ja: 'CRI' }, route: 'CRI', ugPerKgMin: 1, ugPerKgMinHigh: 6, conc: 5 },
+      { label: { zh: '犬 PO．q8h（緩釋劑型 q12h）', en: 'Dog PO · q8h (sustained release q12h)', ja: '犬 PO・q8h（徐放製剤は q12h）' }, route: 'PO', mgPerKg: 0.5, mgPerKgHigh: 2, form: 'solid', species: 'dog' },
+      { label: { zh: '貓 PO．每隻固定量 q8h', en: 'Cat PO · fixed per-cat dose q8h', ja: '猫 PO・1 頭あたり固定量 q8h' }, route: 'PO', perAnimalMg: 7.5, species: 'cat' }
+    ]
+  },
+  digoxin: {
+    calc: [
+      { label: { zh: '犬．PO q12h．務必用瘦體重計算', en: 'Dog · PO q12h · dose on lean body weight', ja: '犬・PO q12h・必ず除脂肪体重で計算' }, route: 'PO', mgPerKg: 0.003, mgPerKgHigh: 0.005, form: 'solid', mcg: true, species: 'dog', priority: true },
+      { label: { zh: '貓．PO q48h（極少用）', en: 'Cat · PO q48h (rarely used)', ja: '猫・PO q48h（使用はまれ）' }, route: 'PO', mgPerKg: 0.007, mgPerKgHigh: 0.015, form: 'solid', mcg: true, species: 'cat', priority: true }
+    ]
+  },
+  magnesium: {
+    concLabel: '500 mg/mL（50%）',
+    calc: [
+      { label: { zh: 'Torsades / 頑固性 VF．IV over 5–15 min', en: 'Torsades / refractory VF · IV over 5–15 min', ja: 'Torsades / 難治性 VF・5–15 分かけて IV' }, route: 'IV slow', mgPerKg: 30, conc: 500, priority: true },
+      { label: { zh: '後續 CRI', en: 'Follow-on CRI', ja: '継続 CRI' }, route: 'CRI', mgPerKgHr: 0.75, mgPerKgHrHigh: 1, conc: 500 }
+    ]
+  },
+  atropineAA: {
+    concLabel: '1 mg/mL',
+    calc: [
+      { label: { zh: '犬貓．心搏過緩', en: 'Dog and cat · bradycardia', ja: '犬猫・徐脈' }, route: 'IV', mgPerKg: 0.02, mgPerKgHigh: 0.04, conc: 1, species: 'dog', priority: true },
+      { label: { zh: '犬貓．心搏過緩', en: 'Dog and cat · bradycardia', ja: '犬猫・徐脈' }, route: 'IV', mgPerKg: 0.02, mgPerKgHigh: 0.04, conc: 1, species: 'cat', priority: true },
+      { label: { zh: 'Atropine 反應試驗．15–20 分鐘後重做 ECG', en: 'Atropine response test · repeat ECG after 15–20 min', ja: 'アトロピン反応試験・15–20 分後に ECG 再検' }, route: 'IV / IM', mgPerKg: 0.04, conc: 1 },
+      { label: { zh: '兔．效果不可靠，首選 glycopyrrolate', en: 'Rabbit · unreliable, prefer glycopyrrolate', ja: 'ウサギ・効果不確実、グリコピロレート優先' }, route: 'IV', mgPerKg: 0.1, mgPerKgHigh: 0.2, conc: 1, species: 'rabbit', priority: true }
+    ]
+  },
+  glycopyrrolateAA: {
+    concLabel: '0.2 mg/mL',
+    calc: [
+      { label: { zh: '犬貓', en: 'Dog and cat', ja: '犬猫' }, route: 'IV', mgPerKg: 0.005, mgPerKgHigh: 0.01, conc: 0.2, species: 'dog', priority: true },
+      { label: { zh: '犬貓', en: 'Dog and cat', ja: '犬猫' }, route: 'IV', mgPerKg: 0.005, mgPerKgHigh: 0.01, conc: 0.2, species: 'cat', priority: true },
+      { label: { zh: '兔．抗膽鹼首選', en: 'Rabbit · anticholinergic of choice', ja: 'ウサギ・抗コリン薬の第一選択' }, route: 'IV', mgPerKg: 0.01, mgPerKgHigh: 0.02, conc: 0.2, species: 'rabbit', priority: true }
+    ]
+  },
+  isoproterenol: {
+    concLabel: '稀釋後 2 μg/mL（1 mg → 500 mL D5W）',
+    calc: [
+      { label: { zh: 'CRI．依心率反應調整', en: 'CRI · titrate to heart rate', ja: 'CRI・心拍反応に応じて調整' }, route: 'CRI', ugPerKgMin: 0.04, ugPerKgMinHigh: 0.08, conc: 0.002, priority: true }
+    ]
+  },
+  terbutaline: {
+    calc: [
+      { label: { zh: '犬．PO q8–12h', en: 'Dog · PO q8–12h', ja: '犬・PO q8–12h' }, route: 'PO', mgPerKg: 0.2, form: 'solid', species: 'dog', priority: true },
+      { label: { zh: '貓．每隻固定量 PO q12h', en: 'Cat · fixed per-cat dose PO q12h', ja: '猫・1 頭あたり固定量 PO q12h' }, route: 'PO', perAnimalMg: 0.625, species: 'cat', priority: true }
+    ]
+  },
+  epinephrine: {
+    concLabel: '1 mg/mL（1:1000）',
+    calc: [
+      { label: { zh: '心停．每 3–5 分鐘（每 2 個 CPR cycle）', en: 'Arrest · every 3–5 min (every 2 CPR cycles)', ja: '心停止・3–5 分ごと（CPR 2 サイクルごと）' }, route: 'IV / IO', mgPerKg: 0.01, conc: 1, priority: true },
+      { label: { zh: '氣管內．無血管路時，稀釋至 5–10 mL', en: 'Endotracheal · no vascular access, dilute to 5–10 mL', ja: '気管内・血管確保困難時、5–10 mL に希釈' }, route: 'IT', mgPerKg: 0.1, conc: 1 }
+    ]
+  }
+};
 const SZ_DOSING = {
   diazepam: {
     concLabel: '5 mg/mL',
@@ -2285,7 +2400,10 @@ function VetShockCalculator() {
   }), tab === 'seizure' && /*#__PURE__*/React.createElement(SeizureView, {
     w: w,
     species: species
-  }), tab === 'ecg' && /*#__PURE__*/React.createElement(ECGView, null), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
+  }), tab === 'ecg' && /*#__PURE__*/React.createElement(ECGView, {
+    w: w,
+    species: species
+  }), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
     checked: checked,
     toggleCheck: toggleCheck,
     resetChecks: resetChecks
@@ -4312,10 +4430,12 @@ function calcDoseRow(d, w) {
     const mgLo = d.mgPerKg * w,
       mgHi = d.mgPerKgHigh != null ? d.mgPerKgHigh * w : null;
     const solid = d.form === 'solid' || !conc;
+    // 極小劑量（如 digoxin）改用 μg 顯示，避免四捨五入吃掉有效位數
+    const mgTxt = d.mcg ? `${rng(mgLo * 1000, mgHi != null ? mgHi * 1000 : null)} μg` : `${rng(mgLo, mgHi)} mg`;
     return {
-      big: solid ? `${rng(mgLo, mgHi)} mg` : `${rng(mgLo / conc, mgHi != null ? mgHi / conc : null)} mL`,
-      sub: solid ? null : `= ${rng(mgLo, mgHi)} mg`,
-      perKg: `${rngRaw(d.mgPerKg, d.mgPerKgHigh)} mg/kg`
+      big: solid ? mgTxt : `${rng(mgLo / conc, mgHi != null ? mgHi / conc : null)} mL`,
+      sub: solid ? null : `= ${mgTxt}`,
+      perKg: d.mcg ? `${rngRaw(d.mgPerKg * 1000, d.mgPerKgHigh != null ? d.mgPerKgHigh * 1000 : null)} μg/kg` : `${rngRaw(d.mgPerKg, d.mgPerKgHigh)} mg/kg`
     };
   }
   if (d.mgPerKgHr != null) {
@@ -4334,6 +4454,18 @@ function calcDoseRow(d, w) {
       big: `${rng(mgLo / conc * 60, mgHi != null ? mgHi / conc * 60 : null)} mL/hr`,
       sub: `= ${rng(mgLo, mgHi)} mg/min`,
       perKg: `${rngRaw(d.mgPerKgMin, d.mgPerKgMinHigh)} mg/kg/min`
+    };
+  }
+  if (d.ugPerKgMin != null) {
+    // μg/kg/min → mg/min → mL/hr
+    const ugLo = d.ugPerKgMin * w,
+      ugHi = d.ugPerKgMinHigh != null ? d.ugPerKgMinHigh * w : null;
+    const mlLo = ugLo / 1000 / conc * 60,
+      mlHi = ugHi != null ? ugHi / 1000 / conc * 60 : null;
+    return {
+      big: `${rng(mlLo, mlHi)} mL/hr`,
+      sub: `= ${rng(ugLo, ugHi)} μg/min`,
+      perKg: `${rngRaw(d.ugPerKgMin, d.ugPerKgMinHigh)} μg/kg/min`
     };
   }
   if (d.mlPerKgMin != null) {
@@ -4506,7 +4638,10 @@ function DrugSections({
     }))));
   }));
 }
-function ECGView() {
+function ECGView({
+  w,
+  species
+}) {
   const t = useT();
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -4523,7 +4658,10 @@ function ECGView() {
     drugs: ANTIARRHYTHMICS,
     titleKey: 'ecgDrugsTitle',
     noteKey: 'ecgDrugsNote',
-    accent: 'amber'
+    accent: 'amber',
+    dosingMap: AA_DOSING,
+    w: w,
+    species: species
   }));
 }
 function SeizureView({
