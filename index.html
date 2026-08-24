@@ -205,6 +205,13 @@ const Beaker = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.
 const ChevronDown = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
   d: "m6 9 6 6 6-6"
 }));
+const Brain = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"
+}));
 const HeartPulse = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
   d: "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
 }), /*#__PURE__*/React.createElement("path", {
@@ -238,6 +245,12 @@ const UI = {
   tabCri: { zh: '升壓 / CRI', en: 'Vasopressors', ja: '昇圧薬 / CRI' },
   tabFluid: { zh: '輸液 / 電擊', en: 'Fluids / Defib', ja: '輸液 / 除細動' },
   tabLytes: { zh: '電解質 / 輸血', en: 'Lytes / Transfusion', ja: '電解質 / 輸血' },
+  tabSeizure: { zh: '癲癇處置', en: 'Seizures', ja: 'てんかん発作' },
+  szIntro: { zh: '面對正在抽搐的犬貓，依序回答問題會走到對應的處置情境，並列出當下該做什麼與可用藥物。下方為完整癲癇相關藥物的劑量與臨床指引。', en: 'For a dog or cat that is seizing, answer each question to reach the matching clinical scenario with what to do now and which drugs to use. Full dosing and clinical guidance for every seizure drug follows below.', ja: '発作中の犬猫について、質問に順に答えると該当する対応シナリオに到達し、いま何をすべきか・どの薬を使うかが示されます。下部に全てのてんかん関連薬の用量と臨床指針があります。' },
+  szDefinition: { zh: '⚠ 癲癇重積狀態的定義：單次發作持續 > 5 分鐘，或連續發作之間沒有恢復意識。達到就要立刻用藥，不要再等。群發性發作＝24 小時內 ≥ 2 次但中間有恢復。', en: '⚠ Status epilepticus is defined as a single seizure lasting over 5 minutes, or repeated seizures without regaining consciousness in between. Treat immediately once this is met — do not wait. Cluster seizures are two or more in 24 hours with recovery between them.', ja: '⚠ てんかん重積状態の定義：単発の発作が 5 分以上持続、または意識が戻らないまま発作が反復する状態。該当したら直ちに投薬し、待たない。群発発作は 24 時間に 2 回以上で間に回復があるもの。' },
+  szFlowTitle: { zh: '癲癇處置流程', en: 'Seizure management pathway', ja: 'てんかん発作の対応フロー' },
+  szDrugsTitle: { zh: '癲癇相關藥物', en: 'Seizure drugs', ja: 'てんかん関連薬' },
+  szDrugsNote: { zh: '劑量為犬貓的一般參考範圍。點開每張卡片下方的「注意事項」可看到禁忌症、物種差異與監測要點 — 特別注意溴化鉀對貓、口服 diazepam 對貓的致命風險。', en: 'Doses are general reference ranges for dogs and cats. Open "Cautions" on each card for contraindications, species differences and monitoring — note in particular the fatal risks of potassium bromide and oral diazepam in cats.', ja: '用量は犬猫の一般的な参考範囲です。各カード下部の「注意事項」に禁忌・種差・モニタリングを記載 — 特に猫における臭化カリウムと経口ジアゼパムの致死的リスクに注意。' },
   tabEcg: { zh: '心電圖 / 抗心律不整', en: 'ECG / Antiarrhythmics', ja: '心電図 / 抗不整脈' },
   ecgIntro: { zh: '依序回答問題，系統會沿著判讀流程走到最可能的心律不整診斷，並列出處置重點與相關藥物。判讀順序參考 VETgirl 心電圖辨識圖（Lead II）與標準心臟學教科書。', en: 'Answer each question and the tool walks the interpretation pathway to the most likely arrhythmia, with management priorities and the relevant drugs. The question sequence follows the VETgirl ECG identification chart (lead II) and standard cardiology texts.', ja: '質問に順に答えると、判読フローをたどって最も可能性の高い不整脈にたどり着き、対応の要点と関連薬を表示します。判読順序は VETgirl の心電図識別チャート（II 誘導）と標準的な循環器教科書に基づきます。' },
   ecgFlowTitle: { zh: '心電圖判讀流程', en: 'ECG interpretation pathway', ja: '心電図判読フロー' },
@@ -316,7 +329,7 @@ const UI = {
 const EMERGENCY_DRUGS = [{
   name: 'Atropine',
   cn: { zh: '阿托品', en: 'Atropine', ja: 'アトロピン' },
-  conc: '0.5 mg/mL',
+  conc: '1 mg/mL',
   color: 'red',
   monitor: {
     zh: ['ECG：心率與房室傳導阻滯是否改善', '僅給首劑，不重複給藥（RECOVER 2024）', '瞳孔散大會干擾後續神經學評估，務必記錄給藥時間', '過量會造成竇性心搏過速與心肌耗氧上升', '兔：多數個體具 atropinesterase，效果不可靠 — 首選 glycopyrrolate'],
@@ -326,14 +339,14 @@ const EMERGENCY_DRUGS = [{
   doses: [{
     label: { zh: '心停（疑迷走神經性 / asystole / PEA）', en: 'Arrest (suspected vagal / asystole / PEA)', ja: '心停止（迷走神経性疑い / 心静止 / PEA）' },
     mgPerKg: 0.04,
-    mlPerMg: 2,
+    mlPerMg: 1,
     route: 'IV / IO',
     priority: true,
     species: 'dog'
   }, {
     label: { zh: '心停（疑迷走神經性 / asystole / PEA）', en: 'Arrest (suspected vagal / asystole / PEA)', ja: '心停止（迷走神経性疑い / 心静止 / PEA）' },
     mgPerKg: 0.04,
-    mlPerMg: 2,
+    mlPerMg: 1,
     route: 'IV / IO',
     priority: true,
     species: 'cat'
@@ -341,7 +354,7 @@ const EMERGENCY_DRUGS = [{
     label: { zh: '兔．心停（效果不可靠）', en: 'Rabbit · arrest (unreliable effect)', ja: 'ウサギ・心停止（効果不確実）' },
     mgPerKg: 0.1,
     mgPerKgHigh: 0.2,
-    mlPerMg: 2,
+    mlPerMg: 1,
     route: 'IV / IO',
     species: 'rabbit',
     warn: { zh: 'atropinesterase 會分解 atropine，優先用 glycopyrrolate', en: 'atropinesterase degrades atropine — use glycopyrrolate first', ja: 'アトロピンエステラーゼで分解される — グリコピロレート優先' }
@@ -1545,6 +1558,389 @@ const ANTIARRHYTHMICS = [{
     ja: ['RECOVER 2024 では高用量（0.1 mg/kg IV）はもはや推奨されない — 利益より害が上回る', '炭酸水素ナトリウムと同一ラインで投与しない — アルカリ環境で失活する', 'ROSC 後は頻脈、心筋酸素消費の増加、乳酸・血糖の上昇を招く', 'それ自体が心室性不整脈を誘発しうる']
   }
 }];
+// ───────────────────────────────────────────────────────────────
+// 癲癇發作處置流程
+// ───────────────────────────────────────────────────────────────
+
+const SZ_TREE = {
+  start: {
+    q: { zh: '動物現在正在抽搐嗎？', en: 'Is the animal actively seizing right now?', ja: '動物は今まさに発作中ですか？' },
+    hint: { zh: '先確保自身與動物安全：移開硬物、不要把手放進嘴裡、開始計時', en: 'Secure yourself and the patient first: clear hard objects, never put hands in the mouth, and start timing', ja: 'まず安全確保：硬い物を除け、口に手を入れず、時間の計測を開始する' },
+    opts: [
+      { label: { zh: '是，正在抽搐', en: 'Yes, seizing now', ja: 'はい、発作中' }, next: 'duration', tone: 'red' },
+      { label: { zh: '否，剛剛結束', en: 'No, it has just stopped', ja: 'いいえ、たった今止まった' }, next: 'postictal', tone: 'amber' }
+    ]
+  },
+  duration: {
+    q: { zh: '已持續超過 5 分鐘，或連續發作之間沒有恢復意識嗎？', en: 'Has it lasted over 5 minutes, or are seizures recurring without regaining consciousness in between?', ja: '5 分以上続いている、または意識が戻らないまま反復していますか？' },
+    hint: { zh: '這是癲癇重積狀態（status epilepticus）的定義 — 達到就要立刻用藥', en: 'This is the definition of status epilepticus — treat immediately once met', ja: 'これがてんかん重積状態の定義 — 該当すれば直ちに投薬' },
+    opts: [
+      { label: { zh: '是（符合重積狀態）', en: 'Yes (status epilepticus)', ja: 'はい（重積状態）' }, next: 'access', tone: 'red' },
+      { label: { zh: '否，剛開始不到 5 分鐘', en: 'No, under 5 minutes so far', ja: 'いいえ、まだ 5 分未満' }, dx: 'activeShort', tone: 'amber' }
+    ]
+  },
+  access: {
+    q: { zh: '有靜脈通路嗎？', en: 'Is there intravenous access?', ja: '静脈路は確保されていますか？' },
+    hint: { zh: '抽搐中放置 IV 有風險，若困難不要硬放 — 改走鼻內或直腸途徑', en: 'Placing an IV during a seizure is risky; if it is difficult, do not force it — use the intranasal or rectal route', ja: '発作中の静脈確保は危険。困難なら無理をせず経鼻・経直腸へ切り替える' },
+    opts: [
+      { label: { zh: '有', en: 'Yes', ja: 'あり' }, next: 'benzoResponse', tone: 'emerald' },
+      { label: { zh: '沒有', en: 'No', ja: 'なし' }, dx: 'noIV', tone: 'amber' }
+    ]
+  },
+  benzoResponse: {
+    q: { zh: '給了 benzodiazepine（最多重複 3 次）後抽搐停止了嗎？', en: 'Did the seizure stop after benzodiazepine (up to three doses)?', ja: 'ベンゾジアゼピン投与（最大 3 回）で発作は止まりましたか？' },
+    hint: { zh: 'Diazepam 0.5 mg/kg 或 midazolam 0.2–0.3 mg/kg IV，每次間隔 2 分鐘', en: 'Diazepam 0.5 mg/kg or midazolam 0.2–0.3 mg/kg IV, two minutes between doses', ja: 'ジアゼパム 0.5 mg/kg またはミダゾラム 0.2–0.3 mg/kg IV、2 分間隔' },
+    opts: [
+      { label: { zh: '停止了', en: 'Yes, it stopped', ja: '止まった' }, next: 'metabolic', tone: 'emerald' },
+      { label: { zh: '沒有停', en: 'No, still seizing', ja: '止まらない' }, next: 'loadingResponse', tone: 'red' }
+    ]
+  },
+  metabolic: {
+    q: { zh: '血糖、血鈣、電解質檢查有異常嗎？', en: 'Are glucose, calcium or electrolytes abnormal?', ja: '血糖・カルシウム・電解質に異常がありますか？' },
+    hint: { zh: '每一隻抽搐的動物都要立刻驗血糖與血鈣 — 這是最容易漏掉又最好治的原因', en: 'Check glucose and calcium immediately in every seizing patient — the most commonly missed and most treatable causes', ja: '発作のあるすべての症例で血糖とカルシウムを直ちに測定 — 見落としやすく最も治療しやすい原因' },
+    opts: [
+      { label: { zh: '有異常', en: 'Abnormal', ja: '異常あり' }, dx: 'metabolicCause', tone: 'amber' },
+      { label: { zh: '都正常', en: 'All normal', ja: 'すべて正常' }, dx: 'stopped', tone: 'emerald' }
+    ]
+  },
+  loadingResponse: {
+    q: { zh: '給了 levetiracetam 或 phenobarbital 負荷劑量後停止了嗎？', en: 'Did it stop after a loading dose of levetiracetam or phenobarbital?', ja: 'レベチラセタムまたはフェノバルビタールの負荷投与で止まりましたか？' },
+    hint: { zh: 'Levetiracetam 60 mg/kg IV，或 phenobarbital 15–20 mg/kg IV 分 4 次每 20 分鐘給', en: 'Levetiracetam 60 mg/kg IV, or phenobarbital 15–20 mg/kg IV split into four doses 20 minutes apart', ja: 'レベチラセタム 60 mg/kg IV、またはフェノバルビタール 15–20 mg/kg IV を 4 分割して 20 分ごと' },
+    opts: [
+      { label: { zh: '停止了', en: 'Yes, it stopped', ja: '止まった' }, dx: 'refractoryControlled', tone: 'amber' },
+      { label: { zh: '仍在抽搐', en: 'Still seizing', ja: 'まだ発作中' }, dx: 'superRefractory', tone: 'red' }
+    ]
+  },
+  postictal: {
+    q: { zh: '24 小時內的發作情形是？', en: 'What has the pattern been over the past 24 hours?', ja: '過去 24 時間の発作パターンは？' },
+    opts: [
+      { label: { zh: '單次，之後完全恢復', en: 'A single seizure with full recovery', ja: '単発で完全に回復' }, dx: 'single', tone: 'emerald' },
+      { label: { zh: '≥ 2 次，中間有恢復', en: 'Two or more, with recovery between', ja: '2 回以上、間に回復あり' }, dx: 'cluster', tone: 'amber' },
+      { label: { zh: '意識一直沒完全恢復', en: 'Never fully regained consciousness', ja: '意識が完全には戻っていない' }, dx: 'nonconvulsive', tone: 'red' }
+    ]
+  }
+};
+
+const SZ_DX = {
+  activeShort: {
+    name: { zh: '發作進行中（未達重積狀態）', en: 'Seizure in progress (not yet status epilepticus)', ja: '発作進行中（重積状態には未到達）' },
+    urgency: 'watch',
+    desc: { zh: '多數單次全身性發作會在 1–2 分鐘內自行停止。此時的重點是保護、計時與備藥，而不是急著打針。', en: 'Most single generalised seizures stop by themselves within 1–2 minutes. The priority now is protection, timing and preparation — not rushing to inject.', ja: '多くの単発の全般発作は 1–2 分で自然に止まる。今すべきは保護・計時・準備であり、慌てて投薬することではない。' },
+    action: {
+      zh: ['計時！超過 5 分鐘立刻進入重積狀態流程', '移開周圍硬物，不要壓制、不要把手或任何東西放進嘴裡', '降低刺激：關燈、減少聲音與觸碰', '給氧（面罩或吹流），監測體溫 — 抽搐會快速升溫', '同時準備 IV 導管、benzodiazepine、血糖機', '立即測血糖，抽血保留做電解質、血鈣、肝腎功能'],
+      en: ['Time it. If it passes 5 minutes, move to the status epilepticus pathway immediately', 'Clear hard objects away. Do not restrain, and never put your hands or anything else in the mouth', 'Reduce stimulation: dim the lights, minimise noise and handling', 'Give oxygen (mask or flow-by) and monitor temperature — seizures cause rapid hyperthermia', 'In parallel, prepare an IV catheter, a benzodiazepine and a glucometer', 'Check glucose immediately and save blood for electrolytes, calcium, liver and renal values'],
+      ja: ['時間を計る。5 分を超えたら直ちに重積状態の経路へ', '周囲の硬い物を除ける。押さえつけず、口の中に手や物を入れない', '刺激を減らす：照明を落とし、音と接触を最小限に', '酸素投与（マスクまたはフローバイ）と体温監視 — 発作で急速に高体温になる', '並行して静脈カテーテル、ベンゾジアゼピン、血糖測定器を準備', '血糖を直ちに測定し、電解質・カルシウム・肝腎機能用に採血を確保']
+    },
+    drugs: ['diazepam', 'midazolam']
+  },
+  noIV: {
+    name: { zh: '重積狀態．無靜脈通路', en: 'Status epilepticus with no IV access', ja: '重積状態・静脈路なし' },
+    urgency: 'critical',
+    desc: { zh: '不要為了放 IV 而延誤給藥。鼻內給藥吸收快、效果接近靜脈注射，是抽搐中最實用的途徑。', en: 'Do not delay treatment to place an IV. Intranasal delivery is absorbed rapidly and approaches intravenous efficacy — the most practical route during a seizure.', ja: '静脈確保のために投薬を遅らせない。経鼻投与は吸収が速く静注に近い効果が得られ、発作中に最も実用的。' },
+    action: {
+      zh: ['首選鼻內 midazolam 0.2 mg/kg（用 5 mg/mL 濃縮劑型，兩鼻孔分次滴入）', '次選直腸 diazepam 1–2 mg/kg（劑量需比靜脈高，因首渡效應）', 'IM midazolam 0.2 mg/kg 也可，但吸收較慢', '藥物生效、抽搐緩解後立刻放 IV', '不要使用 diazepam 鼻內給藥 — 刺激性強且吸收差'],
+      en: ['First choice: intranasal midazolam 0.2 mg/kg (use the 5 mg/mL concentrate, split between both nostrils)', 'Second choice: rectal diazepam 1–2 mg/kg (higher than the IV dose because of first-pass metabolism)', 'IM midazolam 0.2 mg/kg also works but is absorbed more slowly', 'Place an IV as soon as the drug takes effect and the seizure settles', 'Do not give diazepam intranasally — it is irritant and poorly absorbed'],
+      ja: ['第一選択：経鼻ミダゾラム 0.2 mg/kg（5 mg/mL 濃縮製剤を両鼻腔に分けて滴下）', '第二選択：経直腸ジアゼパム 1–2 mg/kg（初回通過効果のため静注より高用量）', '筋注ミダゾラム 0.2 mg/kg も可だが吸収は遅い', '薬効が現れ発作が収まったら直ちに静脈路を確保', 'ジアゼパムの経鼻投与は行わない — 刺激性が強く吸収も不良']
+    },
+    drugs: ['midazolam', 'diazepam']
+  },
+  metabolicCause: {
+    name: { zh: '代謝性／中毒性原因', en: 'Metabolic or toxic cause', ja: '代謝性・中毒性の原因' },
+    urgency: 'critical',
+    desc: { zh: '抗癲癇藥只是在壓症狀。若原因是低血糖、低血鈣或中毒，不矯正原因抽搐就會反覆或根本壓不住。', en: 'Anticonvulsants only suppress the symptom. If the cause is hypoglycaemia, hypocalcaemia or a toxin, seizures will recur or remain uncontrollable until the cause is corrected.', ja: '抗てんかん薬は症状を抑えるだけ。原因が低血糖・低カルシウム血症・中毒であれば、是正しない限り発作は再発または制御不能のまま。' },
+    action: {
+      zh: ['低血糖：50% dextrose 0.5–1 mL/kg 稀釋 1:4 後 IV，接續 2.5–5% CRI；找胰島素瘤、敗血症、幼齡、肝衰竭', '低血鈣（產後子癇）：10% calcium gluconate 50–150 mg/kg IV over 10–20 分鐘，全程 ECG', '低血鈉矯正過快：見電解質分頁的補鈉速率', '肝性腦病：乳果糖、抗生素、低蛋白飲食，避免 phenobarbital', '貓接觸除蟲菊精（permethrin）：methocarbamol＋脂肪乳劑，這在台灣非常常見', '有機磷：atropine 加 pralidoxime；蝸牛藥（metaldehyde）：methocarbamol 加洗胃', '貓長期厭食或餵食生魚：補充 thiamine'],
+      en: ['Hypoglycaemia: 50% dextrose 0.5–1 mL/kg diluted 1:4 IV, then a 2.5–5% CRI; look for insulinoma, sepsis, juvenile hypoglycaemia, liver failure', 'Hypocalcaemia (eclampsia): 10% calcium gluconate 50–150 mg/kg IV over 10–20 min with continuous ECG', 'Overly rapid sodium correction: see the sodium rate calculator on the Lytes tab', 'Hepatic encephalopathy: lactulose, antibiotics, protein-restricted diet; avoid phenobarbital', 'Permethrin exposure in cats: methocarbamol plus intravenous lipid emulsion — a very common presentation', 'Organophosphate: atropine plus pralidoxime. Metaldehyde (snail bait): methocarbamol plus decontamination', 'Cats with prolonged anorexia or fed raw fish: supplement thiamine'],
+      ja: ['低血糖：50% ブドウ糖 0.5–1 mL/kg を 1:4 に希釈して IV、続いて 2.5–5% の CRI。インスリノーマ、敗血症、幼若低血糖、肝不全を検索', '低カルシウム血症（子癇）：10% グルコン酸カルシウム 50–150 mg/kg を 10–20 分かけて IV、ECG 監視下で', 'ナトリウムの急速補正：電解質タブの補正速度計算を参照', '肝性脳症：ラクツロース、抗菌薬、蛋白制限食。フェノバルビタールは避ける', '猫のペルメトリン曝露：メトカルバモールと脂肪乳剤 — 非常に多い症例', '有機リン：アトロピンとプラリドキシム。メタアルデヒド（ナメクジ駆除剤）：メトカルバモールと除染', '長期食欲不振や生魚給餌の猫：チアミンを補充']
+    },
+    drugs: ['dextroseSz', 'calciumSz', 'methocarbamol', 'ile', 'thiamine']
+  },
+  stopped: {
+    name: { zh: '抽搐已控制 — 進入維持與檢查', en: 'Seizure controlled — move to maintenance and workup', ja: '発作は制御 — 維持療法と精査へ' },
+    urgency: 'watch',
+    desc: { zh: 'Benzodiazepine 作用只有 20–30 分鐘，光靠它一定會再發作。必須接上長效抗癲癇藥。', en: 'A benzodiazepine lasts only 20–30 minutes; relying on it alone guarantees recurrence. A long-acting anticonvulsant must follow.', ja: 'ベンゾジアゼピンの作用は 20–30 分のみで、それだけでは必ず再発する。長時間作用型の抗てんかん薬を続ける必要がある。' },
+    action: {
+      zh: ['立即給負荷劑量：levetiracetam 60 mg/kg IV（首選，副作用少）或 phenobarbital 15–20 mg/kg IV 分次', '住院監測至少 24 小時：體溫、血氧、意識、有無再發作', '處理續發問題：高體溫（主動降溫至 39.5°C 即停）、橫紋肌溶解、吸入性肺炎、腦水腫', '完整檢查：血液生化、電解質、血氨、膽酸、血壓；必要時 MRI 與腦脊髓液', '6 歲以上首次發作、局部性徵象或神經學檢查異常 → 優先安排影像學', '與飼主討論長期用藥計畫與居家急救（鼻內 midazolam）'],
+      en: ['Give a loading dose now: levetiracetam 60 mg/kg IV (preferred, few side effects) or phenobarbital 15–20 mg/kg IV in divided doses', 'Hospitalise and monitor at least 24 h: temperature, oxygenation, mentation, recurrence', 'Manage the sequelae: hyperthermia (cool actively, stop at 39.5 °C), rhabdomyolysis, aspiration pneumonia, cerebral oedema', 'Complete workup: biochemistry, electrolytes, ammonia, bile acids, blood pressure; MRI and CSF if indicated', 'First seizure over 6 years of age, focal signs, or abnormal neurological examination → prioritise imaging', 'Discuss long-term medication and a home rescue plan (intranasal midazolam) with the owner'],
+      ja: ['直ちに負荷投与：レベチラセタム 60 mg/kg IV（副作用が少なく第一選択）またはフェノバルビタール 15–20 mg/kg IV を分割', '最低 24 時間入院監視：体温、酸素化、意識、再発の有無', '続発症の管理：高体温（積極的冷却、39.5°C で中止）、横紋筋融解、誤嚥性肺炎、脳浮腫', '精査：生化学、電解質、アンモニア、胆汁酸、血圧。必要に応じて MRI と脳脊髄液検査', '6 歳以上の初回発作、局在徴候、神経学的異常 → 画像診断を優先', '長期投薬計画と在宅レスキュー（経鼻ミダゾラム）を飼い主と相談']
+    },
+    drugs: ['levetiracetam', 'phenobarbital']
+  },
+  refractoryControlled: {
+    name: { zh: '難治性重積 — 已由第二線藥物控制', en: 'Refractory status controlled by a second-line drug', ja: '難治性重積 — 二次治療薬で制御' },
+    urgency: 'critical',
+    desc: { zh: '需要第二線藥物才壓得住，代表這不是單純的特發性癲癇 — 找到原因的急迫性很高。', en: 'Needing a second-line drug means this is not simple idiopathic epilepsy — finding the cause is now urgent.', ja: '二次治療薬を要したということは単純な特発性てんかんではない — 原因検索の緊急度が高い。' },
+    action: {
+      zh: ['接續 CRI 維持：midazolam 0.1–0.5 mg/kg/hr，逐步減量', '同時開始長期用藥：levetiracetam 20 mg/kg PO q8h 或 phenobarbital 2–3 mg/kg PO q12h', '加護監測：血壓、體溫、血氧、尿量、意識程度', '積極找病因：影像學（MRI 優先）、腦脊髓液、感染性疾病篩檢、毒物史', '持續高體溫或肌肉僵直 → 加 methocarbamol 並主動降溫', '評估腦水腫：若有腦壓上升徵象給 mannitol 0.5–1 g/kg IV over 20 分鐘'],
+      en: ['Continue with a CRI: midazolam 0.1–0.5 mg/kg/hr, then taper', 'Start long-term therapy at the same time: levetiracetam 20 mg/kg PO q8h or phenobarbital 2–3 mg/kg PO q12h', 'Intensive monitoring: blood pressure, temperature, oxygenation, urine output, mentation', 'Pursue the cause: imaging (MRI first), CSF analysis, infectious disease screening, toxin history', 'Persistent hyperthermia or muscle rigidity → add methocarbamol and cool actively', 'Assess for cerebral oedema: give mannitol 0.5–1 g/kg IV over 20 min if raised intracranial pressure is suspected'],
+      ja: ['CRI で維持：ミダゾラム 0.1–0.5 mg/kg/hr、その後漸減', '同時に長期治療を開始：レベチラセタム 20 mg/kg PO q8h またはフェノバルビタール 2–3 mg/kg PO q12h', '集中監視：血圧、体温、酸素化、尿量、意識レベル', '原因を追究：画像診断（MRI 優先）、脳脊髄液検査、感染症スクリーニング、中毒歴', '高体温や筋硬直が持続 → メトカルバモールを追加し積極的に冷却', '脳浮腫の評価：頭蓋内圧上昇が疑われればマンニトール 0.5–1 g/kg を 20 分かけて IV']
+    },
+    drugs: ['midazolam', 'levetiracetam', 'phenobarbital', 'mannitolSz', 'methocarbamol']
+  },
+  superRefractory: {
+    name: { zh: '超難治性重積狀態', en: 'Super-refractory status epilepticus', ja: '超難治性てんかん重積状態' },
+    urgency: 'critical',
+    desc: { zh: '第一線與第二線都無效。此時需要全身麻醉深度的抑制，並且必須插管與呼吸支持。死亡率高，務必同時尋找結構性或中毒性原因。', en: 'Both first- and second-line drugs have failed. Suppression at general anaesthetic depth is now required, with intubation and ventilatory support. Mortality is high — search for a structural or toxic cause in parallel.', ja: '一次・二次治療がいずれも無効。全身麻酔深度の抑制が必要で、挿管と呼吸管理が必須。死亡率は高く、構造的・中毒性原因の並行検索が不可欠。' },
+    action: {
+      zh: ['插管、給氧、必要時正壓通氣 — 這一步不能省', 'Propofol 1–4 mg/kg IV 慢推至抽搐停止，接 CRI 0.1–0.6 mg/kg/min', '仍無效 → ketamine 5 mg/kg IV bolus 後 CRI（NMDA 受體在長時間發作後成為主要驅動）', '再無效 → 吸入麻醉（isoflurane）維持', '目標是抑制 24–48 小時後再逐步減量，不要太快停', '全程監測血壓（propofol 會低血壓）、體溫、血糖、乳酸', '此時腦部影像與腦脊髓液檢查已是必要，不是選項'],
+      en: ['Intubate, give oxygen and ventilate if needed — this step cannot be skipped', 'Propofol 1–4 mg/kg IV slowly to effect, then a CRI at 0.1–0.6 mg/kg/min', 'Still refractory → ketamine 5 mg/kg IV bolus then CRI (NMDA receptors become the main driver in prolonged seizures)', 'Still refractory → inhalant anaesthesia (isoflurane) for maintenance', 'Aim to maintain suppression for 24–48 h before tapering — do not withdraw quickly', 'Monitor blood pressure throughout (propofol causes hypotension), temperature, glucose and lactate', 'Brain imaging and CSF analysis are now mandatory, not optional'],
+      ja: ['挿管・酸素投与、必要なら人工換気 — この段階は省略できない', 'プロポフォール 1–4 mg/kg を効果が出るまで緩徐に IV、続いて CRI 0.1–0.6 mg/kg/min', 'なお無効 → ケタミン 5 mg/kg IV ボーラス後に CRI（長時間発作では NMDA 受容体が主な駆動因子となる）', 'さらに無効 → 吸入麻酔（イソフルラン）で維持', '24–48 時間抑制を維持してから漸減する — 急な中止は避ける', '全経過で血圧（プロポフォールは低血圧を招く）、体温、血糖、乳酸を監視', 'この段階では脳画像と脳脊髄液検査は選択肢ではなく必須']
+    },
+    drugs: ['propofol', 'ketamineSz', 'midazolam', 'mannitolSz']
+  },
+  single: {
+    name: { zh: '單次孤立發作', en: 'Single isolated seizure', ja: '単発の孤立発作' },
+    urgency: 'normal',
+    desc: { zh: '單次發作且完全恢復，通常不需立刻開始長期用藥，但一定要做基礎檢查排除次發性原因。', en: 'A single seizure with full recovery usually does not require immediate long-term medication, but baseline testing to exclude a secondary cause is essential.', ja: '単発で完全に回復した場合、通常は直ちに長期投薬を始める必要はないが、二次性原因を除外する基本検査は必須。' },
+    action: {
+      zh: ['基礎檢查：血球、生化、電解質、血糖、血壓；犬加測膽酸，貓加測 T4 與血壓', '詳細問診：毒物接觸、外傷、既往病史、品種好發性', '記錄發作日誌：日期、時間、持續長度、型態、誘發因子', '衛教飼主何時要立刻就醫：超過 5 分鐘、24 小時內 ≥ 2 次、發作間未恢復', '這些情況建議直接開始長期用藥：發作間隔 < 6 個月、群發、重積病史、6 歲後首次發作、發作後神經學異常'],
+      en: ['Baseline testing: CBC, biochemistry, electrolytes, glucose, blood pressure; add bile acids in dogs, T4 and blood pressure in cats', 'Detailed history: toxin exposure, trauma, past illness, breed predisposition', 'Start a seizure diary: date, time, duration, semiology, triggers', 'Teach the owner when to come in immediately: over 5 minutes, two or more in 24 hours, no recovery between', 'Start long-term medication anyway if: interval under 6 months, cluster seizures, prior status, first seizure after 6 years of age, or abnormal neurology afterwards'],
+      ja: ['基本検査：血球、生化学、電解質、血糖、血圧。犬は胆汁酸、猫は T4 と血圧を追加', '詳細な問診：中毒物質への曝露、外傷、既往、品種素因', '発作日誌をつける：日付、時刻、持続時間、症状の型、誘因', '直ちに受診すべき状況を飼い主に説明：5 分以上、24 時間に 2 回以上、発作間に回復しない', '次の場合は長期投薬を開始：発作間隔 6 か月未満、群発、重積の既往、6 歳以降の初発、発作後の神経学的異常']
+    },
+    drugs: ['levetiracetam', 'phenobarbital', 'zonisamide']
+  },
+  cluster: {
+    name: { zh: '群發性發作 Cluster Seizures', en: 'Cluster seizures', ja: '群発発作 Cluster Seizures' },
+    urgency: 'watch',
+    desc: { zh: '24 小時內 2 次以上、中間有恢復意識。這是進展成重積狀態的高風險族群，必須立刻介入。', en: 'Two or more seizures in 24 hours with recovery in between. This group is at high risk of progressing to status epilepticus and needs intervention now.', ja: '24 時間に 2 回以上で、間に意識が回復する。重積状態へ進展するリスクが高く、直ちに介入が必要。' },
+    action: {
+      zh: ['立即給負荷劑量並住院觀察，不要讓牠回家等下一次', 'Levetiracetam 脈衝療法：60 mg/kg 負荷後 20 mg/kg q8h 持續 2–3 天', '已在服藥者：檢查血中濃度、服藥順從性、是否有新的次發原因', '居家備藥：鼻內 midazolam 0.2 mg/kg 或直腸 diazepam，教飼主使用時機', '群發本身就是安排腦部影像的適應症'],
+      en: ['Give a loading dose and hospitalise now — do not send them home to wait for the next one', 'Levetiracetam pulse therapy: 60 mg/kg loading then 20 mg/kg q8h for 2–3 days', 'Already on medication: check serum levels, compliance, and whether a new secondary cause has appeared', 'Send home rescue medication: intranasal midazolam 0.2 mg/kg or rectal diazepam, and teach the owner when to use it', 'Cluster seizures are themselves an indication for brain imaging'],
+      ja: ['直ちに負荷投与し入院観察 — 次の発作を自宅で待たせない', 'レベチラセタムのパルス療法：60 mg/kg 負荷後、20 mg/kg q8h を 2–3 日間', '既に投薬中：血中濃度、服薬コンプライアンス、新たな二次性原因の有無を確認', '在宅レスキュー薬を処方：経鼻ミダゾラム 0.2 mg/kg または経直腸ジアゼパム。使用時期を飼い主に指導', '群発発作自体が脳画像検査の適応']
+    },
+    drugs: ['levetiracetam', 'midazolam', 'phenobarbital', 'kbr']
+  },
+  nonconvulsive: {
+    name: { zh: '疑似非抽搐性重積或延長的發作後期', en: 'Suspected non-convulsive status or prolonged post-ictal state', ja: '非痙攣性重積または遷延性発作後状態の疑い' },
+    urgency: 'critical',
+    desc: { zh: '肉眼看不到明顯抽搐，但意識一直沒有恢復。可能是腦部仍在持續放電（非抽搐性重積），也可能是嚴重腦損傷或藥物過量。', en: 'No obvious convulsions, but consciousness never returns. The brain may still be seizing electrically (non-convulsive status), or there may be severe brain injury or drug overdose.', ja: '明らかな痙攣はないが意識が戻らない。脳内で電気的発作が続いている（非痙攣性重積）可能性、あるいは重度の脳損傷や薬物過量の可能性がある。' },
+    action: {
+      zh: ['仔細觀察細微徵象：眼球震顫、面部或耳朵抽動、咀嚼動作、瞳孔忽大忽小、無故流涎', '排除藥物過量造成的鎮靜（benzodiazepine、phenobarbital）— 可考慮 flumazenil 試驗性反轉', '評估腦壓上升：血壓上升合併心搏過緩（Cushing reflex）、瞳孔不對稱、姿勢異常', '有腦壓徵象 → mannitol 0.5–1 g/kg IV over 20 分鐘，床頭抬高 30 度，避免壓迫頸靜脈', '腦電圖是唯一能確診非抽搐性重積的工具 — 有條件務必轉診', '若高度懷疑，可試驗性給 benzodiazepine 觀察意識是否改善'],
+      en: ['Look carefully for subtle signs: nystagmus, facial or ear twitching, chewing movements, fluctuating pupil size, unexplained salivation', 'Exclude drug-induced sedation (benzodiazepines, phenobarbital) — a trial of flumazenil can be considered', 'Assess for raised intracranial pressure: hypertension with bradycardia (Cushing reflex), asymmetric pupils, abnormal posture', 'If present → mannitol 0.5–1 g/kg IV over 20 min, elevate the head 30°, avoid jugular compression', 'EEG is the only way to confirm non-convulsive status — refer if it is available', 'If suspicion is high, a trial dose of benzodiazepine and watching for improved mentation is reasonable'],
+      ja: ['微細な徴候を注意深く観察：眼振、顔面や耳のぴくつき、咀嚼様運動、瞳孔径の変動、原因不明の流涎', '薬剤性鎮静（ベンゾジアゼピン、フェノバルビタール）を除外 — フルマゼニルによる試験的拮抗も検討', '頭蓋内圧上昇の評価：高血圧と徐脈の併存（クッシング反射）、瞳孔不同、異常姿勢', '所見があれば → マンニトール 0.5–1 g/kg を 20 分かけて IV、頭部を 30 度挙上、頸静脈の圧迫を避ける', '非痙攣性重積の確定診断は脳波のみ — 可能なら紹介する', '疑いが強ければベンゾジアゼピンを試験投与し意識の改善をみるのは妥当']
+    },
+    drugs: ['midazolam', 'mannitolSz', 'levetiracetam']
+  }
+};
+const SZ_CLASSES = [
+  { key: 'benzo', title: { zh: '第一線 — Benzodiazepine 急性中止', en: 'First line — benzodiazepines to stop the seizure', ja: '一次治療 — ベンゾジアゼピンによる頓挫' }, color: 'red' },
+  { key: 'second', title: { zh: '第二線 — 負荷與維持', en: 'Second line — loading and maintenance', ja: '二次治療 — 負荷と維持' }, color: 'amber' },
+  { key: 'anesth', title: { zh: '第三線 — 麻醉深度抑制', en: 'Third line — anaesthetic-depth suppression', ja: '三次治療 — 麻酔深度での抑制' }, color: 'indigo' },
+  { key: 'chronic', title: { zh: '長期維持用藥', en: 'Long-term maintenance', ja: '長期維持薬' }, color: 'cyan' },
+  { key: 'cause', title: { zh: '病因處置', en: 'Treating the underlying cause', ja: '原因治療' }, color: 'emerald' }
+];
+
+const SEIZURE_DRUGS = [{
+  id: 'diazepam', name: 'Diazepam', cls: 'benzo',
+  cn: { zh: '安定', en: 'Diazepam', ja: 'ジアゼパム' },
+  indication: { zh: '急性發作中止（第一線）', en: 'Acute seizure termination (first line)', ja: '急性発作の頓挫（一次治療）' },
+  doses: {
+    zh: ['犬貓 IV：0.5 mg/kg，可每 2 分鐘重複，最多 3 次', '直腸：1–2 mg/kg（首渡效應故劑量較高）', '起效 1–3 分鐘，作用僅 20–30 分鐘'],
+    en: ['Dog and cat IV: 0.5 mg/kg, repeat every 2 min up to three doses', 'Rectal: 1–2 mg/kg (higher because of first-pass metabolism)', 'Onset 1–3 min, duration only 20–30 min'],
+    ja: ['犬猫 IV：0.5 mg/kg、2 分ごとに最大 3 回まで反復可', '経直腸：1–2 mg/kg（初回通過効果のため高用量）', '発現 1–3 分、作用時間は 20–30 分のみ']
+  },
+  detail: {
+    zh: ['作用短暫 — 單靠它一定會再發作，必須接長效藥', '貓禁止口服長期使用：會造成致命性急性肝壞死', '會被 PVC 輸液管吸附，也會沉澱在生理食鹽水中 — 用注射器直接推，不要掛點滴', '不可與其他藥物混在同一注射器', '重複給藥會蓄積並造成長時間鎮靜，干擾後續神經學評估', '呼吸抑制與低血壓風險，尤其與其他鎮靜劑併用時', '不建議鼻內給藥 — 刺激性強、吸收差，該途徑請用 midazolam'],
+    en: ['Very short acting — used alone it guarantees recurrence, so a long-acting drug must follow', 'Never use orally long term in cats: it causes fatal acute hepatic necrosis', 'Adsorbs to PVC giving sets and precipitates in saline — push it directly from the syringe, do not run it in a drip', 'Do not mix in a syringe with other drugs', 'Repeated doses accumulate and cause prolonged sedation, confounding later neurological assessment', 'Risk of respiratory depression and hypotension, especially with other sedatives', 'Not recommended intranasally — irritant and poorly absorbed; use midazolam for that route'],
+    ja: ['作用が短く単独では必ず再発する — 長時間作用型の薬を続ける必要がある', '猫では長期経口投与禁忌：致死的な急性肝壊死を起こす', 'PVC 輸液セットに吸着し生理食塩水中で沈殿する — シリンジから直接投与し、点滴には混ぜない', '他剤と同一シリンジで混合しない', '反復投与で蓄積し鎮静が遷延、以後の神経学的評価を妨げる', '呼吸抑制と低血圧のリスク、特に他の鎮静薬併用時', '経鼻投与は非推奨 — 刺激性が強く吸収不良。その経路にはミダゾラムを用いる']
+  }
+}, {
+  id: 'midazolam', name: 'Midazolam', cls: 'benzo',
+  cn: { zh: '咪達唑侖', en: 'Midazolam', ja: 'ミダゾラム' },
+  indication: { zh: '急性發作中止；無 IV 時的鼻內首選；難治性重積的 CRI', en: 'Acute termination; first choice intranasally when there is no IV; CRI for refractory status', ja: '急性頓挫、静脈路がない場合の経鼻第一選択、難治性重積の CRI' },
+  doses: {
+    zh: ['犬貓 IV／IM：0.2–0.3 mg/kg', '鼻內：0.2 mg/kg（用 5 mg/mL 濃縮劑型，兩鼻孔分次）', 'CRI：0.1–0.5 mg/kg/hr', '起效 1–2 分鐘'],
+    en: ['Dog and cat IV/IM: 0.2–0.3 mg/kg', 'Intranasal: 0.2 mg/kg (use the 5 mg/mL concentrate, split between nostrils)', 'CRI: 0.1–0.5 mg/kg/hr', 'Onset 1–2 min'],
+    ja: ['犬猫 IV／IM：0.2–0.3 mg/kg', '経鼻：0.2 mg/kg（5 mg/mL 濃縮製剤を両鼻腔に分けて）', 'CRI：0.1–0.5 mg/kg/hr', '発現 1–2 分']
+  },
+  detail: {
+    zh: ['水溶性，不吸附管路、可與多數輸液相容 — 比 diazepam 適合做 CRI', '鼻內吸收快且效果接近靜脈注射，是居家急救與無 IV 時的首選', '居家備藥時開立 5 mg/mL 濃縮劑型與鼻內給藥器，並教飼主劑量與時機', 'CRI 超過 24 小時可能產生耐受性，需逐步減量避免戒斷', '呼吸抑制風險，長時間 CRI 需備妥插管器材', '肝功能不良者代謝變慢，需減量'],
+    en: ['Water-soluble, does not adsorb to lines and is compatible with most fluids — better suited to a CRI than diazepam', 'Intranasal absorption is rapid and approaches intravenous efficacy, making it the first choice at home and when there is no IV', 'For home rescue, dispense the 5 mg/mL concentrate with an atomiser and teach the owner the dose and timing', 'Tolerance can develop after 24 h of CRI — taper to avoid withdrawal', 'Respiratory depression is a risk; have intubation equipment ready for prolonged infusions', 'Metabolism is slower with hepatic dysfunction — reduce the dose'],
+    ja: ['水溶性でラインに吸着せず多くの輸液と配合可能 — CRI にはジアゼパムより適する', '経鼻吸収が速く静注に近い効果が得られ、在宅救急や静脈路がない場面での第一選択', '在宅レスキューには 5 mg/mL 濃縮製剤とアトマイザーを処方し、用量と使用時期を指導', '24 時間を超える CRI で耐性が生じうる — 離脱を避けるため漸減', '呼吸抑制のリスクがあり、長時間投与では挿管器具を準備', '肝機能低下では代謝が遅く減量が必要']
+  }
+}, {
+  id: 'levetiracetam', name: 'Levetiracetam', cls: 'second',
+  cn: { zh: '左乙拉西坦', en: 'Levetiracetam', ja: 'レベチラセタム' },
+  indication: { zh: '重積狀態的第二線負荷；群發脈衝療法；長期維持（副作用最少）', en: 'Second-line loading in status; pulse therapy for clusters; long-term maintenance with the fewest side effects', ja: '重積状態の二次負荷、群発のパルス療法、副作用が最も少ない長期維持' },
+  doses: {
+    zh: ['急性負荷：20–60 mg/kg IV over 5 分鐘（重積用 60 mg/kg）', '維持：20 mg/kg PO q8h（犬貓相同）', '緩釋劑型：30 mg/kg PO q12h（犬）', '脈衝療法：60 mg/kg 負荷後 20 mg/kg q8h × 2–3 天'],
+    en: ['Acute loading: 20–60 mg/kg IV over 5 min (60 mg/kg for status)', 'Maintenance: 20 mg/kg PO q8h (same for dogs and cats)', 'Extended release: 30 mg/kg PO q12h (dogs)', 'Pulse therapy: 60 mg/kg loading then 20 mg/kg q8h for 2–3 days'],
+    ja: ['急性負荷：20–60 mg/kg を 5 分かけて IV（重積では 60 mg/kg）', '維持：20 mg/kg PO q8h（犬猫とも同じ）', '徐放製剤：30 mg/kg PO q12h（犬）', 'パルス療法：60 mg/kg 負荷後、20 mg/kg q8h を 2–3 日間']
+  },
+  detail: {
+    zh: ['安全性極佳：不經肝臟代謝、幾乎無肝毒性，是肝病與貓的首選', '主要經腎排除 — 腎功能不良需延長間隔或減量', '不需監測血中濃度，也幾乎沒有藥物交互作用', '副作用少見且輕微：鎮靜、共濟失調、食慾改變', '犬可能出現「蜜月效應」— 用一段時間後效果下降，需加藥或換藥', 'q8h 的給藥頻率對飼主是負擔，順從性不佳時考慮緩釋劑型', '緩釋錠不可剝半或壓碎'],
+    en: ['Excellent safety: not hepatically metabolised and essentially non-hepatotoxic — the first choice in liver disease and in cats', 'Mainly renally excreted — lengthen the interval or reduce the dose in renal dysfunction', 'No need for serum level monitoring and virtually no drug interactions', 'Side effects are uncommon and mild: sedation, ataxia, appetite change', 'Dogs may show the "honeymoon effect" — efficacy wanes after a period, requiring dose escalation or a change of drug', 'Eight-hourly dosing is demanding for owners; consider the extended-release form if compliance is poor', 'Extended-release tablets must not be split or crushed'],
+    ja: ['安全性が非常に高い：肝代謝を受けず肝毒性もほぼない — 肝疾患例と猫での第一選択', '主に腎排泄 — 腎機能低下では投与間隔延長か減量', '血中濃度モニタリング不要で薬物相互作用もほぼない', '副作用はまれで軽度：鎮静、運動失調、食欲の変化', '犬では「ハネムーン効果」— 一定期間後に効果が減弱し増量や薬剤変更が必要になることがある', '8 時間ごとの投与は飼い主の負担。コンプライアンス不良なら徐放製剤を検討', '徐放錠は分割・粉砕しない']
+  }
+}, {
+  id: 'phenobarbital', name: 'Phenobarbital', cls: 'second',
+  cn: { zh: '苯巴比妥', en: 'Phenobarbital', ja: 'フェノバルビタール' },
+  indication: { zh: '重積狀態負荷；犬貓長期維持的傳統一線藥', en: 'Loading in status; the traditional first-line long-term drug in dogs and cats', ja: '重積状態の負荷、犬猫の伝統的な第一選択長期薬' },
+  doses: {
+    zh: ['急性負荷：15–20 mg/kg IV，分 4 次每 20 分鐘給 4–5 mg/kg', '犬維持：2–3 mg/kg PO q12h', '貓維持：1.5–2.5 mg/kg PO q12h', '血中濃度目標 15–35 μg/mL（犬）'],
+    en: ['Acute loading: 15–20 mg/kg IV, given as four doses of 4–5 mg/kg 20 minutes apart', 'Dog maintenance: 2–3 mg/kg PO q12h', 'Cat maintenance: 1.5–2.5 mg/kg PO q12h', 'Target serum concentration 15–35 μg/mL in dogs'],
+    ja: ['急性負荷：15–20 mg/kg IV を、4–5 mg/kg ずつ 20 分間隔で 4 回に分割', '犬維持：2–3 mg/kg PO q12h', '猫維持：1.5–2.5 mg/kg PO q12h', '血中濃度目標 15–35 μg/mL（犬）']
+  },
+  detail: {
+    zh: ['犬有肝毒性風險 — 每 6 個月測肝指數與血中濃度，濃度 > 35 μg/mL 風險大增', '血中濃度應在給藥後 10–14 天穩定時測（trough，下次給藥前採血）', '會誘導肝酵素，使自己與其他藥物代謝加快 — ALP 上升不一定代表肝損傷', '初期 1–2 週的鎮靜與共濟失調通常會耐受，需先跟飼主說明以免中途停藥', '多喝多尿多食很常見', '罕見但嚴重：血球減少（idiosyncratic）、皮膚壞死性紅斑', '貓可能出現臉部搔癢、淋巴結腫大、血球異常', '肝功能不良者避免使用 — 改用 levetiracetam', '絕不可突然停藥 — 會誘發重積狀態'],
+    en: ['Hepatotoxic risk in dogs — check liver values and serum concentration every 6 months; risk rises sharply above 35 μg/mL', 'Measure the serum level once steady state is reached at 10–14 days, sampling at trough before the next dose', 'Induces hepatic enzymes, accelerating its own and other drugs’ metabolism — a rising ALP does not necessarily mean liver damage', 'Sedation and ataxia in the first 1–2 weeks usually resolve; warn the owner in advance so they do not stop the drug', 'Polydipsia, polyuria and polyphagia are common', 'Rare but serious: idiosyncratic cytopenias and superficial necrolytic dermatitis', 'Cats may develop facial pruritus, lymphadenopathy or haematological abnormalities', 'Avoid with hepatic dysfunction — use levetiracetam instead', 'Never stop abruptly — withdrawal can precipitate status epilepticus'],
+    ja: ['犬では肝毒性のリスク — 6 か月ごとに肝酵素と血中濃度を測定。35 μg/mL を超えるとリスクが急増', '血中濃度は定常状態となる 10–14 日後、次回投与直前（トラフ）に測定', '肝酵素を誘導し自身と他剤の代謝を促進 — ALP 上昇が必ずしも肝障害を意味しない', '投与開始 1–2 週の鎮静と運動失調は通常耐性がつく。中断されないよう事前に飼い主へ説明', '多飲多尿多食はよくみられる', 'まれだが重篤：特異体質性の血球減少、表在性壊死性皮膚炎', '猫では顔面の掻痒、リンパ節腫大、血液学的異常が出ることがある', '肝機能低下例では避け、レベチラセタムを用いる', '急に中止しない — 重積状態を誘発する']
+  }
+}, {
+  id: 'propofol', name: 'Propofol', cls: 'anesth',
+  cn: { zh: '異丙酚', en: 'Propofol', ja: 'プロポフォール' },
+  indication: { zh: '超難治性重積狀態的麻醉深度抑制', en: 'Anaesthetic-depth suppression in super-refractory status', ja: '超難治性重積での麻酔深度の抑制' },
+  doses: {
+    zh: ['Bolus：1–4 mg/kg IV 慢推至抽搐停止', 'CRI：0.1–0.6 mg/kg/min', '目標維持 24–48 小時後再逐步減量'],
+    en: ['Bolus: 1–4 mg/kg IV slowly to effect', 'CRI: 0.1–0.6 mg/kg/min', 'Maintain 24–48 h before tapering'],
+    ja: ['ボーラス：1–4 mg/kg を効果が出るまで緩徐に IV', 'CRI：0.1–0.6 mg/kg/min', '24–48 時間維持してから漸減']
+  },
+  detail: {
+    zh: ['一定會造成呼吸抑制與呼吸暫停 — 必須先插管並準備正壓通氣，這不是可選項', '劑量依賴性低血壓與心肌抑制 — 全程監測血壓，血容不足者更嚴重', '無鎮痛作用', '貓連續輸注超過 24–48 小時會產生 Heinz body 溶血與恢復延遲 — 貓應盡量縮短使用時間', '會抑制體溫調節，需主動保溫', '含脂質乳劑，開封後易滋生細菌 — 6 小時內用完，嚴格無菌操作', '長時間高劑量有 propofol infusion syndrome 的疑慮（代謝性酸中毒、橫紋肌溶解）'],
+    en: ['Respiratory depression and apnoea are certain — intubate first and be ready to ventilate; this is not optional', 'Dose-dependent hypotension and myocardial depression — monitor blood pressure throughout, worse if hypovolaemic', 'Provides no analgesia', 'In cats, infusions beyond 24–48 h cause Heinz body haemolysis and delayed recovery — keep feline use as short as possible', 'Impairs thermoregulation — provide active warming', 'The lipid emulsion supports bacterial growth once opened — use within 6 hours with strict asepsis', 'Prolonged high-dose infusion raises the concern of propofol infusion syndrome (metabolic acidosis, rhabdomyolysis)'],
+    ja: ['呼吸抑制と無呼吸は必発 — 先に挿管し人工換気の準備をする。これは省略できない', '用量依存性の低血圧と心筋抑制 — 全経過で血圧を監視。循環血液量減少例ではより顕著', '鎮痛作用はない', '猫では 24–48 時間を超える持続投与でハインツ小体溶血と覚醒遅延 — 使用時間を可能な限り短く', '体温調節を抑制するため能動的保温が必要', '脂肪乳剤のため開封後は細菌が増殖 — 6 時間以内に使用し厳密な無菌操作を', '長時間高用量ではプロポフォール注入症候群（代謝性アシドーシス、横紋筋融解）の懸念']
+  }
+}, {
+  id: 'ketamineSz', name: 'Ketamine', cls: 'anesth',
+  cn: { zh: '氯胺酮', en: 'Ketamine', ja: 'ケタミン' },
+  indication: { zh: '對 GABA 類藥物無效的超難治性重積（NMDA 途徑）', en: 'Super-refractory status unresponsive to GABAergic drugs (NMDA pathway)', ja: 'GABA 系薬が無効な超難治性重積（NMDA 経路）' },
+  doses: {
+    zh: ['Bolus：5 mg/kg IV', 'CRI：5 mg/kg/hr，依反應調整', '通常與 benzodiazepine 併用'],
+    en: ['Bolus: 5 mg/kg IV', 'CRI: 5 mg/kg/hr, titrated to response', 'Usually combined with a benzodiazepine'],
+    ja: ['ボーラス：5 mg/kg IV', 'CRI：5 mg/kg/hr、反応に応じて調整', '通常はベンゾジアゼピンと併用']
+  },
+  detail: {
+    zh: ['長時間發作後 GABA 受體會內化而失效，NMDA 受體轉為主要驅動 — 這是 ketamine 在難治性重積的理論基礎', '傳統認為 ketamine 會升高腦壓而在癲癇禁用，此觀點已被修正；但顱內腫瘤或已知腦壓上升者仍需謹慎', '會升高血壓與心率，對心臟病患者不利', '單獨使用可能出現譫妄，需與 benzodiazepine 併用', '在台灣屬管制藥品，取得與紀錄需符合法規', '證據等級主要來自人醫與個案報告，獸醫資料有限'],
+    en: ['After prolonged seizures GABA receptors internalise and stop working while NMDA receptors take over — the rationale for ketamine in refractory status', 'The old teaching that ketamine raises intracranial pressure and is contraindicated in epilepsy has been revised, but caution remains with intracranial mass lesions or known raised ICP', 'Raises blood pressure and heart rate, which is unhelpful in cardiac patients', 'Can cause emergence delirium alone — combine with a benzodiazepine', 'A controlled drug in many jurisdictions — follow local record-keeping requirements', 'The evidence is largely from human medicine and case reports; veterinary data are limited'],
+    ja: ['長時間の発作後は GABA 受容体が内在化して効かなくなり NMDA 受容体が主役となる — 難治性重積でケタミンを用いる根拠', 'ケタミンが頭蓋内圧を上げ、てんかんで禁忌とする従来の考えは修正されている。ただし頭蓋内腫瘤や既知の頭蓋内圧上昇では慎重に', '血圧と心拍数を上昇させ心疾患例には不利', '単独では覚醒時せん妄を起こしうる — ベンゾジアゼピンと併用する', '多くの国で規制薬物 — 記録管理の法令を遵守', 'エビデンスは主に人医学と症例報告で、獣医領域のデータは限定的']
+  }
+}, {
+  id: 'kbr', name: 'Potassium bromide', cls: 'chronic',
+  cn: { zh: '溴化鉀 KBr', en: 'Potassium bromide', ja: '臭化カリウム' },
+  indication: { zh: '犬的長期維持，常作為 phenobarbital 控制不佳時的加成用藥', en: 'Long-term maintenance in dogs, usually added when phenobarbital alone is inadequate', ja: '犬の長期維持。フェノバルビタール単独で不十分な場合の追加薬' },
+  doses: {
+    zh: ['犬單用：30–40 mg/kg PO q24h', '與 phenobarbital 併用：20–30 mg/kg PO q24h', '需負荷時：400–600 mg/kg 分 4–5 天給完', '血中濃度目標 1–3 mg/mL（單用時偏高端）'],
+    en: ['Dog monotherapy: 30–40 mg/kg PO q24h', 'With phenobarbital: 20–30 mg/kg PO q24h', 'If loading is needed: 400–600 mg/kg divided over 4–5 days', 'Target serum concentration 1–3 mg/mL (higher end for monotherapy)'],
+    ja: ['犬単独療法：30–40 mg/kg PO q24h', 'フェノバルビタール併用時：20–30 mg/kg PO q24h', '負荷が必要な場合：400–600 mg/kg を 4–5 日に分割', '血中濃度目標 1–3 mg/mL（単独療法では高め）']
+  },
+  detail: {
+    zh: ['貓絕對禁用 — 會造成致命的嗜酸性支氣管炎／氣喘樣疾病，死亡率高', '半衰期極長（犬約 24 天），需 3–4 個月才達穩定濃度 — 不適合急性控制', '血中氯離子會競爭性影響濃度：換高鹽飲食或給大量 0.9% NaCl 會使 KBr 濃度下降而發作', '飲食中的鹽分必須維持穩定，換飼料前務必告知獸醫', '副作用：鎮靜、後肢無力、共濟失調、多飲多尿多食', '胰臟炎風險上升，尤其與 phenobarbital 併用', '腎臟排除 — 腎功能不良者蓄積風險高，需減量並密切監測', '腸胃刺激常見，隨餐給予可改善'],
+    en: ['Absolutely contraindicated in cats — causes a fatal eosinophilic bronchitis / asthma-like disease with high mortality', 'Very long half-life (about 24 days in dogs) and 3–4 months to steady state — unsuitable for acute control', 'Serum chloride competes with bromide: switching to a high-salt diet or giving large volumes of 0.9% NaCl lowers bromide levels and can trigger seizures', 'Dietary salt intake must stay constant — tell the owner to consult before changing food', 'Side effects: sedation, pelvic limb weakness, ataxia, polydipsia, polyuria, polyphagia', 'Increased risk of pancreatitis, particularly alongside phenobarbital', 'Renally excreted — high accumulation risk in renal dysfunction, so reduce the dose and monitor closely', 'Gastrointestinal irritation is common; giving with food helps'],
+    ja: ['猫では絶対禁忌 — 致死的な好酸球性気管支炎・喘息様疾患を起こし死亡率が高い', '半減期が非常に長く（犬で約 24 日）定常状態まで 3–4 か月 — 急性期の管理には不適', '血中クロールが競合する：高塩分食への変更や大量の 0.9% NaCl 投与で臭化物濃度が低下し発作を誘発しうる', '食事中の塩分量を一定に保つ — フード変更前に必ず相談するよう飼い主へ指導', '副作用：鎮静、後肢の脱力、運動失調、多飲多尿多食', '特にフェノバルビタール併用時に膵炎のリスクが上昇', '腎排泄 — 腎機能低下では蓄積リスクが高く減量と厳密な監視が必要', '消化管刺激が多く、食事と一緒に与えると軽減する']
+  }
+}, {
+  id: 'zonisamide', name: 'Zonisamide', cls: 'chronic',
+  cn: { zh: '唑尼沙胺', en: 'Zonisamide', ja: 'ゾニサミド' },
+  indication: { zh: '犬貓長期維持或加成用藥', en: 'Long-term maintenance or add-on therapy in dogs and cats', ja: '犬猫の長期維持または追加療法' },
+  doses: {
+    zh: ['犬：5–10 mg/kg PO q12h', '併用 phenobarbital 時提高至 7–10 mg/kg q12h（酵素誘導）', '貓：5–10 mg/kg PO q24h'],
+    en: ['Dog: 5–10 mg/kg PO q12h', 'Increase to 7–10 mg/kg q12h if given with phenobarbital (enzyme induction)', 'Cat: 5–10 mg/kg PO q24h'],
+    ja: ['犬：5–10 mg/kg PO q12h', 'フェノバルビタール併用時は 7–10 mg/kg q12h に増量（酵素誘導のため）', '猫：5–10 mg/kg PO q24h']
+  },
+  detail: {
+    zh: ['磺胺類衍生物 — 對磺胺過敏者禁用', '副作用：鎮靜、共濟失調、食慾下降、嘔吐，多為劑量依賴性', '罕見但嚴重：急性肝壞死、腎小管酸中毒、血球減少', '貓較常出現厭食與嗜睡，需從低劑量起始', '起始 1–2 週後回診評估，之後每 6–12 個月追蹤肝腎功能', '不需常規監測血中濃度，但控制不佳時可測'],
+    en: ['A sulfonamide derivative — contraindicated with sulfonamide hypersensitivity', 'Side effects: sedation, ataxia, reduced appetite, vomiting — mostly dose-dependent', 'Rare but serious: acute hepatic necrosis, renal tubular acidosis, cytopenias', 'Cats more often show anorexia and lethargy — start at the low end', 'Recheck 1–2 weeks after starting, then monitor liver and renal values every 6–12 months', 'Routine level monitoring is not required but can help when control is poor'],
+    ja: ['スルホンアミド誘導体 — スルホンアミド過敏症では禁忌', '副作用：鎮静、運動失調、食欲低下、嘔吐 — 多くは用量依存性', 'まれだが重篤：急性肝壊死、尿細管性アシドーシス、血球減少', '猫では食欲不振と嗜眠が出やすく、低用量から開始する', '開始 1–2 週後に再診し、以後 6–12 か月ごとに肝腎機能を追跡', '血中濃度の定期測定は不要だが、コントロール不良時には有用']
+  }
+}, {
+  id: 'gabapentin', name: 'Gabapentin', cls: 'chronic',
+  cn: { zh: '加巴噴丁', en: 'Gabapentin', ja: 'ガバペンチン' },
+  indication: { zh: '難治性癲癇的加成用藥（單用效果有限）', en: 'Add-on for refractory epilepsy (limited as monotherapy)', ja: '難治性てんかんの追加療法（単独では効果が限定的）' },
+  doses: {
+    zh: ['犬：10–20 mg/kg PO q8h', '貓：5–10 mg/kg PO q8–12h'],
+    en: ['Dog: 10–20 mg/kg PO q8h', 'Cat: 5–10 mg/kg PO q8–12h'],
+    ja: ['犬：10–20 mg/kg PO q8h', '猫：5–10 mg/kg PO q8–12h']
+  },
+  detail: {
+    zh: ['作為抗癲癇藥的證據較弱，多半是加成而非主力', '人用口服液常含 xylitol — 犬絕對不可使用，務必確認賦形劑', '主要副作用是鎮靜與後肢無力，通常會耐受', '腎臟排除，腎功能不良需減量', '不可突然停藥'],
+    en: ['Evidence as an anticonvulsant is weak — it is an adjunct rather than a mainstay', 'Human oral solutions often contain xylitol, which is toxic to dogs — always check the excipients', 'The main effects are sedation and pelvic limb weakness, usually with tolerance', 'Renally excreted — reduce the dose in renal dysfunction', 'Do not stop abruptly'],
+    ja: ['抗てんかん薬としてのエビデンスは弱く、主役ではなく追加薬の位置づけ', 'ヒト用経口液にはキシリトールを含むものが多く犬には絶対に使用しない — 添加物を必ず確認', '主な副作用は鎮静と後肢の脱力で、通常は耐性がつく', '腎排泄のため腎機能低下では減量', '急に中止しない']
+  }
+}, {
+  id: 'dextroseSz', name: '50% Dextrose', cls: 'cause',
+  cn: { zh: '50% 葡萄糖', en: '50% Dextrose', ja: '50% ブドウ糖' },
+  indication: { zh: '低血糖引起的發作', en: 'Seizures caused by hypoglycaemia', ja: '低血糖による発作' },
+  doses: {
+    zh: ['0.5–1 mL/kg（250–500 mg/kg），稀釋 1:4 後 IV 慢推', '接續 2.5–5% dextrose CRI 維持'],
+    en: ['0.5–1 mL/kg (250–500 mg/kg) diluted 1:4, given slowly IV', 'Follow with a 2.5–5% dextrose CRI'],
+    ja: ['0.5–1 mL/kg（250–500 mg/kg）を 1:4 に希釈して緩徐に IV', '続いて 2.5–5% ブドウ糖の CRI で維持']
+  },
+  detail: {
+    zh: ['每一隻抽搐的動物都要立刻驗血糖 — 這是最快、最便宜、最不該漏掉的檢查', '必須稀釋至 ≤ 25%，高滲透壓會造成靜脈炎與溶血', '胰島素瘤患者給高濃度葡萄糖可能反彈性刺激胰島素分泌而更低血糖 — 用最低有效量並接 CRI', '給藥後 15–30 分鐘回測血糖，之後每 1–2 小時追蹤', '單次推注效果短暫，幾乎都需要接 CRI'],
+    en: ['Check glucose in every seizing patient — the fastest, cheapest and least excusable test to miss', 'Must be diluted to 25% or less; hyperosmolarity causes phlebitis and haemolysis', 'In insulinoma a concentrated bolus can trigger rebound insulin release and deeper hypoglycaemia — use the smallest effective dose and follow with a CRI', 'Recheck glucose 15–30 min after dosing, then every 1–2 hours', 'A single bolus is short-lived — a CRI is almost always needed'],
+    ja: ['発作のあるすべての症例で血糖を測定 — 最も速く安価で、見落としが許されない検査', '25% 以下に希釈必須。高浸透圧により静脈炎と溶血を起こす', 'インスリノーマでは高濃度の急速投与がインスリン分泌のリバウンドを招きより低血糖になる — 最小有効量とし CRI を続ける', '投与 15–30 分後に血糖を再検し、以後 1–2 時間ごとに追跡', '単回投与の効果は一過性で、ほぼ常に CRI が必要']
+  }
+}, {
+  id: 'calciumSz', name: 'Calcium gluconate 10%', cls: 'cause',
+  cn: { zh: '葡萄糖酸鈣', en: 'Calcium gluconate', ja: 'グルコン酸カルシウム' },
+  indication: { zh: '低血鈣引起的發作與抽搐（產後子癇最常見）', en: 'Seizures and tetany from hypocalcaemia (most often eclampsia)', ja: '低カルシウム血症による発作・テタニー（多くは子癇）' },
+  doses: {
+    zh: ['50–150 mg/kg IV over 10–20 分鐘，全程 ECG 監測', '症狀緩解即停止推注，不必補到正常值', '後續：稀釋於輸液中 CRI，或口服鈣加維生素 D'],
+    en: ['50–150 mg/kg IV over 10–20 min with continuous ECG', 'Stop the infusion once signs resolve — full normalisation is not required', 'Follow with a diluted CRI, or oral calcium plus vitamin D'],
+    ja: ['50–150 mg/kg を 10–20 分かけて IV、ECG 持続監視下で', '症状が改善した時点で投与を止める — 正常値まで戻す必要はない', 'その後は希釈して CRI、または経口カルシウムとビタミン D']
+  },
+  detail: {
+    zh: ['給藥中出現心搏過緩、心律不整或 ST 段變化 → 立即停止，等 5 分鐘後減速再給', '產後子癇的母犬貓：同時停止哺乳並改人工餵養幼犬貓', '外滲會造成嚴重組織壞死', '不可與 sodium bicarbonate 或含磷輸液同管路 — 會沉澱', '低血鎂會使低血鈣難以矯正，一併檢查', '看離子鈣，不要只看總鈣（低白蛋白會讓總鈣假性偏低）'],
+    en: ['Bradycardia, arrhythmia or ST changes during infusion → stop immediately, wait 5 minutes and resume more slowly', 'In postpartum eclampsia, stop nursing at the same time and hand-rear the litter', 'Extravasation causes severe tissue necrosis', 'Never share a line with sodium bicarbonate or phosphate-containing fluids — precipitation occurs', 'Hypomagnesaemia makes hypocalcaemia refractory — check it too', 'Judge on ionised calcium, not total calcium (hypoalbuminaemia falsely lowers total calcium)'],
+    ja: ['投与中に徐脈・不整脈・ST 変化が出たら → 直ちに中止し、5 分待って速度を落として再開', '産後子癇では同時に授乳を中止し人工哺育に切り替える', '血管外漏出で重度の組織壊死', '炭酸水素ナトリウムやリン含有輸液と同一ラインで投与しない — 沈殿する', '低マグネシウム血症があると低カルシウム血症は補正困難 — 併せて確認', 'イオン化カルシウムで判断する（低アルブミンでは総カルシウムが偽性に低下）']
+  }
+}, {
+  id: 'methocarbamol', name: 'Methocarbamol', cls: 'cause',
+  cn: { zh: '美索巴莫', en: 'Methocarbamol', ja: 'メトカルバモール' },
+  indication: { zh: '除蟲菊精（permethrin）中毒、蝸牛藥中毒、破傷風的肌肉震顫與僵直', en: 'Muscle tremors and rigidity from permethrin toxicity, metaldehyde poisoning and tetanus', ja: 'ペルメトリン中毒、メタアルデヒド中毒、破傷風による筋振戦・硬直' },
+  doses: {
+    zh: ['犬貓：55–220 mg/kg IV slow，先給估計量的一半再依反應追加', '每日上限 330 mg/kg', '口服維持：44 mg/kg q8h'],
+    en: ['Dog and cat: 55–220 mg/kg IV slow — give half the estimated dose first and titrate to effect', 'Daily maximum 330 mg/kg', 'Oral maintenance: 44 mg/kg q8h'],
+    ja: ['犬猫：55–220 mg/kg を緩徐に IV — まず推定量の半分を投与し反応をみて追加', '1 日上限 330 mg/kg', '経口維持：44 mg/kg q8h']
+  },
+  detail: {
+    zh: ['貓接觸犬用除蟲菊精滴劑是台灣非常常見的急診 — 表現為全身震顫、抽搐、高體溫', '這是肌肉鬆弛劑不是抗癲癇藥：處理的是震顫與僵直，真正的抽搐仍需 benzodiazepine', '同時務必洗澡除污（溫水加洗碗精），並主動降溫', '嚴重者加脂肪乳劑（ILE）加速毒物清除', '推太快會造成虛脫、鎮靜過度與呼吸抑制', '高滲透壓，外滲會刺激組織'],
+    en: ['Cats exposed to canine permethrin spot-ons are a very common emergency — generalised tremor, seizures and hyperthermia', 'This is a muscle relaxant, not an anticonvulsant: it treats tremor and rigidity, while true seizures still need a benzodiazepine', 'Decontaminate at the same time (warm water and dish detergent) and cool actively', 'Add intravenous lipid emulsion in severe cases to speed toxin clearance', 'Rapid injection causes collapse, excessive sedation and respiratory depression', 'Hyperosmolar — extravasation is irritant'],
+    ja: ['猫が犬用ペルメトリン製剤に曝露する例は非常に多い救急 — 全身の振戦、発作、高体温を呈する', 'これは筋弛緩薬であり抗てんかん薬ではない：振戦と硬直に対する薬で、真の発作にはベンゾジアゼピンが必要', '同時に除染（ぬるま湯と食器用洗剤）を行い、積極的に冷却する', '重症例では脂肪乳剤を併用し毒物のクリアランスを促進', '急速投与で虚脱、過度の鎮静、呼吸抑制を起こす', '高浸透圧のため血管外漏出は組織刺激性']
+  }
+}, {
+  id: 'ile', name: 'Intravenous lipid emulsion 20%', cls: 'cause',
+  cn: { zh: '20% 脂肪乳劑 ILE', en: 'Intravenous lipid emulsion 20%', ja: '20% 脂肪乳剤 ILE' },
+  indication: { zh: '脂溶性毒物中毒：除蟲菊精、巨環內酯類、局部麻醉劑、部分殺蟲劑', en: 'Lipophilic toxicoses: permethrin, macrocyclic lactones, local anaesthetics, some insecticides', ja: '脂溶性中毒：ペルメトリン、マクロサイクリックラクトン、局所麻酔薬、一部の殺虫剤' },
+  doses: {
+    zh: ['Bolus：1.5 mL/kg IV over 1 分鐘', 'CRI：0.25 mL/kg/min × 30–60 分鐘', '必要時 4–6 小時後可重複，先確認血清未呈乳糜狀'],
+    en: ['Bolus: 1.5 mL/kg IV over 1 min', 'CRI: 0.25 mL/kg/min for 30–60 min', 'May repeat after 4–6 h if needed, once the serum is no longer lipaemic'],
+    ja: ['ボーラス：1.5 mL/kg を 1 分かけて IV', 'CRI：0.25 mL/kg/min を 30–60 分', '必要なら 4–6 時間後に反復可。血清が乳び状でないことを確認してから']
+  },
+  detail: {
+    zh: ['機轉是形成「脂質槽」把脂溶性毒物從組織拉回血液中隔離', '每次重複給藥前務必看血清是否仍呈乳糜狀 — 是的話不可再給', '嚴格無菌：脂肪乳劑是絕佳的細菌培養基，專用輸液套並於 24 小時內丟棄', '可能併發：脂肪超載症候群、溶血、胰臟炎、發燒', '不可用於已知脂質代謝異常者', '不是萬用解毒劑 — 只對脂溶性毒物有效，且仍需支持療法'],
+    en: ['Works by creating a lipid sink that pulls lipophilic toxins out of tissue and sequesters them in plasma', 'Always check whether the serum is still lipaemic before repeating — if it is, do not give more', 'Strict asepsis: lipid emulsion is an excellent bacterial culture medium; use a dedicated set and discard within 24 hours', 'Possible complications: fat overload syndrome, haemolysis, pancreatitis, pyrexia', 'Do not use with known disorders of lipid metabolism', 'Not a universal antidote — effective only for lipophilic toxins and supportive care is still required'],
+    ja: ['脂質相（lipid sink）を形成し脂溶性毒物を組織から血漿中に引き出して隔離する機序', '反復投与の前に必ず血清が乳び状でないか確認 — 乳び状なら追加しない', '厳密な無菌操作：脂肪乳剤は細菌の格好の培地。専用セットを用い 24 時間以内に廃棄', '合併症：脂肪過負荷症候群、溶血、膵炎、発熱', '既知の脂質代謝異常では使用しない', '万能の解毒薬ではない — 脂溶性毒物にのみ有効で支持療法は依然必要']
+  }
+}, {
+  id: 'mannitolSz', name: 'Mannitol 20%', cls: 'cause',
+  cn: { zh: '甘露醇', en: 'Mannitol', ja: 'マンニトール' },
+  indication: { zh: '發作後腦水腫、腦壓上升', en: 'Post-ictal cerebral oedema and raised intracranial pressure', ja: '発作後の脳浮腫、頭蓋内圧上昇' },
+  doses: {
+    zh: ['0.5–1 g/kg IV over 15–20 分鐘', '必要時 q6–8h 重複，最多 3 次', '使用管路過濾器（可能有結晶）'],
+    en: ['0.5–1 g/kg IV over 15–20 min', 'Repeat q6–8h if needed, up to three doses', 'Use an in-line filter (crystals can form)'],
+    ja: ['0.5–1 g/kg を 15–20 分かけて IV', '必要なら q6–8h で最大 3 回まで反復', 'インラインフィルターを使用（結晶が生じうる）']
+  },
+  detail: {
+    zh: ['適應症是有腦壓上升徵象者，不是每隻抽搐的動物都要給', '腦壓上升的徵象：意識惡化、瞳孔不對稱或對光反射遲鈍、Cushing reflex（高血壓合併心搏過緩）、去大腦姿勢', '滲透性利尿會造成脫水與電解質異常 — 務必同時給輸液並監測尿量、血鈉', '低血容或低血壓者禁用 — 會惡化腦部灌流', '心衰竭與無尿性腎衰竭禁用', '低溫下會析出結晶 — 給藥前檢查，必要時溫水回溶', '併用配套措施：床頭抬高 30 度、避免壓迫頸靜脈、維持正常 PaCO₂'],
+    en: ['Indicated when there are signs of raised intracranial pressure — not for every seizing patient', 'Signs of raised ICP: deteriorating mentation, asymmetric or sluggish pupils, Cushing reflex (hypertension with bradycardia), decerebrate posture', 'Osmotic diuresis causes dehydration and electrolyte derangement — give fluids alongside and monitor urine output and sodium', 'Contraindicated with hypovolaemia or hypotension — it worsens cerebral perfusion', 'Contraindicated in heart failure and anuric renal failure', 'Crystallises when cold — inspect before giving and warm to redissolve if needed', 'Combine with the basics: elevate the head 30°, avoid jugular compression, keep PaCO₂ normal'],
+    ja: ['適応は頭蓋内圧上昇の徴候がある場合 — 発作のあるすべての症例に投与するものではない', '頭蓋内圧上昇の徴候：意識の悪化、瞳孔不同や対光反射の鈍化、クッシング反射（高血圧＋徐脈）、除脳硬直姿勢', '浸透圧利尿により脱水と電解質異常 — 輸液を併用し尿量とナトリウムを監視', '循環血液量減少や低血圧では禁忌 — 脳灌流を悪化させる', '心不全と無尿性腎不全では禁忌', '低温で結晶化する — 投与前に確認し、必要なら加温して再溶解', '基本的対応を併用：頭部 30 度挙上、頸静脈圧迫の回避、PaCO₂ の正常維持']
+  }
+}, {
+  id: 'thiamine', name: 'Thiamine (Vitamin B1)', cls: 'cause',
+  cn: { zh: '硫胺素 維生素 B1', en: 'Thiamine (vitamin B1)', ja: 'チアミン（ビタミン B1）' },
+  indication: { zh: '硫胺素缺乏引起的神經症狀（貓尤其常見）', en: 'Neurological signs from thiamine deficiency (particularly common in cats)', ja: 'チアミン欠乏による神経症状（特に猫に多い）' },
+  doses: {
+    zh: ['貓：25–50 mg/貓 IM 或 slow IV q12h × 3–5 天，之後口服', '犬：25–50 mg/隻 IM q12h（大型犬可至 100 mg）', '首劑建議 IM，靜脈給予有過敏風險'],
+    en: ['Cat: 25–50 mg per cat IM or slow IV q12h for 3–5 days, then oral', 'Dog: 25–50 mg per dog IM q12h (up to 100 mg in large dogs)', 'Give the first dose IM — intravenous administration carries a risk of anaphylaxis'],
+    ja: ['猫：1 頭あたり 25–50 mg を IM または緩徐に IV、q12h で 3–5 日間、その後経口', '犬：1 頭あたり 25–50 mg IM q12h（大型犬は 100 mg まで）', '初回は IM を推奨 — 静脈内投与はアナフィラキシーのリスクがある']
+  },
+  detail: {
+    zh: ['典型病史：長期厭食、只餵生魚（含 thiaminase）、餵食加熱過度的商業罐頭、長期利尿或腹瀉', '典型徵象：頸腹屈（ventroflexion）、瞳孔散大、共濟失調、轉圈、抽搐', '治療反應快 — 給藥後數小時到 1 天內明顯改善，本身就有診斷價值', '延誤治療會造成不可逆的腦損傷', '安全性高，懷疑時就給，不需等檢驗結果', '靜脈快速給予可能引起過敏反應，首劑走 IM 較安全'],
+    en: ['Typical history: prolonged anorexia, a raw-fish diet (thiaminase), over-processed commercial food, chronic diuresis or diarrhoea', 'Typical signs: cervical ventroflexion, mydriasis, ataxia, circling, seizures', 'The response is rapid — marked improvement within hours to a day, which is itself diagnostically useful', 'Delayed treatment leads to irreversible brain injury', 'Very safe — treat on suspicion without waiting for confirmatory testing', 'Rapid IV administration can cause anaphylaxis; the first dose is safer given IM'],
+    ja: ['典型的な病歴：長期の食欲不振、生魚の給餌（チアミナーゼ）、過度に加熱された市販食、慢性の利尿や下痢', '典型的な徴候：頸部腹屈、散瞳、運動失調、旋回、発作', '反応が速く数時間〜1 日で明らかに改善 — それ自体が診断的価値を持つ', '治療が遅れると不可逆的な脳障害を残す', '安全性が高く、疑った時点で検査結果を待たずに投与してよい', '静脈内急速投与でアナフィラキシーを起こしうるため初回は IM が安全']
+  }
+}];
 const colorMap = {
   red: {
     border: 'border-red-500/30',
@@ -1632,6 +2028,10 @@ function VetShockCalculator() {
     id: 'emergency',
     key: 'tabDrugs',
     icon: Syringe
+  }, {
+    id: 'seizure',
+    key: 'tabSeizure',
+    icon: Brain
   }, {
     id: 'cri',
     key: 'tabCri',
@@ -1769,7 +2169,7 @@ function VetShockCalculator() {
   }), tab === 'lytes' && /*#__PURE__*/React.createElement(ElectrolyteView, {
     w: w,
     species: species
-  }), tab === 'ecg' && /*#__PURE__*/React.createElement(ECGView, null), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
+  }), tab === 'seizure' && /*#__PURE__*/React.createElement(SeizureView, null), tab === 'ecg' && /*#__PURE__*/React.createElement(ECGView, null), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
     checked: checked,
     toggleCheck: toggleCheck,
     resetChecks: resetChecks
@@ -3651,16 +4051,26 @@ function ElectrolyteView({
 // ECG 判讀 / 抗心律不整分頁
 // ───────────────────────────────────────────────────────────────
 
+// ───────────────────────────────────────────────────────────────
+// 通用決策流程元件（心電圖與癲癇分頁共用）
+// ───────────────────────────────────────────────────────────────
+
 const URGENCY_TONE = { critical: 'red', watch: 'amber', normal: 'emerald' };
 
-function ECGFlow() {
+function DecisionFlow({
+  tree,
+  dxMap,
+  drugList,
+  titleKey,
+  accent = 'red'
+}) {
   const l = useL();
   const t = useT();
   const [path, setPath] = useState([]);
   const [nodeId, setNodeId] = useState('start');
   const [dxId, setDxId] = useState(null);
-  const node = ECG_TREE[nodeId];
-  const dx = dxId ? ECG_DX[dxId] : null;
+  const node = tree[nodeId];
+  const dx = dxId ? dxMap[dxId] : null;
   const choose = opt => {
     setPath(p => [...p, { q: l(node.q), a: l(opt.label), node: nodeId }]);
     if (opt.dx) setDxId(opt.dx);else setNodeId(opt.next);
@@ -3684,10 +4094,10 @@ function ECGFlow() {
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "w-1.5 h-6 bg-red-500 rounded-full"
+    className: `w-1.5 h-6 ${colorMap[accent].dot} rounded-full`
   }), /*#__PURE__*/React.createElement("h2", {
     className: "font-display text-xl font-semibold"
-  }, t('ecgFlowTitle'))), (path.length > 0 || dx) && /*#__PURE__*/React.createElement("div", {
+  }, t(titleKey))), (path.length > 0 || dx) && /*#__PURE__*/React.createElement("div", {
     className: "flex gap-2 no-print"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: back,
@@ -3697,9 +4107,7 @@ function ECGFlow() {
     className: "px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-mono text-slate-300 hover:border-red-500/60 hover:text-red-300 transition-all"
   }, t('ecgRestart')))), /*#__PURE__*/React.createElement("div", {
     className: "p-4 space-y-4"
-  },
-  // 已回答路徑
-  path.length > 0 && /*#__PURE__*/React.createElement("ol", {
+  }, path.length > 0 && /*#__PURE__*/React.createElement("ol", {
     className: "space-y-1.5"
   }, path.map((p, i) => /*#__PURE__*/React.createElement("li", {
     key: i,
@@ -3710,9 +4118,7 @@ function ECGFlow() {
     className: "text-slate-500 flex-1"
   }, p.q), /*#__PURE__*/React.createElement("span", {
     className: "font-mono text-cyan-300 shrink-0 px-1.5 rounded bg-cyan-500/10 border border-cyan-500/30"
-  }, p.a)))),
-  // 目前問題
-  !dx && node && /*#__PURE__*/React.createElement("div", {
+  }, p.a)))), !dx && node && /*#__PURE__*/React.createElement("div", {
     className: "rounded-lg border border-slate-700 bg-slate-950/60 p-4"
   }, /*#__PURE__*/React.createElement("div", {
     className: "font-display text-lg font-semibold text-slate-100 leading-snug mb-1"
@@ -3727,23 +4133,21 @@ function ECGFlow() {
       onClick: () => choose(o),
       className: `text-left px-4 py-3 rounded-lg border-2 transition-all font-medium ${oc.border} ${oc.bg} ${oc.text} hover:brightness-150`
     }, l(o.label));
-  }))),
-  // 診斷結果
-  dx && /*#__PURE__*/React.createElement(ECGResult, {
+  }))), dx && /*#__PURE__*/React.createElement(FlowResult, {
     dx: dx,
-    dxId: dxId
+    drugList: drugList
   })));
 }
-function ECGResult({
+function FlowResult({
   dx,
-  dxId
+  drugList
 }) {
   const l = useL();
   const t = useT();
   const tone = URGENCY_TONE[dx.urgency] || 'cyan';
   const c = colorMap[tone];
   const subtypes = dx.subtypes ? l(dx.subtypes) : null;
-  const drugs = (dx.drugs || []).map(id => ANTIARRHYTHMICS.find(d => d.id === id)).filter(Boolean);
+  const drugs = (dx.drugs || []).map(id => drugList.find(d => d.id === id)).filter(Boolean);
   return /*#__PURE__*/React.createElement("div", {
     className: `rounded-xl border-2 ${c.border} ${c.bg} overflow-hidden`
   }, /*#__PURE__*/React.createElement("div", {
@@ -3783,29 +4187,28 @@ function ECGResult({
     className: "text-[11px] font-mono px-2 py-1 rounded border border-slate-700 bg-slate-950/60 text-slate-300"
   }, d.name))))));
 }
-function AntiarrhythmicCard({
-  drug
+function DrugDetailCard({
+  drug,
+  classes
 }) {
   const l = useL();
   const t = useT();
   const [open, setOpen] = useState(false);
-  const cls = AA_CLASSES.find(c => c.key === drug.cls) || AA_CLASSES[5];
+  const cls = classes.find(c => c.key === drug.cls) || classes[classes.length - 1];
   const c = colorMap[cls.color];
   const details = l(drug.detail) || [];
   const doses = l(drug.doses) || [];
   return /*#__PURE__*/React.createElement("div", {
     className: `rounded-xl border ${c.border} ${c.bg} p-4`
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-baseline justify-between gap-3 mb-2 flex-wrap"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "mb-2"
+  }, /*#__PURE__*/React.createElement("h3", {
     className: "font-display text-lg font-semibold leading-tight"
   }, drug.name, drug.sub && /*#__PURE__*/React.createElement("span", {
     className: `ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded ${c.bg} ${c.text} border ${c.border}`
   }, "Class ", drug.sub)), /*#__PURE__*/React.createElement("p", {
     className: `text-sm ${c.text} font-mono`
-  }, l(drug.cn))), /*#__PURE__*/React.createElement("span", {
-    className: "text-[11px] text-slate-500 font-mono"
-  })), /*#__PURE__*/React.createElement("p", {
+  }, l(drug.cn))), /*#__PURE__*/React.createElement("p", {
     className: "text-[12px] text-slate-300 leading-relaxed mb-2.5"
   }, /*#__PURE__*/React.createElement("span", {
     className: `${c.accent} font-mono text-[10px] uppercase tracking-wider mr-1.5`
@@ -3837,23 +4240,25 @@ function AntiarrhythmicCard({
     className: `${c.accent} shrink-0 font-mono`
   }, "\xB7"), /*#__PURE__*/React.createElement("span", null, d))))));
 }
-function ECGView() {
+function DrugSections({
+  classes,
+  drugs,
+  titleKey,
+  noteKey,
+  accent
+}) {
   const t = useT();
   const l = useL();
-  return /*#__PURE__*/React.createElement("div", {
-    className: "space-y-6"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-sm text-slate-400 leading-relaxed border border-slate-800 rounded-lg p-3 bg-slate-900/40"
-  }, /*#__PURE__*/React.createElement("p", null, t('ecgIntro'))), /*#__PURE__*/React.createElement(ECGFlow, null), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 mb-3"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "w-1.5 h-6 bg-amber-500 rounded-full"
+    className: `w-1.5 h-6 ${colorMap[accent].dot} rounded-full`
   }), /*#__PURE__*/React.createElement("h2", {
     className: "font-display text-xl font-semibold"
-  }, t('ecgDrugsTitle'))), /*#__PURE__*/React.createElement("p", {
+  }, t(titleKey))), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-slate-500 mb-3 leading-relaxed"
-  }, t('ecgDrugsNote')), AA_CLASSES.map(cls => {
-    const list = ANTIARRHYTHMICS.filter(d => d.cls === cls.key);
+  }, t(noteKey)), classes.map(cls => {
+    const list = drugs.filter(d => d.cls === cls.key);
     if (list.length === 0) return null;
     const c = colorMap[cls.color];
     return /*#__PURE__*/React.createElement("div", {
@@ -3867,11 +4272,54 @@ function ECGView() {
       className: `text-sm font-semibold ${c.text}`
     }, l(cls.title))), /*#__PURE__*/React.createElement("div", {
       className: "grid grid-cols-1 lg:grid-cols-2 gap-3"
-    }, list.map(d => /*#__PURE__*/React.createElement(AntiarrhythmicCard, {
+    }, list.map(d => /*#__PURE__*/React.createElement(DrugDetailCard, {
       key: d.id,
-      drug: d
+      drug: d,
+      classes: classes
     }))));
-  })));
+  }));
+}
+function ECGView() {
+  const t = useT();
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 leading-relaxed border border-slate-800 rounded-lg p-3 bg-slate-900/40"
+  }, /*#__PURE__*/React.createElement("p", null, t('ecgIntro'))), /*#__PURE__*/React.createElement(DecisionFlow, {
+    tree: ECG_TREE,
+    dxMap: ECG_DX,
+    drugList: ANTIARRHYTHMICS,
+    titleKey: 'ecgFlowTitle',
+    accent: 'red'
+  }), /*#__PURE__*/React.createElement(DrugSections, {
+    classes: AA_CLASSES,
+    drugs: ANTIARRHYTHMICS,
+    titleKey: 'ecgDrugsTitle',
+    noteKey: 'ecgDrugsNote',
+    accent: 'amber'
+  }));
+}
+function SeizureView() {
+  const t = useT();
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 leading-relaxed border border-slate-800 rounded-lg p-3 bg-slate-900/40"
+  }, /*#__PURE__*/React.createElement("p", null, t('szIntro'))), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-500/40 bg-red-500/5 px-4 py-3 text-[12px] text-red-200 leading-relaxed"
+  }, t('szDefinition')), /*#__PURE__*/React.createElement(DecisionFlow, {
+    tree: SZ_TREE,
+    dxMap: SZ_DX,
+    drugList: SEIZURE_DRUGS,
+    titleKey: 'szFlowTitle',
+    accent: 'red'
+  }), /*#__PURE__*/React.createElement(DrugSections, {
+    classes: SZ_CLASSES,
+    drugs: SEIZURE_DRUGS,
+    titleKey: 'szDrugsTitle',
+    noteKey: 'szDrugsNote',
+    accent: 'amber'
+  }));
 }
 function CPRFlowView() {
   const l = useL();
@@ -4045,6 +4493,15 @@ const REFERENCES = {
   }, {
     cite: 'de Morais HA, Leisewitz AL. Mixed acid-base disorders. In: DiBartola SP, ed. FEABD. 4th ed. Saunders Elsevier; 2012:302–315.',
     note: { zh: '犬貓的預期代償公式（代謝性 0.7；呼吸性急性 0.15 / 慢性 0.35）與混合型判讀', en: 'Expected compensation formulas for dogs and cats (metabolic 0.7; respiratory acute 0.15 / chronic 0.35) and mixed-disorder interpretation', ja: '犬猫の予測代償式（代謝性 0.7、呼吸性は急性 0.15／慢性 0.35）と混合型の判読' }
+  }, {
+    cite: 'Charalambous M, Bhatti SFM, Van Ham L, et al. Intranasal midazolam versus rectal diazepam for the management of canine status epilepticus: a multicenter randomized parallel-group clinical trial. J Vet Intern Med. 2017;31(4):1149–1158.',
+    note: { zh: '鼻內 midazolam 優於直腸 diazepam 的隨機對照試驗，本工具無 IV 路徑的依據', en: 'Randomised trial showing intranasal midazolam outperforms rectal diazepam — the basis for the no-IV pathway here', ja: '経鼻ミダゾラムが経直腸ジアゼパムに優ることを示した無作為化試験 — 本ツールの静脈路なし経路の根拠' }
+  }, {
+    cite: 'Bhatti SFM, De Risio L, Muñana K, et al. International Veterinary Epilepsy Task Force consensus proposal: medical treatment of canine epilepsy in Europe. BMC Vet Res. 2015;11:176.',
+    note: { zh: 'IVETF 共識：抗癲癇藥選擇、起始時機與監測建議', en: 'IVETF consensus on anticonvulsant choice, when to start treatment and monitoring', ja: 'IVETF コンセンサス：抗てんかん薬の選択、開始時期、モニタリング' }
+  }, {
+    cite: 'Blades Golubovic S, Rossmeisl JH. Status epilepticus in dogs and cats, part 2: treatment, monitoring, and prognosis. J Vet Emerg Crit Care. 2017;27(3):288–300.',
+    note: { zh: '犬貓癲癇重積狀態的階梯式治療、難治性處置與預後', en: 'Stepwise treatment of status epilepticus in dogs and cats, refractory management and prognosis', ja: '犬猫のてんかん重積状態の段階的治療、難治例の管理、予後' }
   }, {
     cite: 'VETgirl. Common Arrhythmias: ECG Identification Chart (Lead II). VETgirl; 2025.',
     note: { zh: '本工具心電圖判讀流程的問題順序參考此圖；內容為重新撰寫並補充心率標準與處置建議', en: 'The question sequence of the ECG pathway in this tool follows this chart; the content is rewritten with added rate criteria and management guidance', ja: '本ツールの心電図判読フローの質問順序はこのチャートに基づく。内容は書き直し、心拍基準と対応指針を追加' }
