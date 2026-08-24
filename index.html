@@ -245,6 +245,8 @@ const UI = {
   tabCri: { zh: '升壓 / CRI', en: 'Vasopressors', ja: '昇圧薬 / CRI' },
   tabFluid: { zh: '輸液 / 電擊', en: 'Fluids / Defib', ja: '輸液 / 除細動' },
   tabLytes: { zh: '電解質 / 輸血', en: 'Lytes / Transfusion', ja: '電解質 / 輸血' },
+  szConc: { zh: '劑型濃度', en: 'Concentration', ja: '製剤濃度' },
+  szNoDoseForSpecies: { zh: '本藥物沒有適用於{sp}的劑量 — 請展開下方「注意事項」確認原因（部分藥物對特定物種為禁忌）。', en: 'No dose is listed for this species ({sp}) — open "Cautions" below for the reason; some drugs are contraindicated in particular species.', ja: 'この動物種（{sp}）に対する用量は設定されていません — 下の「注意事項」で理由を確認してください。特定の種で禁忌となる薬剤があります。' },
   tabSeizure: { zh: '癲癇處置', en: 'Seizures', ja: 'てんかん発作' },
   szIntro: { zh: '面對正在抽搐的犬貓，依序回答問題會走到對應的處置情境，並列出當下該做什麼與可用藥物。下方為完整癲癇相關藥物的劑量與臨床指引。', en: 'For a dog or cat that is seizing, answer each question to reach the matching clinical scenario with what to do now and which drugs to use. Full dosing and clinical guidance for every seizure drug follows below.', ja: '発作中の犬猫について、質問に順に答えると該当する対応シナリオに到達し、いま何をすべきか・どの薬を使うかが示されます。下部に全てのてんかん関連薬の用量と臨床指針があります。' },
   szDefinition: { zh: '⚠ 癲癇重積狀態的定義：單次發作持續 > 5 分鐘，或連續發作之間沒有恢復意識。達到就要立刻用藥，不要再等。群發性發作＝24 小時內 ≥ 2 次但中間有恢復。', en: '⚠ Status epilepticus is defined as a single seizure lasting over 5 minutes, or repeated seizures without regaining consciousness in between. Treat immediately once this is met — do not wait. Cluster seizures are two or more in 24 hours with recovery between them.', ja: '⚠ てんかん重積状態の定義：単発の発作が 5 分以上持続、または意識が戻らないまま発作が反復する状態。該当したら直ちに投薬し、待たない。群発発作は 24 時間に 2 回以上で間に回復があるもの。' },
@@ -1941,6 +1943,117 @@ const SEIZURE_DRUGS = [{
     ja: ['典型的な病歴：長期の食欲不振、生魚の給餌（チアミナーゼ）、過度に加熱された市販食、慢性の利尿や下痢', '典型的な徴候：頸部腹屈、散瞳、運動失調、旋回、発作', '反応が速く数時間〜1 日で明らかに改善 — それ自体が診断的価値を持つ', '治療が遅れると不可逆的な脳障害を残す', '安全性が高く、疑った時点で検査結果を待たずに投与してよい', '静脈内急速投与でアナフィラキシーを起こしうるため初回は IM が安全']
   }
 }];
+// ───────────────────────────────────────────────────────────────
+// 癲癇藥物：結構化劑量（依體重換算 mL）
+// conc 為該劑型的常用濃度 mg/mL；口服固體劑型不設 conc，只算 mg
+// ───────────────────────────────────────────────────────────────
+
+const SZ_DOSING = {
+  diazepam: {
+    concLabel: '5 mg/mL',
+    calc: [
+      { label: { zh: 'IV．每 2 分鐘可重複，最多 3 次', en: 'IV · repeat q2min, max 3 doses', ja: 'IV・2 分ごと最大 3 回' }, route: 'IV', mgPerKg: 0.5, conc: 5, priority: true },
+      { label: { zh: '直腸．無 IV 時（首渡效應故加倍）', en: 'Rectal · no IV access (doubled for first-pass)', ja: '経直腸・静脈路なし（初回通過効果のため倍量）' }, route: 'PR', mgPerKg: 1, mgPerKgHigh: 2, conc: 5 }
+    ]
+  },
+  midazolam: {
+    concLabel: '5 mg/mL',
+    calc: [
+      { label: { zh: 'IV / IM', en: 'IV / IM', ja: 'IV / IM' }, route: 'IV / IM', mgPerKg: 0.2, mgPerKgHigh: 0.3, conc: 5, priority: true },
+      { label: { zh: '鼻內．無 IV 時首選（兩鼻孔分次）', en: 'Intranasal · first choice with no IV (split between nostrils)', ja: '経鼻・静脈路なしの第一選択（両鼻腔に分割）' }, route: 'IN', mgPerKg: 0.2, conc: 5, priority: true },
+      { label: { zh: 'CRI．難治性重積維持', en: 'CRI · maintenance in refractory status', ja: 'CRI・難治性重積の維持' }, route: 'CRI', mgPerKgHr: 0.1, mgPerKgHrHigh: 0.5, conc: 5 }
+    ]
+  },
+  levetiracetam: {
+    concLabel: '100 mg/mL（500 mg / 5 mL）',
+    calc: [
+      { label: { zh: '急性負荷．IV over 5 min', en: 'Acute loading · IV over 5 min', ja: '急性負荷・5 分かけて IV' }, route: 'IV', mgPerKg: 60, conc: 100, priority: true },
+      { label: { zh: '維持．PO q8h', en: 'Maintenance · PO q8h', ja: '維持・PO q8h' }, route: 'PO', mgPerKg: 20, form: 'solid' }
+    ]
+  },
+  phenobarbital: {
+    concLabel: '200 mg/mL（部分廠牌 130 mg/mL，務必核對）',
+    calc: [
+      { label: { zh: '負荷總量．分 4 次每 20 分鐘給', en: 'Total loading dose · four doses 20 min apart', ja: '負荷総量・20 分間隔で 4 回に分割' }, route: 'IV', mgPerKg: 15, mgPerKgHigh: 20, conc: 200, priority: true },
+      { label: { zh: '負荷單次量．每 20 分鐘一次', en: 'Each loading dose · every 20 min', ja: '負荷 1 回量・20 分ごと' }, route: 'IV', mgPerKg: 4, mgPerKgHigh: 5, conc: 200 },
+      { label: { zh: '犬維持．PO q12h', en: 'Dog maintenance · PO q12h', ja: '犬維持・PO q12h' }, route: 'PO', mgPerKg: 2, mgPerKgHigh: 3, form: 'solid', species: 'dog' },
+      { label: { zh: '貓維持．PO q12h', en: 'Cat maintenance · PO q12h', ja: '猫維持・PO q12h' }, route: 'PO', mgPerKg: 1.5, mgPerKgHigh: 2.5, form: 'solid', species: 'cat' }
+    ]
+  },
+  propofol: {
+    concLabel: '10 mg/mL（1%）',
+    calc: [
+      { label: { zh: 'Bolus．慢推至抽搐停止', en: 'Bolus · slowly to effect', ja: 'ボーラス・効果が出るまで緩徐に' }, route: 'IV', mgPerKg: 1, mgPerKgHigh: 4, conc: 10, priority: true },
+      { label: { zh: 'CRI．需先插管', en: 'CRI · intubate first', ja: 'CRI・先に挿管する' }, route: 'CRI', mgPerKgMin: 0.1, mgPerKgMinHigh: 0.6, conc: 10 }
+    ]
+  },
+  ketamineSz: {
+    concLabel: '100 mg/mL',
+    calc: [
+      { label: { zh: 'Bolus', en: 'Bolus', ja: 'ボーラス' }, route: 'IV', mgPerKg: 5, conc: 100, priority: true },
+      { label: { zh: 'CRI', en: 'CRI', ja: 'CRI' }, route: 'CRI', mgPerKgHr: 5, conc: 100 }
+    ]
+  },
+  kbr: {
+    concLabel: '口服液 250 mg/mL（調製劑）',
+    calc: [
+      { label: { zh: '犬單用．每日總量', en: 'Dog monotherapy · daily total', ja: '犬単独療法・1 日総量' }, route: 'PO q24h', mgPerKg: 30, mgPerKgHigh: 40, conc: 250, species: 'dog', priority: true },
+      { label: { zh: '併用 phenobarbital．每日總量', en: 'With phenobarbital · daily total', ja: 'フェノバルビタール併用・1 日総量' }, route: 'PO q24h', mgPerKg: 20, mgPerKgHigh: 30, conc: 250, species: 'dog' },
+      { label: { zh: '負荷總量．分 4–5 天給完', en: 'Loading total · divided over 4–5 days', ja: '負荷総量・4–5 日に分割' }, route: 'PO', mgPerKg: 400, mgPerKgHigh: 600, conc: 250, species: 'dog' }
+    ]
+  },
+  zonisamide: {
+    calc: [
+      { label: { zh: '犬．PO q12h', en: 'Dog · PO q12h', ja: '犬・PO q12h' }, route: 'PO', mgPerKg: 5, mgPerKgHigh: 10, form: 'solid', species: 'dog', priority: true },
+      { label: { zh: '貓．PO q24h', en: 'Cat · PO q24h', ja: '猫・PO q24h' }, route: 'PO', mgPerKg: 5, mgPerKgHigh: 10, form: 'solid', species: 'cat', priority: true }
+    ]
+  },
+  gabapentin: {
+    concLabel: '口服液 50 mg/mL（須確認不含 xylitol）',
+    calc: [
+      { label: { zh: '犬．PO q8h', en: 'Dog · PO q8h', ja: '犬・PO q8h' }, route: 'PO', mgPerKg: 10, mgPerKgHigh: 20, form: 'solid', species: 'dog', priority: true },
+      { label: { zh: '貓．PO q8–12h', en: 'Cat · PO q8–12h', ja: '猫・PO q8–12h' }, route: 'PO', mgPerKg: 5, mgPerKgHigh: 10, form: 'solid', species: 'cat', priority: true }
+    ]
+  },
+  dextroseSz: {
+    concLabel: '500 mg/mL（50%）',
+    calc: [
+      { label: { zh: '低血糖．稀釋 1:4 後慢推', en: 'Hypoglycaemia · dilute 1:4, give slowly', ja: '低血糖・1:4 に希釈し緩徐に' }, route: 'IV', mlPerKg: 0.5, mlPerKgHigh: 1, conc: 500, priority: true }
+    ]
+  },
+  calciumSz: {
+    concLabel: '100 mg/mL（10%）',
+    calc: [
+      { label: { zh: '低血鈣．IV over 10–20 min，ECG 監測', en: 'Hypocalcaemia · IV over 10–20 min with ECG', ja: '低カルシウム血症・10–20 分かけて IV、ECG 監視' }, route: 'IV', mgPerKg: 50, mgPerKgHigh: 150, conc: 100, priority: true }
+    ]
+  },
+  methocarbamol: {
+    concLabel: '100 mg/mL',
+    calc: [
+      { label: { zh: '震顫／僵直．先給一半再依反應追加', en: 'Tremor / rigidity · give half first, titrate', ja: '振戦・硬直・まず半量を投与し追加' }, route: 'IV', mgPerKg: 55, mgPerKgHigh: 220, conc: 100, priority: true },
+      { label: { zh: '每日上限', en: 'Daily maximum', ja: '1 日上限' }, route: 'IV / PO', mgPerKg: 330, conc: 100 }
+    ]
+  },
+  ile: {
+    concLabel: '20% 脂肪乳劑',
+    calc: [
+      { label: { zh: 'Bolus．over 1 min', en: 'Bolus · over 1 min', ja: 'ボーラス・1 分かけて' }, route: 'IV', mlPerKg: 1.5, priority: true },
+      { label: { zh: 'CRI．持續 30–60 分鐘', en: 'CRI · for 30–60 min', ja: 'CRI・30–60 分間' }, route: 'CRI', mlPerKgMin: 0.25 }
+    ]
+  },
+  mannitolSz: {
+    concLabel: '200 mg/mL（20%）',
+    calc: [
+      { label: { zh: '腦壓上升．IV over 15–20 min，需過濾器', en: 'Raised ICP · IV over 15–20 min, use a filter', ja: '頭蓋内圧上昇・15–20 分かけて IV、フィルター使用' }, route: 'IV', gPerKg: 0.5, gPerKgHigh: 1, conc: 200, priority: true }
+    ]
+  },
+  thiamine: {
+    concLabel: '100 mg/mL',
+    calc: [
+      { label: { zh: '每隻固定量．IM q12h（首劑走 IM）', en: 'Fixed per-animal dose · IM q12h (first dose IM)', ja: '1 頭あたり固定量・IM q12h（初回は IM）' }, route: 'IM', perAnimalMg: 25, perAnimalMgHigh: 50, conc: 100, priority: true }
+    ]
+  }
+};
 const colorMap = {
   red: {
     border: 'border-red-500/30',
@@ -2169,7 +2282,10 @@ function VetShockCalculator() {
   }), tab === 'lytes' && /*#__PURE__*/React.createElement(ElectrolyteView, {
     w: w,
     species: species
-  }), tab === 'seizure' && /*#__PURE__*/React.createElement(SeizureView, null), tab === 'ecg' && /*#__PURE__*/React.createElement(ECGView, null), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
+  }), tab === 'seizure' && /*#__PURE__*/React.createElement(SeizureView, {
+    w: w,
+    species: species
+  }), tab === 'ecg' && /*#__PURE__*/React.createElement(ECGView, null), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
     checked: checked,
     toggleCheck: toggleCheck,
     resetChecks: resetChecks
@@ -4187,9 +4303,84 @@ function FlowResult({
     className: "text-[11px] font-mono px-2 py-1 rounded border border-slate-700 bg-slate-950/60 text-slate-300"
   }, d.name))))));
 }
+// 依體重把結構化劑量換算成實際體積
+function calcDoseRow(d, w) {
+  const rng = (lo, hi) => hi != null ? `${fmt(lo)}–${fmt(hi)}` : fmt(lo);
+  const rngRaw = (lo, hi) => hi != null ? `${lo}–${hi}` : `${lo}`;
+  const conc = d.conc;
+  if (d.mgPerKg != null) {
+    const mgLo = d.mgPerKg * w,
+      mgHi = d.mgPerKgHigh != null ? d.mgPerKgHigh * w : null;
+    const solid = d.form === 'solid' || !conc;
+    return {
+      big: solid ? `${rng(mgLo, mgHi)} mg` : `${rng(mgLo / conc, mgHi != null ? mgHi / conc : null)} mL`,
+      sub: solid ? null : `= ${rng(mgLo, mgHi)} mg`,
+      perKg: `${rngRaw(d.mgPerKg, d.mgPerKgHigh)} mg/kg`
+    };
+  }
+  if (d.mgPerKgHr != null) {
+    const mgLo = d.mgPerKgHr * w,
+      mgHi = d.mgPerKgHrHigh != null ? d.mgPerKgHrHigh * w : null;
+    return {
+      big: `${rng(mgLo / conc, mgHi != null ? mgHi / conc : null)} mL/hr`,
+      sub: `= ${rng(mgLo, mgHi)} mg/hr`,
+      perKg: `${rngRaw(d.mgPerKgHr, d.mgPerKgHrHigh)} mg/kg/hr`
+    };
+  }
+  if (d.mgPerKgMin != null) {
+    const mgLo = d.mgPerKgMin * w,
+      mgHi = d.mgPerKgMinHigh != null ? d.mgPerKgMinHigh * w : null;
+    return {
+      big: `${rng(mgLo / conc * 60, mgHi != null ? mgHi / conc * 60 : null)} mL/hr`,
+      sub: `= ${rng(mgLo, mgHi)} mg/min`,
+      perKg: `${rngRaw(d.mgPerKgMin, d.mgPerKgMinHigh)} mg/kg/min`
+    };
+  }
+  if (d.mlPerKgMin != null) {
+    const mlLo = d.mlPerKgMin * w,
+      mlHi = d.mlPerKgMinHigh != null ? d.mlPerKgMinHigh * w : null;
+    return {
+      big: `${rng(mlLo * 60, mlHi != null ? mlHi * 60 : null)} mL/hr`,
+      sub: `= ${rng(mlLo, mlHi)} mL/min`,
+      perKg: `${rngRaw(d.mlPerKgMin, d.mlPerKgMinHigh)} mL/kg/min`
+    };
+  }
+  if (d.mlPerKg != null) {
+    const mlLo = d.mlPerKg * w,
+      mlHi = d.mlPerKgHigh != null ? d.mlPerKgHigh * w : null;
+    return {
+      big: `${rng(mlLo, mlHi)} mL`,
+      sub: conc ? `= ${rng(mlLo * conc, mlHi != null ? mlHi * conc : null)} mg` : null,
+      perKg: `${rngRaw(d.mlPerKg, d.mlPerKgHigh)} mL/kg`
+    };
+  }
+  if (d.gPerKg != null) {
+    const gLo = d.gPerKg * w,
+      gHi = d.gPerKgHigh != null ? d.gPerKgHigh * w : null;
+    return {
+      big: `${rng(gLo * 1000 / conc, gHi != null ? gHi * 1000 / conc : null)} mL`,
+      sub: `= ${rng(gLo, gHi)} g`,
+      perKg: `${rngRaw(d.gPerKg, d.gPerKgHigh)} g/kg`
+    };
+  }
+  if (d.perAnimalMg != null) {
+    const mgLo = d.perAnimalMg,
+      mgHi = d.perAnimalMgHigh;
+    return {
+      big: conc ? `${rng(mgLo / conc, mgHi != null ? mgHi / conc : null)} mL` : `${rng(mgLo, mgHi)} mg`,
+      sub: conc ? `= ${rng(mgLo, mgHi)} mg` : null,
+      perKg: `${rngRaw(mgLo, mgHi)} mg/隻`,
+      fixed: true
+    };
+  }
+  return null;
+}
 function DrugDetailCard({
   drug,
-  classes
+  classes,
+  dosing,
+  w,
+  species
 }) {
   const l = useL();
   const t = useT();
@@ -4198,6 +4389,7 @@ function DrugDetailCard({
   const c = colorMap[cls.color];
   const details = l(drug.detail) || [];
   const doses = l(drug.doses) || [];
+  const calcRows = dosing && dosing.calc ? dosing.calc.filter(x => !x.species || x.species === species) : null;
   return /*#__PURE__*/React.createElement("div", {
     className: `rounded-xl border ${c.border} ${c.bg} p-4`
   }, /*#__PURE__*/React.createElement("div", {
@@ -4212,7 +4404,36 @@ function DrugDetailCard({
     className: "text-[12px] text-slate-300 leading-relaxed mb-2.5"
   }, /*#__PURE__*/React.createElement("span", {
     className: `${c.accent} font-mono text-[10px] uppercase tracking-wider mr-1.5`
-  }, t('ecgIndication')), l(drug.indication)), /*#__PURE__*/React.createElement("ul", {
+  }, t('ecgIndication')), l(drug.indication)), dosing && dosing.concLabel && /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500 font-mono mb-2"
+  }, t('szConc'), " ", dosing.concLabel), calcRows && calcRows.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-[11px] text-red-200 leading-relaxed"
+  }, "⚠ ", fill(t('szNoDoseForSpecies'), {
+    sp: t(species)
+  })) : calcRows ? /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, calcRows.map((d, i) => {
+    const r = calcDoseRow(d, w);
+    if (!r) return null;
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: `rounded-lg border border-slate-800 bg-slate-950/60 p-2.5 ${d.priority ? `ring-1 ${c.border}` : ''}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-start justify-between gap-2 mb-1"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] text-slate-400 leading-snug flex-1"
+    }, l(d.label)), /*#__PURE__*/React.createElement("span", {
+      className: `shrink-0 px-1.5 py-0.5 rounded border ${c.border} bg-slate-950/70 font-mono text-[10px] font-bold ${c.text} whitespace-nowrap`
+    }, r.perKg)), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-baseline gap-2 flex-wrap"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `font-mono text-xl font-bold ${c.accent} num-glow`
+    }, w > 0 || r.fixed ? r.big : '—'), r.sub && /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] text-slate-500 font-mono"
+    }, w > 0 || r.fixed ? r.sub : ''), /*#__PURE__*/React.createElement("span", {
+      className: "ml-auto text-[10px] font-mono text-slate-400 px-1.5 py-0.5 bg-slate-800 rounded"
+    }, d.route)));
+  })) : /*#__PURE__*/React.createElement("ul", {
     className: "space-y-1 mb-1"
   }, doses.map((d, i) => /*#__PURE__*/React.createElement("li", {
     key: i,
@@ -4245,7 +4466,10 @@ function DrugSections({
   drugs,
   titleKey,
   noteKey,
-  accent
+  accent,
+  dosingMap,
+  w,
+  species
 }) {
   const t = useT();
   const l = useL();
@@ -4275,7 +4499,10 @@ function DrugSections({
     }, list.map(d => /*#__PURE__*/React.createElement(DrugDetailCard, {
       key: d.id,
       drug: d,
-      classes: classes
+      classes: classes,
+      dosing: dosingMap ? dosingMap[d.id] : null,
+      w: w,
+      species: species
     }))));
   }));
 }
@@ -4299,7 +4526,10 @@ function ECGView() {
     accent: 'amber'
   }));
 }
-function SeizureView() {
+function SeizureView({
+  w,
+  species
+}) {
   const t = useT();
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -4318,7 +4548,10 @@ function SeizureView() {
     drugs: SEIZURE_DRUGS,
     titleKey: 'szDrugsTitle',
     noteKey: 'szDrugsNote',
-    accent: 'amber'
+    accent: 'amber',
+    dosingMap: SZ_DOSING,
+    w: w,
+    species: species
   }));
 }
 function CPRFlowView() {
