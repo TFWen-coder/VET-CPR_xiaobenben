@@ -1859,6 +1859,20 @@ const SEIZURE_DRUGS = [{
     ja: ['抗てんかん薬としてのエビデンスは弱く、主役ではなく追加薬の位置づけ', 'ヒト用経口液にはキシリトールを含むものが多く犬には絶対に使用しない — 添加物を必ず確認', '主な副作用は鎮静と後肢の脱力で、通常は耐性がつく', '腎排泄のため腎機能低下では減量', '急に中止しない']
   }
 }, {
+  id: 'pregabalin', name: 'Pregabalin', cls: 'chronic',
+  cn: { zh: '普瑞巴林', en: 'Pregabalin', ja: 'プレガバリン' },
+  indication: { zh: '難治性癲癇的加成用藥；也用於神經病理性疼痛', en: 'Add-on for refractory epilepsy; also used for neuropathic pain', ja: '難治性てんかんの追加療法、神経障害性疼痛にも使用' },
+  doses: {
+    zh: ['犬：2–4 mg/kg PO q8–12h（從 2 mg/kg 起始）', '貓：1–2 mg/kg PO q12h', '需 1–2 週逐步加量以減少鎮靜'],
+    en: ['Dog: 2–4 mg/kg PO q8–12h (start at 2 mg/kg)', 'Cat: 1–2 mg/kg PO q12h', 'Titrate up over 1–2 weeks to limit sedation'],
+    ja: ['犬：2–4 mg/kg PO q8–12h（2 mg/kg から開始）', '猫：1–2 mg/kg PO q12h', '鎮静を抑えるため 1–2 週かけて漸増']
+  },
+  detail: {
+    zh: ['與 gabapentin 同機轉（α2δ 鈣通道），但生體可用率高且吸收更可預測 — 效果比 gabapentin 穩定', '一定要逐步加量：直接給目標劑量常造成明顯鎮靜與後肢共濟失調，飼主容易因此自行停藥', '主要經腎臟排除且幾乎不經肝代謝 — 肝病患者可用，但腎功能不良必須減量或延長間隔', '貓對鎮靜與食慾下降較敏感，從 1 mg/kg 起始', '不可突然停藥 — 可能誘發反彈性發作', '與 phenobarbital、KBr 等併用時鎮靜作用會加成', '多國列為管制藥品，處方與紀錄依當地法規辦理', '證據等級：犬的加成療效有小型研究支持，單用資料不足'],
+    en: ['Same mechanism as gabapentin (α2δ calcium channel) but with higher and more predictable bioavailability — more consistent in effect', 'Titrate upwards without exception: starting at the target dose commonly causes marked sedation and pelvic limb ataxia, which often leads owners to stop the drug themselves', 'Mainly renally excreted with almost no hepatic metabolism — usable in liver disease, but reduce the dose or lengthen the interval in renal dysfunction', 'Cats are more sensitive to sedation and inappetence — start at 1 mg/kg', 'Do not stop abruptly — rebound seizures are possible', 'Sedation is additive with phenobarbital, potassium bromide and similar drugs', 'A controlled drug in many jurisdictions — follow local prescribing and record-keeping rules', 'Evidence: small studies support add-on efficacy in dogs; data as monotherapy are insufficient'],
+    ja: ['ガバペンチンと同じ機序（α2δ カルシウムチャネル）だが生物学的利用能が高く吸収も予測しやすい — 効果が安定している', '必ず漸増する：初回から目標用量を投与すると著明な鎮静と後肢の運動失調を生じ、飼い主が自己判断で中止しがち', '主に腎排泄でほとんど肝代謝を受けない — 肝疾患でも使用可だが腎機能低下では減量か間隔延長が必要', '猫は鎮静と食欲不振に感受性が高く 1 mg/kg から開始', '急に中止しない — 反跳性発作を起こしうる', 'フェノバルビタールや臭化カリウムとの併用で鎮静作用が相加的になる', '多くの国で規制薬物 — 処方と記録は各国の法令に従う', 'エビデンス：犬での追加療法の有効性は小規模研究で支持、単独療法のデータは不十分']
+  }
+}, {
   id: 'dextroseSz', name: '50% Dextrose', cls: 'cause',
   cn: { zh: '50% 葡萄糖', en: '50% Dextrose', ja: '50% ブドウ糖' },
   indication: { zh: '低血糖引起的發作', en: 'Seizures caused by hypoglycaemia', ja: '低血糖による発作' },
@@ -2128,6 +2142,12 @@ const SZ_DOSING = {
     calc: [
       { label: { zh: '犬．PO q8h', en: 'Dog · PO q8h', ja: '犬・PO q8h' }, route: 'PO', mgPerKg: 10, mgPerKgHigh: 20, form: 'solid', species: 'dog', priority: true },
       { label: { zh: '貓．PO q8–12h', en: 'Cat · PO q8–12h', ja: '猫・PO q8–12h' }, route: 'PO', mgPerKg: 5, mgPerKgHigh: 10, form: 'solid', species: 'cat', priority: true }
+    ]
+  },
+  pregabalin: {
+    calc: [
+      { label: { zh: '犬．PO q8–12h，自 2 mg/kg 起始漸增', en: 'Dog · PO q8–12h, start at 2 mg/kg and titrate', ja: '犬・PO q8–12h、2 mg/kg から漸増' }, route: 'PO', mgPerKg: 2, mgPerKgHigh: 4, form: 'solid', species: 'dog', priority: true },
+      { label: { zh: '貓．PO q12h，自 1 mg/kg 起始', en: 'Cat · PO q12h, start at 1 mg/kg', ja: '猫・PO q12h、1 mg/kg から開始' }, route: 'PO', mgPerKg: 1, mgPerKgHigh: 2, form: 'solid', species: 'cat', priority: true }
     ]
   },
   dextroseSz: {
@@ -3918,10 +3938,11 @@ function PhosphateCard({
 // 酸鹼分析 — 參考值與判讀
 // ───────────────────────────────────────────────────────────────
 
+// fwK / phosN 供半定量 BE 拆解使用（de Morais & Constable 簡化強離子模型）
 const AB_REF = {
-  dog: { pH: [7.35, 7.45], paco2: [35, 45], paco2N: 37, hco3: [20, 24], hco3N: 22, ag: [12, 24], na: 145, cl: 110, albN: 3.2, naclN: 35 },
-  cat: { pH: [7.30, 7.40], paco2: [28, 38], paco2N: 31, hco3: [17, 22], hco3N: 20, ag: [13, 27], na: 152, cl: 120, albN: 3.0, naclN: 32 },
-  rabbit: { pH: [7.35, 7.45], paco2: [32, 42], paco2N: 37, hco3: [20, 25], hco3N: 22, ag: [12, 24], na: 142, cl: 102, albN: 3.0, naclN: 40 }
+  dog: { pH: [7.35, 7.45], paco2: [35, 45], paco2N: 37, hco3: [20, 24], hco3N: 22, ag: [12, 24], na: 145, cl: 110, albN: 3.2, naclN: 35, fwK: 0.25, phosN: 4.3 },
+  cat: { pH: [7.30, 7.40], paco2: [28, 38], paco2N: 31, hco3: [17, 22], hco3N: 20, ag: [13, 27], na: 152, cl: 120, albN: 3.0, naclN: 32, fwK: 0.22, phosN: 4.5 },
+  rabbit: { pH: [7.35, 7.45], paco2: [32, 42], paco2N: 37, hco3: [20, 25], hco3N: 22, ag: [12, 24], na: 142, cl: 102, albN: 3.0, naclN: 40, fwK: 0.25, phosN: 4.3 }
 };
 
 // NaHCO₃ 製劑（mEq/mL）
@@ -3963,6 +3984,35 @@ const AB_S = {
     whyNoPh: 'pH ≥ 7.2 一般不需補鹼，處理原發病因並維持灌流即可。',
     whyYes: '正常 AG（高氯）型酸中毒代表 HCO₃⁻ 確實流失，補鹼是合理的。仍須先確保通氣與灌流。',
     warnVent: '⚠ 給藥前必須確認通氣足夠（有自主呼吸或已插管給予 IPPV）。碳酸氫鈉會產生 CO₂，若無法排出將加重細胞內酸中毒。',
+    phos: '血磷（可留空）',
+    whyLactate: '乳酸偏高代表有機酸堆積，即使 AG 因低白蛋白而看似正常也一樣。乳酸酸中毒的治療是恢復組織灌流與供氧，不是補鹼 — 乳酸清除後會自行還原成 HCO₃⁻。僅在 pH < 7.1 且灌流已積極處理仍無改善時才考慮。',
+    doseLabelBE: 'NaHCO₃ 首劑（依 BE）', doseNeedBE: '需 BE 為負值',
+    s10be: 'HCO₃⁻ 缺乏總量（依 base excess）= 0.3 × BW × (−BE)',
+    s11be: '首劑（總缺乏的 1/3）與體積 — BE 法',
+    s11out: '{v} mL，20–30 分鐘輸完',
+    sqTitle: '建議改用 Stewart／半定量酸鹼分析',
+    sqWhy: '本例有多個獨立因素同時影響酸鹼，或低白蛋白使傳統 AG 判讀失真。此時 pH 與 HCO₃⁻ 只是最終結果，看不出各成分互相抵消的情形 — 需把 base excess 拆解成各自的貢獻。',
+    sqFixTitle: '各成分的矯正方向',
+    sqNoComp: '目前沒有單一成分達到顯著門檻（±3 mEq/L），但整體型態仍建議以半定量方式覆核。',
+    sqNote: '拆解採 de Morais 與 Constable 的簡化強離子模型；係數為犬貓的族群平均值，個體與檢驗室差異會影響結果，請以趨勢判讀而非單點數值。',
+    sqc_fw: '自由水', sqc_cl: '氯', sqc_alb: '白蛋白', sqc_phos: '磷', sqc_lac: '乳酸', sqc_uma: '未測定陰離子',
+    sq1: '半定量拆解①：自由水對 BE 的貢獻',
+    sq2: '半定量拆解②：氯離子對 BE 的貢獻',
+    sq3: '半定量拆解③：白蛋白對 BE 的貢獻',
+    sq4: '半定量拆解④：磷對 BE 的貢獻',
+    sq5: '半定量拆解⑤：乳酸對 BE 的貢獻',
+    sq6: '半定量拆解⑥：未測定陰離子（殘差）',
+    sqfix_pos_fw: '血鈉偏高造成的濃縮性鹼化。補充自由水（0.45% NaCl 或 D5W），依電解質分頁的補鈉速率上限緩慢矯正。',
+    sqfix_neg_fw: '血鈉偏低造成的稀釋性酸化。限制自由水攝取、處理原因（心衰、肝病、SIADH），必要時用含鈉較高的輸液。',
+    sqfix_pos_cl: '相對低氯造成的鹼化，常見於嘔吐或利尿劑。補充氯離子：0.9% NaCl，並矯正低血鉀。',
+    sqfix_neg_cl: '相對高氯造成的酸化，常見於大量 0.9% NaCl、腹瀉、腎小管酸中毒。改用低氯平衡液（LRS、Normosol-R），這是最直接的矯正方式。',
+    sqfix_pos_alb: '低白蛋白造成的鹼化效應，會遮蔽同時存在的酸中毒。補白蛋白的目的是膠體滲透壓與原發病，不是為了矯正酸鹼；判讀時務必看白蛋白校正後的 AG。',
+    sqfix_neg_alb: '高白蛋白（多為脫水濃縮）造成的酸化。補充水分即可。',
+    sqfix_pos_phos: '低血磷的鹼化效應。依電解質分頁的磷酸鉀 CRI 補充。',
+    sqfix_neg_phos: '高血磷的酸化效應。處理腎衰竭、橫紋肌溶解、腫瘤溶解症候群；限磷飲食與磷結合劑。',
+    sqfix_lac: '乳酸酸中毒的核心是灌流不足，不是缺鹼。補液、升壓、給氧、止血，把氧氣送到組織 — 補碳酸氫鈉無助且可能有害。',
+    sqfix_pos_uma: '殘差為正，通常代表有未測定的陽離子，或檢驗誤差／輸入值不一致。先複查電解質與白蛋白。',
+    sqfix_neg_uma: '殘差為負代表有未測定的強陰離子堆積：酮酸、尿毒酸、乙二醇代謝物、水楊酸。立刻檢驗酮體與腎功能，並詢問毒物接觸史 — 這類病因要治本，補鹼只是拖延。',
     monitor: '監測項目', mixedNoComp: '混合型異常無法用單一代償公式評估，需逐項排查'
   },
   en: {
@@ -3997,6 +4047,35 @@ const AB_S = {
     whyNoPh: 'At pH ≥ 7.2 bicarbonate is generally unnecessary; treat the underlying cause and maintain perfusion.',
     whyYes: 'Normal-AG (hyperchloraemic) acidosis reflects genuine bicarbonate loss, so replacement is rational. Ventilation and perfusion still come first.',
     warnVent: '⚠ Confirm adequate ventilation before dosing (spontaneous breathing or intubated with IPPV). Bicarbonate generates CO₂; if it cannot be exhaled, intracellular acidosis worsens.',
+    phos: 'Phosphate (optional)',
+    whyLactate: 'A raised lactate means organic acid is accumulating, even when the anion gap looks normal because of hypoalbuminaemia. Lactic acidosis is treated by restoring perfusion and oxygen delivery, not with bicarbonate — the lactate regenerates bicarbonate once cleared. Consider bicarbonate only if pH < 7.1 and perfusion has already been addressed aggressively without improvement.',
+    doseLabelBE: 'NaHCO₃ first dose (from BE)', doseNeedBE: 'requires a negative BE',
+    s10be: 'Total HCO₃⁻ deficit from base excess = 0.3 × BW × (−BE)',
+    s11be: 'First dose (one third of the deficit) and volume — BE method',
+    s11out: '{v} mL over 20–30 min',
+    sqTitle: 'Stewart / semi-quantitative analysis recommended',
+    sqWhy: 'Several independent factors are acting on the acid-base status at once, or hypoalbuminaemia is distorting the traditional anion gap. pH and HCO₃⁻ are only the net result and hide components that cancel each other out — base excess needs to be partitioned into its contributors.',
+    sqFixTitle: 'Direction of correction for each component',
+    sqNoComp: 'No single component reaches the significance threshold (±3 mEq/L), but the overall pattern still warrants a semi-quantitative cross-check.',
+    sqNote: 'The partition uses the simplified strong ion model of de Morais and Constable. The coefficients are population averages for dogs and cats; individual and laboratory variation affects the result, so read trends rather than single values.',
+    sqc_fw: 'Free water', sqc_cl: 'Chloride', sqc_alb: 'Albumin', sqc_phos: 'Phosphate', sqc_lac: 'Lactate', sqc_uma: 'Unmeasured anions',
+    sq1: 'Semi-quantitative ①: free water contribution to BE',
+    sq2: 'Semi-quantitative ②: chloride contribution to BE',
+    sq3: 'Semi-quantitative ③: albumin contribution to BE',
+    sq4: 'Semi-quantitative ④: phosphate contribution to BE',
+    sq5: 'Semi-quantitative ⑤: lactate contribution to BE',
+    sq6: 'Semi-quantitative ⑥: unmeasured anions (residual)',
+    sqfix_pos_fw: 'Concentrating alkalosis from a high sodium. Replace free water (0.45% NaCl or D5W), correcting slowly within the sodium rate ceiling on the Lytes tab.',
+    sqfix_neg_fw: 'Dilutional acidosis from a low sodium. Restrict free water, treat the cause (heart failure, liver disease, SIADH) and use a higher-sodium fluid if needed.',
+    sqfix_pos_cl: 'Alkalosis from relative hypochloraemia, typically vomiting or diuretics. Replace chloride with 0.9% NaCl and correct hypokalaemia.',
+    sqfix_neg_cl: 'Acidosis from relative hyperchloraemia, typically large-volume 0.9% NaCl, diarrhoea or renal tubular acidosis. Switch to a low-chloride balanced fluid (LRS, Normosol-R) — the most direct correction available.',
+    sqfix_pos_alb: 'Alkalinising effect of hypoalbuminaemia, which masks a coexisting acidosis. Albumin is replaced for oncotic pressure and the underlying disease, not to correct acid-base; always read the albumin-corrected anion gap.',
+    sqfix_neg_alb: 'Acidifying effect of a high albumin, usually haemoconcentration. Rehydration is sufficient.',
+    sqfix_pos_phos: 'Alkalinising effect of hypophosphataemia. Replace using the potassium phosphate CRI on the Lytes tab.',
+    sqfix_neg_phos: 'Acidifying effect of hyperphosphataemia. Address renal failure, rhabdomyolysis or tumour lysis; use phosphate restriction and binders.',
+    sqfix_lac: 'Lactic acidosis is fundamentally a perfusion problem, not a base deficit. Give fluids, vasopressors, oxygen and haemostasis to get oxygen to the tissues — bicarbonate does not help and may harm.',
+    sqfix_pos_uma: 'A positive residual usually means unmeasured cations, or laboratory error and inconsistent inputs. Recheck electrolytes and albumin first.',
+    sqfix_neg_uma: 'A negative residual means unmeasured strong anions are accumulating: ketoacids, uraemic acids, ethylene glycol metabolites, salicylate. Check ketones and renal values immediately and take a toxin history — these causes need specific treatment; bicarbonate only buys time.',
     monitor: 'Monitoring', mixedNoComp: 'a mixed disorder cannot be assessed with a single compensation formula — work through each component'
   },
   ja: {
@@ -4031,6 +4110,35 @@ const AB_S = {
     whyNoPh: 'pH ≥ 7.2 では通常補正は不要。原疾患の治療と灌流の維持を優先する。',
     whyYes: '正常 AG（高クロール）型アシドーシスは HCO₃⁻ が実際に失われている状態であり、補充は理にかなう。ただし換気と灌流の確保が先。',
     warnVent: '⚠ 投与前に換気が十分であることを確認（自発呼吸あり、または挿管して IPPV）。炭酸水素ナトリウムは CO₂ を産生し、排出できなければ細胞内アシドーシスが悪化する。',
+    phos: 'リン（任意）',
+    whyLactate: '乳酸の上昇は有機酸の蓄積を意味します。低アルブミン血症のためアニオンギャップが正常に見える場合でも同様です。乳酸アシドーシスの治療は組織灌流と酸素供給の回復であって補正ではありません — 乳酸は代謝されれば HCO₃⁻ に戻ります。pH < 7.1 かつ灌流を十分に是正しても改善しない場合にのみ検討します。',
+    doseLabelBE: 'NaHCO₃ 初回量（BE 法）', doseNeedBE: 'BE が負の値である必要',
+    s10be: 'base excess による HCO₃⁻ 総不足量 = 0.3 × BW × (−BE)',
+    s11be: '初回量（総不足の 1/3）と容量 — BE 法',
+    s11out: '{v} mL を 20–30 分で',
+    sqTitle: 'Stewart／半定量的な酸塩基分析を推奨',
+    sqWhy: '複数の独立した因子が同時に酸塩基状態に作用しているか、低アルブミン血症が従来のアニオンギャップ判読を歪めています。pH と HCO₃⁻ は最終的な結果にすぎず、互いに打ち消し合う成分は見えません — base excess を各寄与に分解する必要があります。',
+    sqFixTitle: '各成分の是正方針',
+    sqNoComp: '単一成分で有意水準（±3 mEq/L）に達するものはありませんが、全体像からは半定量的な再確認が望まれます。',
+    sqNote: '分解は de Morais と Constable の簡易強イオンモデルによる。係数は犬猫の集団平均であり、個体差と検査室差が結果に影響するため、単一の数値ではなく推移で判読すること。',
+    sqc_fw: '自由水', sqc_cl: 'クロール', sqc_alb: 'アルブミン', sqc_phos: 'リン', sqc_lac: '乳酸', sqc_uma: '未測定陰イオン',
+    sq1: '半定量分解①：自由水の BE への寄与',
+    sq2: '半定量分解②：クロールの BE への寄与',
+    sq3: '半定量分解③：アルブミンの BE への寄与',
+    sq4: '半定量分解④：リンの BE への寄与',
+    sq5: '半定量分解⑤：乳酸の BE への寄与',
+    sq6: '半定量分解⑥：未測定陰イオン（残差）',
+    sqfix_pos_fw: '高ナトリウムによる濃縮性アルカローシス。自由水（0.45% NaCl または D5W）を補充し、電解質タブの補正速度上限内で緩徐に是正する。',
+    sqfix_neg_fw: '低ナトリウムによる希釈性アシドーシス。自由水を制限し原因（心不全、肝疾患、SIADH）を治療。必要ならナトリウム濃度の高い輸液を用いる。',
+    sqfix_pos_cl: '相対的低クロールによるアルカローシス。多くは嘔吐や利尿薬。0.9% NaCl でクロールを補充し低カリウム血症も是正する。',
+    sqfix_neg_cl: '相対的高クロールによるアシドーシス。多くは大量の 0.9% NaCl、下痢、尿細管性アシドーシス。低クロールの平衡輸液（LRS、Normosol-R）へ変更するのが最も直接的な是正。',
+    sqfix_pos_alb: '低アルブミン血症によるアルカリ化作用で、併存するアシドーシスを覆い隠す。アルブミン補充の目的は膠質浸透圧と原疾患であって酸塩基の是正ではない。判読は必ずアルブミン補正後の AG で。',
+    sqfix_neg_alb: '高アルブミン（多くは血液濃縮）による酸性化。補液で十分。',
+    sqfix_pos_phos: '低リン血症のアルカリ化作用。電解質タブのリン酸カリウム CRI で補充する。',
+    sqfix_neg_phos: '高リン血症の酸性化作用。腎不全、横紋筋融解、腫瘍崩壊症候群に対応し、リン制限食 とリン吸着薬を用いる。',
+    sqfix_lac: '乳酸アシドーシスの本質は灌流不全であり塩基不足ではない。輸液・昇圧・酸素・止血で組織へ酸素を届けること — 炭酸水素ナトリウムは無効であり有害となりうる。',
+    sqfix_pos_uma: '残差が正の場合は未測定の陽イオン、あるいは検査誤差・入力値の不整合を示すことが多い。まず電解質とアルブミンを再検する。',
+    sqfix_neg_uma: '残差が負の場合は未測定の強陰イオンの蓄積を意味する：ケト酸、尿毒症性酸、エチレングリコール代謝物、サリチル酸。直ちにケトンと腎機能を検査し中毒歴を聴取すること — これらは原因治療が必要で、補正は時間稼ぎにすぎない。',
     monitor: 'モニタリング', mixedNoComp: '混合型異常は単一の代償式では評価できないため、各要素を個別に検討する'
   }
 };
@@ -4056,6 +4164,7 @@ function AcidBaseCard({
   const [cl, setCl] = useState('');
   const [alb, setAlb] = useState('');
   const [lac, setLac] = useState('');
+  const [phos, setPhos] = useState('');
   const [course, setCourse] = useState('acute');
   const [target, setTarget] = useState('15');
   const [prod, setProd] = useState('0.83');
@@ -4129,13 +4238,44 @@ function AcidBaseCard({
     if (primary === 'respAcid' || primary === 'mixedAcid') { verdict = 'no'; why = S.whyNoResp; }
     else if (!acidemia || nPH >= 7.2) { verdict = 'no'; why = S.whyNoPh; }
     else if (acidType === 'high') { verdict = 'caution'; why = S.whyNoHighAG; }
+    // 乳酸升高代表有機酸成分，即使 AG 因低白蛋白而看似正常也不該補鹼
+    else if (nLac >= 3) { verdict = 'caution'; why = S.whyLactate; }
     else if (primary === 'metAcid') { verdict = 'yes'; why = S.whyYes; }
     else { verdict = 'no'; why = S.whyNoPh; }
   }
+  // 兩種 NaHCO₃ 劑量公式並列
+  // ① 依 base excess：0.3 × BW × (−BE) — 補足全部鹼缺乏
+  // ② 依目標 HCO₃⁻：0.3 × BW × (目標 − 實測) — 部分矯正
+  const deficitBE = w > 0 && isFinite(be) && be < 0 ? 0.3 * w * -be : 0;
+  const firstDoseBE = deficitBE / 3;
+  const firstMlBE = firstDoseBE / conc;
   const deficit = w > 0 && hco3 > 0 && nTarget > hco3 ? 0.3 * w * (nTarget - hco3) : 0;
   const firstDose = deficit / 3;
   const firstMl = firstDose / conc;
   const showDose = verdict === 'yes' || verdict === 'caution';
+
+  // ── 半定量 BE 拆解（簡化強離子模型）─────────────────────
+  const nPhos = parseFloat(phos) || 0;
+  const beFW = hasLytes ? R.fwK * (nNa - R.na) : 0;
+  const beCl = hasLytes ? R.cl - clCorr : 0;
+  const beAlb = nAlb > 0 ? 3.7 * (R.albN - nAlb) : 0;
+  const bePhos = nPhos > 0 ? 0.58 * (R.phosN - nPhos) : 0;
+  const beLac = nLac > 0 ? -nLac : 0;
+  const beSum = beFW + beCl + beAlb + bePhos + beLac;
+  const beUMA = isFinite(be) && hasLytes ? be - beSum : 0;
+  const SIG_CUT = 5;
+  const comps = [
+    { key: 'fw', v: beFW, on: hasLytes && Math.abs(beFW) >= 3 },
+    { key: 'cl', v: beCl, on: hasLytes && Math.abs(beCl) >= 3 },
+    { key: 'alb', v: beAlb, on: nAlb > 0 && Math.abs(beAlb) >= 3 },
+    { key: 'phos', v: bePhos, on: nPhos > 0 && Math.abs(bePhos) >= 3 },
+    { key: 'lac', v: beLac, on: nLac > 0 && Math.abs(beLac) >= 3 },
+    { key: 'uma', v: beUMA, on: isFinite(be) && hasLytes && Math.abs(beUMA) >= SIG_CUT }
+  ];
+  const activeComps = comps.filter(x => x.on);
+  // 需要 Stewart / 半定量的時機：多重成分同時作用、低白蛋白遮蔽、
+  // 或混合型異常導致傳統 AG 判讀不足
+  const needStewart = hasGas && hasLytes && (activeComps.length >= 2 || nAlb > 0 && nAlb < R.albN - 0.8 || primary === 'mixedAcid' || primary === 'mixedAlk' || primary === 'compensated' || agLow);
 
   const steps = [];
   if (hasGas) {
@@ -4189,6 +4329,18 @@ function AcidBaseCard({
       out: `${nf(sid, 1)} mEq/L（Na⁻Cl ${nf(nNa - nCl, 0)}，參考 ${R.naclN}）`
     });
   }
+  if (showDose && deficitBE > 0) {
+    steps.push({
+      label: S.s10be,
+      expr: `= 0.3 × ${nf(w, 1)} kg × ${nf(-be, 1)}`,
+      out: `${nf(deficitBE, 1)} mEq`
+    });
+    steps.push({
+      label: S.s11be,
+      expr: `${nf(deficitBE, 1)} ÷ 3 = ${nf(firstDoseBE, 1)} mEq ÷ ${conc} mEq/mL`,
+      out: fill(S.s11out, { v: nf(firstMlBE, 1) })
+    });
+  }
   if (showDose && deficit > 0) {
     steps.push({
       label: S.s10,
@@ -4198,7 +4350,39 @@ function AcidBaseCard({
     steps.push({
       label: S.s11,
       expr: `${nf(deficit, 1)} ÷ 3 = ${nf(firstDose, 1)} mEq ÷ ${conc} mEq/mL`,
-      out: `${nf(firstMl, 1)} mL，20–30 分鐘輸完`
+      out: fill(S.s11out, { v: nf(firstMl, 1) })
+    });
+  }
+  if (needStewart) {
+    steps.push({
+      label: S.sq1,
+      expr: `BE_自由水 = ${R.fwK} × (${nf(nNa, 0)} − ${R.na})`,
+      out: `${beFW > 0 ? '+' : ''}${nf(beFW, 1)} mEq/L`
+    });
+    steps.push({
+      label: S.sq2,
+      expr: `BE_氯 = ${R.cl} − ${nf(clCorr, 1)}`,
+      out: `${beCl > 0 ? '+' : ''}${nf(beCl, 1)} mEq/L`
+    });
+    if (nAlb > 0) steps.push({
+      label: S.sq3,
+      expr: `BE_白蛋白 = 3.7 × (${R.albN} − ${nf(nAlb, 1)})`,
+      out: `${beAlb > 0 ? '+' : ''}${nf(beAlb, 1)} mEq/L`
+    });
+    if (nPhos > 0) steps.push({
+      label: S.sq4,
+      expr: `BE_磷 = 0.58 × (${R.phosN} − ${nf(nPhos, 1)})`,
+      out: `${bePhos > 0 ? '+' : ''}${nf(bePhos, 1)} mEq/L`
+    });
+    if (nLac > 0) steps.push({
+      label: S.sq5,
+      expr: `BE_乳酸 = −${nf(nLac, 1)}`,
+      out: `${nf(beLac, 1)} mEq/L`
+    });
+    steps.push({
+      label: S.sq6,
+      expr: `BE_未測定 = BE實測 − 各成分總和 = ${nf(be, 1)} − (${nf(beSum, 1)})`,
+      out: `${beUMA > 0 ? '+' : ''}${nf(beUMA, 1)} mEq/L`
     });
   }
   return /*#__PURE__*/React.createElement(CalcCard, {
@@ -4217,6 +4401,7 @@ function AcidBaseCard({
     /*#__PURE__*/React.createElement(NumField, { label: S.cl, value: cl, onChange: setCl, unit: "mEq/L", step: "1" }),
     /*#__PURE__*/React.createElement(NumField, { label: S.alb, value: alb, onChange: setAlb, unit: "g/dL", step: "0.1", hint: fill(S.albHint, { sp: t(species), v: R.albN }) }),
     /*#__PURE__*/React.createElement(NumField, { label: S.lac, value: lac, onChange: setLac, unit: "mmol/L", step: "0.1", hint: S.opt }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.phos, value: phos, onChange: setPhos, unit: "mg/dL", step: "0.1", hint: S.opt }),
     /*#__PURE__*/React.createElement(NumField, { label: S.target, value: target, onChange: setTarget, unit: "mmol/L", step: "1", hint: S.targetHint }),
     /*#__PURE__*/React.createElement("div", { className: "col-span-2" }, /*#__PURE__*/React.createElement(SelectField, {
       label: S.product, value: prod, onChange: setProd, options: BICARB_PRODUCTS
@@ -4226,7 +4411,7 @@ function AcidBaseCard({
       options: [{ value: 'acute', label: S.acute }, { value: 'chronic', label: S.chronic }]
     }))
   ), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-1 sm:grid-cols-3 gap-3"
+    className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
   }, /*#__PURE__*/React.createElement(BigStat, {
     label: S.primaryLabel,
     value: hasGas ? '' : '—',
@@ -4241,12 +4426,46 @@ function AcidBaseCard({
     sub: hasLytes && hco3 ? fill(S.agSub, { a: R.ag[0], b: R.ag[1], u: nf(ag, 1) }) : S.needAll,
     color: agHigh ? 'red' : agLow ? 'amber' : 'emerald'
   }), /*#__PURE__*/React.createElement(BigStat, {
+    label: S.doseLabelBE,
+    value: showDose && firstMlBE > 0 ? nf(firstMlBE, 1) : '—',
+    unit: "mL",
+    sub: showDose && deficitBE > 0 ? fill(S.doseSub, { t: nf(deficitBE, 1) }) : verdict === 'no' ? S.doseNone : S.doseNeedBE,
+    color: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
+  }), /*#__PURE__*/React.createElement(BigStat, {
     label: S.doseLabel,
     value: showDose && firstMl > 0 ? nf(firstMl, 1) : '—',
     unit: "mL",
     sub: showDose && deficit > 0 ? fill(S.doseSub, { t: nf(deficit, 1) }) : verdict === 'no' ? S.doseNone : '—',
     color: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
-  })), acidType && /*#__PURE__*/React.createElement(Warn, {
+  })), needStewart && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-indigo-500/40 bg-indigo-500/5 p-3 space-y-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-mono uppercase tracking-[0.15em] text-indigo-300 font-bold"
+  }, S.sqTitle), /*#__PURE__*/React.createElement("p", {
+    className: "text-[12px] text-indigo-100 leading-relaxed"
+  }, S.sqWhy), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 sm:grid-cols-3 gap-1.5"
+  }, comps.map(x => /*#__PURE__*/React.createElement("div", {
+    key: x.key,
+    className: `rounded px-2 py-1.5 border text-[11px] font-mono ${x.on ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-200' : 'border-slate-800 bg-slate-950/40 text-slate-600'}`
+  }, S['sqc_' + x.key], /*#__PURE__*/React.createElement("span", {
+    className: "block font-bold"
+  }, `${x.v > 0 ? '+' : ''}${nf(x.v, 1)}`)))), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.15em] text-indigo-300 font-bold pt-1"
+  }, S.sqFixTitle), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-1"
+  }, activeComps.length === 0 ? /*#__PURE__*/React.createElement("li", {
+    className: "text-[11px] text-slate-400"
+  }, S.sqNoComp) : activeComps.map(x => /*#__PURE__*/React.createElement("li", {
+    key: x.key,
+    className: "flex gap-2 text-[11px] text-indigo-100 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-indigo-400 shrink-0 font-mono"
+  }, "▸"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
+    className: "font-mono font-bold"
+  }, S['sqc_' + x.key], "："), S['sqfix_' + (x.v > 0 ? 'pos_' : 'neg_') + x.key] || S['sqfix_' + x.key])))), /*#__PURE__*/React.createElement("p", {
+    className: "text-[10px] text-indigo-300/70 leading-relaxed pt-1"
+  }, S.sqNote)), acidType && /*#__PURE__*/React.createElement(Warn, {
     tone: acidType === 'high' ? 'red' : acidType === 'low' ? 'amber' : 'emerald'
   }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, acidTypeName), " — ", acidTypeNote), verdict && /*#__PURE__*/React.createElement(Warn, {
     tone: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
