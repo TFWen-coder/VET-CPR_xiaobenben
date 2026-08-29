@@ -264,7 +264,7 @@ const UI = {
   tabDrugs: { zh: '急救藥物', en: 'Drugs', ja: '救急薬' },
   tabCri: { zh: '升壓 / CRI', en: 'Vasopressors', ja: '昇圧薬 / CRI' },
   tabFluid: { zh: '輸液 / 電擊', en: 'Fluids / Defib', ja: '輸液 / 除細動' },
-  tabLytes: { zh: '電解質 / 輸血', en: 'Lytes / Transfusion', ja: '電解質 / 輸血' },
+  tabLytes: { zh: '電解質 / 輸血 / 酸鹼', en: 'Lytes / Transfusion / Acid-Base', ja: '電解質 / 輸血 / 酸塩基' },
   szConc: { zh: '劑型濃度', en: 'Concentration', ja: '製剤濃度' },
   szNoDoseForSpecies: { zh: '本藥物沒有適用於{sp}的劑量 — 請展開下方「注意事項」確認原因（部分藥物對特定物種為禁忌）。', en: 'No dose is listed for this species ({sp}) — open "Cautions" below for the reason; some drugs are contraindicated in particular species.', ja: 'この動物種（{sp}）に対する用量は設定されていません — 下の「注意事項」で理由を確認してください。特定の種で禁忌となる薬剤があります。' },
   tabSeizure: { zh: '癲癇處置', en: 'Seizures', ja: 'てんかん発作' },
@@ -318,7 +318,7 @@ const UI = {
   prbcLabel: { zh: 'pRBC 濃厚紅血球', en: 'pRBC packed red cells', ja: 'pRBC 濃厚赤血球' },
   prbcSub: { zh: '{a} mL/kg．依 PCV 目標調整', en: '{a} mL/kg · adjust to target PCV', ja: '{a} mL/kg・目標 PCV に応じて調整' },
   ffpLabel: { zh: 'FFP 新鮮冷凍血漿', en: 'FFP fresh frozen plasma', ja: 'FFP 新鮮凍結血漿' },
-  ffpSub: { zh: '{a} mL/kg．凝血病；詳見電解質 / 輸血', en: '{a} mL/kg · coagulopathy; see Lytes / Transfusion', ja: '{a} mL/kg・凝固異常；電解質 / 輸血を参照' },
+  ffpSub: { zh: '{a} mL/kg．凝血病；詳見電解質 / 輸血 / 酸鹼', en: '{a} mL/kg · coagulopathy; see Lytes / Transfusion / Acid-Base', ja: '{a} mL/kg・凝固異常；電解質 / 輸血 / 酸塩基を参照' },
   catOverload: { zh: '⚠ 貓對體液過載敏感：每次 bolus 後務必聽診肺音與評估呼吸窘迫，必要時放慢或停止。', en: '⚠ Cats are prone to volume overload: auscultate the lungs and check for respiratory distress after every bolus; slow or stop if needed.', ja: '⚠ 猫は輸液過剰に弱い：ボーラスごとに肺音聴診と呼吸窮迫の評価を行い、必要なら減速・中止する。' },
   rabbitOverload: { zh: '⚠ 兔對體液過載極敏感且易低體溫：小量分次給予，每次 bolus 後聽肺音、量體溫，並保持安靜避免壓力性休克。', en: '⚠ Rabbits are highly prone to volume overload and hypothermia: give small split boluses, auscultate and check temperature after each, and minimise handling stress.', ja: '⚠ ウサギは輸液過剰と低体温に非常に弱い：少量分割で投与し、毎回肺音聴診と体温測定を行い、取扱いストレスを最小限にする。' },
   defibEnergy: { zh: '電擊去顫能量', en: 'Defibrillation Energy', ja: '除細動エネルギー' },
@@ -546,9 +546,9 @@ const EMERGENCY_DRUGS = [{
     route: 'IV slow'
   }],
   note: {
-    zh: '需與 epinephrine 分流給予；確保通氣足夠才用。→ 血氣判讀、酸中毒分型與依 BE 計算的給法，見「電解質 / 輸血」分頁的 Acid-Base & Bicarbonate。',
-    en: 'Give through a separate line from epinephrine; only use once ventilation is adequate. → For blood gas interpretation, acidosis subtyping and BE-based dosing see Acid-Base & Bicarbonate on the Lytes / Transfusion tab.',
-    ja: 'アドレナリンとは別ラインで投与し、換気が十分な場合にのみ使用する。→ 血液ガスの判読、アシドーシスの病型分類、BE に基づく投与量は「電解質 / 輸血」タブの Acid-Base & Bicarbonate を参照。'
+    zh: '需與 epinephrine 分流給予；確保通氣足夠才用。→ 血氣判讀、酸中毒分型與依 BE 計算的給法，見「電解質 / 輸血 / 酸鹼」分頁的 Acid-Base & Bicarbonate。',
+    en: 'Give through a separate line from epinephrine; only use once ventilation is adequate. → For blood gas interpretation, acidosis subtyping and BE-based dosing see Acid-Base & Bicarbonate on the Lytes / Transfusion / Acid-Base tab.',
+    ja: 'アドレナリンとは別ラインで投与し、換気が十分な場合にのみ使用する。→ 血液ガスの判読、アシドーシスの病型分類、BE に基づく投与量は「電解質 / 輸血 / 酸塩基」タブの Acid-Base & Bicarbonate を参照。'
   }
 }, {
   name: 'Calcium gluconate 10%',
