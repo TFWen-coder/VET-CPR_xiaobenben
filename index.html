@@ -3985,6 +3985,16 @@ const AB_S = {
     whyYes: '正常 AG（高氯）型酸中毒代表 HCO₃⁻ 確實流失，補鹼是合理的。仍須先確保通氣與灌流。',
     warnVent: '⚠ 給藥前必須確認通氣足夠（有自主呼吸或已插管給予 IPPV）。碳酸氫鈉會產生 CO₂，若無法排出將加重細胞內酸中毒。',
     phos: '血磷（可留空）',
+    normalAGsid: '正常 AG／高氯型（SID 下降，非 HCO₃⁻ 流失）',
+    normalAGsidNote: '氯相對過多使強離子差下降而產生酸中毒。血檢本身無法分辨是「氯被灌進去」還是「HCO₃⁻ 被排出去」— 要看病史：大量 0.9% NaCl 輸液後屬前者，換低氯平衡液即可改善；腹瀉、腎小管酸中毒、輸尿管移植屬後者，是真的持續流失 HCO₃⁻，補鹼較有依據。兩者的實驗室數據長得一樣。',
+    sqTriggerTitle: '為什麼這一例需要 Stewart',
+    sqt_albMask: '低白蛋白正在遮蔽未測定陰離子：白蛋白本身是弱酸，濃度下降會產生鹼化效應，把同時存在的有機酸酸中毒抵消掉。傳統 AG 會低估，base excess 也看不出來 — 必須看白蛋白校正後的 AG 與半定量殘差。',
+    sqt_opposing: '有兩種以上方向相反的代謝性作用互相抵消（例如嘔吐失氯造成的鹼化，對上乳酸或酮酸造成的酸化）。此時 pH 與 HCO₃⁻ 都可能接近正常，看單一數值會誤判為「沒事」，但兩個問題都還在，而且都需要各自處理。',
+    sqt_iatroCl: '氯是主要的酸化來源且 AG 正常，屬 SID（強離子差）下降型。最常見的是大量 0.9% NaCl 之後的醫源性高氯酸血症 — 這種情況體內並沒有真的缺 HCO₃⁻，補鹼只是把數字推回去，換低氯平衡液才是矯正。但腹瀉與腎小管酸中毒的數據長得一模一樣，那是真的在流失 HCO₃⁻ — 請以輸液史與病史區分。',
+    sqt_multi: '有兩個以上獨立成分同時對 base excess 產生顯著影響。單一的 pH 或 HCO₃⁻ 是這些作用相加後的淨值，看不出各自的大小與方向。',
+    sqt_mixed: '判定為混合型或完全代償 — 傳統的單一代償公式無法拆解，需逐成分檢視。',
+    sqt_lowAG: 'AG 低於參考下限，最常見的原因是低白蛋白血症。此時 AG 已失去偵測有機酸的敏感度。',
+    whyIatroCl: '高氯型酸中毒，屬 SID（強離子差）下降。先確認輸液史：若剛給過大量 0.9% NaCl，體內並沒有真的缺 HCO₃⁻，換成低氯平衡液（LRS、Normosol-R）就會自行改善，補鹼只是讓數字好看且再帶入鈉負荷。若是腹瀉、腎小管酸中毒等持續性 HCO₃⁻ 流失，補鹼較有依據，但仍應同時止住流失來源。兩者的血檢數據無法區分，請以病史判斷。',
     sDelta: 'Delta ratio ΔAG ÷ ΔHCO₃⁻（高 AG 之外是否還有別的型態）',
     dr_low: '< 0.8 → 併有正常 AG（高氯）型酸中毒',
     dr_mid: '0.8–2 → 單純高 AG 型代謝性酸中毒',
@@ -4063,6 +4073,16 @@ const AB_S = {
     whyYes: 'Normal-AG (hyperchloraemic) acidosis reflects genuine bicarbonate loss, so replacement is rational. Ventilation and perfusion still come first.',
     warnVent: '⚠ Confirm adequate ventilation before dosing (spontaneous breathing or intubated with IPPV). Bicarbonate generates CO₂; if it cannot be exhaled, intracellular acidosis worsens.',
     phos: 'Phosphate (optional)',
+    normalAGsid: 'Normal-AG / hyperchloraemic (reduced SID, not HCO₃⁻ loss)',
+    normalAGsidNote: 'A relative excess of chloride has lowered the strong ion difference. Bloodwork alone cannot distinguish chloride being infused from bicarbonate being lost — the history decides: after large-volume 0.9% NaCl it is the former and switching to a balanced fluid corrects it; with diarrhoea, renal tubular acidosis or ureteral transposition it is genuine ongoing bicarbonate loss and replacement is better justified. The laboratory picture is identical in both.',
+    sqTriggerTitle: 'Why Stewart applies to this case',
+    sqt_albMask: 'Hypoalbuminaemia is masking unmeasured anions. Albumin is itself a weak acid, so a low concentration is alkalinising and offsets a coexisting organic acidosis. The traditional anion gap underestimates it and base excess does not show it — read the albumin-corrected gap and the semi-quantitative residual instead.',
+    sqt_opposing: 'Two or more metabolic processes are acting in opposite directions and cancelling out (classically the alkalosis of chloride loss from vomiting against the acidosis of lactate or ketoacids). pH and HCO₃⁻ can both look near normal, so a single value reads as "fine" while both problems persist and each needs its own treatment.',
+    sqt_iatroCl: 'Chloride is the dominant acidifying influence with a normal anion gap — a reduced strong ion difference. The commonest cause is iatrogenic hyperchloraemic acidosis after large-volume 0.9% NaCl, where no bicarbonate has actually been lost and switching to a balanced fluid is the correction rather than giving bicarbonate. Diarrhoea and renal tubular acidosis produce an identical laboratory picture but do involve real bicarbonate loss — separate them on the fluid and clinical history.',
+    sqt_multi: 'Two or more independent components are each having a significant effect on base excess. A single pH or HCO₃⁻ is only the net sum and hides their individual size and direction.',
+    sqt_mixed: 'The pattern is mixed or fully compensated — a single compensation formula cannot separate the components, so each must be examined in turn.',
+    sqt_lowAG: 'The anion gap is below the reference range, most often from hypoalbuminaemia. At this point the gap has lost its sensitivity for detecting organic acids.',
+    whyIatroCl: 'A hyperchloraemic acidosis from a reduced strong ion difference. Check the fluid history first: if large-volume 0.9% NaCl has just been given, no bicarbonate has actually been lost and switching to a balanced fluid (LRS, Normosol-R) will correct it on its own — bicarbonate only improves the number while adding a sodium load. If instead there is ongoing bicarbonate loss from diarrhoea or renal tubular acidosis, replacement is better justified, but the source of loss still has to be stopped. Bloodwork cannot separate the two; the history decides.',
     sDelta: 'Delta ratio ΔAG ÷ ΔHCO₃⁻ (is anything else present besides the high AG?)',
     dr_low: '< 0.8 → a concurrent normal-AG (hyperchloraemic) acidosis',
     dr_mid: '0.8–2 → a pure high-AG metabolic acidosis',
@@ -4141,6 +4161,16 @@ const AB_S = {
     whyYes: '正常 AG（高クロール）型アシドーシスは HCO₃⁻ が実際に失われている状態であり、補充は理にかなう。ただし換気と灌流の確保が先。',
     warnVent: '⚠ 投与前に換気が十分であることを確認（自発呼吸あり、または挿管して IPPV）。炭酸水素ナトリウムは CO₂ を産生し、排出できなければ細胞内アシドーシスが悪化する。',
     phos: 'リン（任意）',
+    normalAGsid: '正常 AG／高クロール型（SID 低下であり HCO₃⁻ の喪失ではない）',
+    normalAGsidNote: 'クロールの相対的過剰により強イオン差が低下しています。血液検査だけでは「クロールが入れられた」のか「HCO₃⁻ が失われた」のかを区別できません — 判断は病歴によります：大量の 0.9% NaCl 投与後なら前者で、平衡輸液への変更で改善します。下痢・尿細管性アシドーシス・尿管移植なら後者で、実際に HCO₃⁻ を持続的に喪失しており補充の根拠があります。検査所見は両者で同一です。',
+    sqTriggerTitle: 'この症例で Stewart が必要な理由',
+    sqt_albMask: '低アルブミン血症が未測定陰イオンを覆い隠しています。アルブミン自体が弱酸であるため、低下すればアルカリ化に働き、併存する有機酸アシドーシスを相殺します。従来のアニオンギャップは過小評価し base excess にも現れません — アルブミン補正後の AG と半定量残差で判断してください。',
+    sqt_opposing: '2 つ以上の代謝性の作用が逆方向に働き互いに打ち消し合っています（典型は嘔吐によるクロール喪失のアルカローシスと、乳酸やケト酸によるアシドーシス）。pH も HCO₃⁻ も正常に近く見えるため単一の数値では「異常なし」と誤読しますが、2 つの病態はいずれも残っており、それぞれに治療が必要です。',
+    sqt_iatroCl: 'アニオンギャップは正常でクロールが主な酸性化要因であり、強イオン差（SID）の低下型です。最も多いのは大量の 0.9% NaCl 投与後の医原性高クロール性アシドーシスで、この場合 HCO₃⁻ は実際には失われておらず、補正ではなく平衡輸液への変更が是正となります。ただし下痢や尿細管性アシドーシスは検査所見が全く同じでありながら実際に HCO₃⁻ を喪失しています — 輸液歴と病歴で区別してください。',
+    sqt_multi: '2 つ以上の独立した成分がそれぞれ base excess に有意な影響を与えています。単一の pH や HCO₃⁻ はその総和にすぎず、各成分の大きさと方向は見えません。',
+    sqt_mixed: '混合型または完全代償と判定されました — 単一の代償式では分離できないため、成分ごとに検討する必要があります。',
+    sqt_lowAG: 'アニオンギャップが参考範囲を下回っており、多くは低アルブミン血症によります。この状態では AG は有機酸の検出感度を失っています。',
+    whyIatroCl: '強イオン差（SID）の低下による高クロール性アシドーシスです。まず輸液歴を確認してください：大量の 0.9% NaCl 投与直後であれば HCO₃⁻ は実際には失われておらず、平衡輸液（LRS、Normosol-R）への変更だけで改善します。補正は数値を整えるだけでナトリウム負荷を追加します。一方、下痢や尿細管性アシドーシスによる持続的な HCO₃⁻ 喪失であれば補充の根拠がありますが、喪失源を止めることが前提です。血液検査では両者を区別できず、判断は病歴によります。',
     sDelta: 'Delta ratio ΔAG ÷ ΔHCO₃⁻（高 AG 以外の病態が併存するか）',
     dr_low: '< 0.8 → 正常 AG（高クロール）型アシドーシスの併存',
     dr_mid: '0.8–2 → 純粋な高 AG 型代謝性アシドーシス',
@@ -4274,8 +4304,6 @@ function AcidBaseCard({
   const clCorr = hasLytes ? nCl * (R.na / nNa) : 0;
   const sid = hasLytes ? nNa + nK - (nCl + nLac) : 0;
   const acidType = !acidemia && primary !== 'metAcid' ? null : agHigh ? 'high' : agLow ? 'low' : 'normal';
-  const acidTypeName = acidType === 'high' ? S.highAG : acidType === 'low' ? S.lowAG : acidType === 'normal' ? S.normalAG : '—';
-  const acidTypeNote = acidType === 'high' ? S.highAGnote : acidType === 'low' ? S.lowAGnote : acidType === 'normal' ? S.normalAGnote : '';
 
   // ── 半定量 BE 拆解（簡化強離子模型）─────────────────────
   const nPhos = parseFloat(phos) || 0;
@@ -4305,6 +4333,13 @@ function AcidBaseCard({
   // 有機酸堆積的任一證據：高 AG、乳酸升高、AG 有乳酸解釋不了的部分、
   // 或半定量殘差顯示未測定強陰離子
   const organicSuspect = agHigh || nLac >= 3 || unexplainedSig || umaSig;
+  // 醫源性高氯：氯為主要酸化來源、AG 正常、無有機酸 —
+  // 這是 SID 下降，不是真的缺 HCO₃⁻，主要處置是換輸液而非補鹼
+  const iatroCl = hasLytes && beCl <= -5 && !agHigh && !organicSuspect;
+  // 高氯型的成因有兩種：真正流失 HCO₃⁻，或 SID 下降（醫源性高氯）
+  // — 標籤與說明需分開，否則會與「不是真的缺 HCO₃⁻」的判定自相矛盾
+  const acidTypeName = acidType === 'high' ? S.highAG : acidType === 'low' ? S.lowAG : acidType === 'normal' ? iatroCl ? S.normalAGsid : S.normalAG : '—';
+  const acidTypeNote = acidType === 'high' ? S.highAGnote : acidType === 'low' ? S.lowAGnote : acidType === 'normal' ? iatroCl ? S.normalAGsidNote : S.normalAGnote : '';
 
   // 是否給碳酸氫鈉
   let verdict = null, why = '';
@@ -4316,6 +4351,8 @@ function AcidBaseCard({
       verdict = 'caution';
       why = unexplainedSig || umaSig ? S.whyOrganicUnexplained : nLac >= 3 ? S.whyLactate : S.whyNoHighAG;
     }
+    // 高氯型但屬 SID 下降（非 HCO₃⁻ 流失）：主要處置是換輸液
+    else if (iatroCl) { verdict = 'caution'; why = S.whyIatroCl; }
     else if (primary === 'metAcid') { verdict = 'yes'; why = S.whyYes; }
     else { verdict = 'no'; why = S.whyNoPh; }
   }
@@ -4339,9 +4376,23 @@ function AcidBaseCard({
     { key: 'uma', v: beUMA, on: isFinite(be) && hasLytes && Math.abs(beUMA) >= SIG_CUT }
   ];
   const activeComps = comps.filter(x => x.on);
-  // 需要 Stewart / 半定量的時機：多重成分同時作用、低白蛋白遮蔽、
-  // 或混合型異常導致傳統 AG 判讀不足
-  const needStewart = hasGas && hasLytes && (activeComps.length >= 2 || nAlb > 0 && nAlb < R.albN - 0.8 || primary === 'mixedAcid' || primary === 'mixedAlk' || primary === 'compensated' || agLow);
+  // 兩個以上成分作用方向相反、互相抵消 pH（例如嘔吐失氯的鹼化
+  // 對上乳酸的酸化），此時 pH 與 HCO₃⁻ 都可能接近正常
+  const OPP_CUT = 4;
+  const posComps = comps.filter(x => x.v >= OPP_CUT);
+  const negComps = comps.filter(x => x.v <= -OPP_CUT);
+  const hasOpposing = hasLytes && posComps.length > 0 && negComps.length > 0;
+  // 低白蛋白的鹼化效應正在遮蔽未測定陰離子的堆積
+  const albMask = nAlb > 0 && nAlb < R.albN - 0.8 && beUMA <= -3;
+  const stewartTriggers = [
+    { key: 'albMask', on: albMask },
+    { key: 'opposing', on: hasOpposing },
+    { key: 'iatroCl', on: iatroCl },
+    { key: 'multi', on: activeComps.length >= 2 },
+    { key: 'mixed', on: primary === 'mixedAcid' || primary === 'mixedAlk' || primary === 'compensated' },
+    { key: 'lowAG', on: agLow }
+  ].filter(x => x.on);
+  const needStewart = hasGas && hasLytes && stewartTriggers.length > 0;
 
   const steps = [];
   if (hasGas) {
@@ -4539,6 +4590,15 @@ function AcidBaseCard({
   }, S.sqTitle), /*#__PURE__*/React.createElement("p", {
     className: "text-[12px] text-indigo-100 leading-relaxed"
   }, S.sqWhy), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.15em] text-indigo-300 font-bold pt-1"
+  }, S.sqTriggerTitle), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-1"
+  }, stewartTriggers.map(x => /*#__PURE__*/React.createElement("li", {
+    key: x.key,
+    className: "flex gap-2 text-[11px] text-indigo-100 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-indigo-400 shrink-0 font-mono"
+  }, "▸"), /*#__PURE__*/React.createElement("span", null, S['sqt_' + x.key])))), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-2 sm:grid-cols-3 gap-1.5"
   }, comps.map(x => /*#__PURE__*/React.createElement("div", {
     key: x.key,
