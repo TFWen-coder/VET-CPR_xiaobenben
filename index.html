@@ -253,7 +253,8 @@ const Rabbit = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.
 
 const UI = {
   appTitle: { zh: '急救小本本 3.1', en: 'Vet Emergency Pocketbook 3.1', ja: '救急ハンドブック 3.1' },
-  appSlogan: { zh: '陪你救他一命', en: 'Here with you to save a life', ja: 'その一命を、あなたと共に' },
+  // 英文版留空 — 直譯讀起來彆扭，寧可不放
+  appSlogan: { zh: '陪你救他一命', en: '', ja: 'その一命を、あなたと共に' },
   appSub: { zh: '犬貓兔休克與心肺復甦計算機．RECOVER 2024', en: 'Shock & CPCR calculator for dogs, cats and rabbits · RECOVER 2024', ja: '犬・猫・ウサギのショックと心肺蘇生計算機・RECOVER 2024' },
   viewsPre: { zh: '累計開啟', en: 'Opened', ja: '累計' },
   viewsPost: { zh: '次', en: 'times', ja: '回' },
@@ -2373,7 +2374,7 @@ function VetShockCalculator() {
     className: "flex items-center justify-between gap-4 flex-wrap"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
     className: "font-display text-3xl sm:text-4xl font-bold leading-none"
-  }, t('appTitle')), /*#__PURE__*/React.createElement("p", {
+  }, t('appTitle')), t('appSlogan') && /*#__PURE__*/React.createElement("p", {
     className: "slogan text-[13px] font-semibold tracking-[0.08em] mt-1 select-none"
   }, t('appSlogan')), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-400 mt-1 font-mono"
