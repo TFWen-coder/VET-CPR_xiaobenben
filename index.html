@@ -3985,6 +3985,21 @@ const AB_S = {
     whyYes: '正常 AG（高氯）型酸中毒代表 HCO₃⁻ 確實流失，補鹼是合理的。仍須先確保通氣與灌流。',
     warnVent: '⚠ 給藥前必須確認通氣足夠（有自主呼吸或已插管給予 IPPV）。碳酸氫鈉會產生 CO₂，若無法排出將加重細胞內酸中毒。',
     phos: '血磷（可留空）',
+    sDelta: 'Delta ratio ΔAG ÷ ΔHCO₃⁻（高 AG 之外是否還有別的型態）',
+    dr_low: '< 0.8 → 併有正常 AG（高氯）型酸中毒',
+    dr_mid: '0.8–2 → 單純高 AG 型代謝性酸中毒',
+    dr_high: '> 2 → 併有代謝性鹼中毒，或慢性呼吸性酸中毒的代償性高 HCO₃⁻',
+    sOrganic: 'AG 超出部分的來源拆解（乳酸以外還剩多少）',
+    sOrganicOut: '尚有 {v} mEq/L 無法用乳酸解釋 → 追查其他有機酸',
+    sOrganicLac: '可由乳酸完全解釋',
+    organicTitle: '有機酸堆積 — 依 anion gap 追查病因',
+    organicWhy: '有 {v} mEq/L 的陰離子無法用乳酸、氯、白蛋白與磷解釋。這代表體內存在其他未測定的強陰離子，補鹼只是掩蓋數字，必須找出並治療病因：',
+    org_dka: '酮酸中毒：驗血酮或尿酮（尿酮試紙對 β-hydroxybutyrate 不敏感，陰性不能排除）。糖尿病酮酸血症以輸液、胰島素 CRI、補鉀處理，不補鹼。',
+    org_uremia: '尿毒症酸中毒：驗 BUN、creatinine、SDMA、磷。急性腎損傷需評估尿量與是否需要透析。',
+    org_eg: '乙二醇中毒：常見於貓犬誤舔水箱精。查滲透壓差、草酸鈣結晶尿、血鈣下降。時效性極強 — 4 小時內給 fomepizole 或乙醇才有效。',
+    org_salicylate: '水楊酸／其他中毒：問用藥與接觸史（阿斯匹靈、metaldehyde、雙酚類）。貓對水楊酸代謝極慢，劑量很低就會中毒。',
+    org_other: '其他：嚴重橫紋肌溶解、腫瘤溶解症候群、丙二醇輸注、飢餓性酮症。同時複查電解質確認不是檢驗誤差。',
+    whyOrganicUnexplained: 'Anion gap 顯示有乳酸以外的未測定強陰離子堆積（酮酸、尿毒酸、乙二醇代謝物、水楊酸等）。這類有機酸在病因處理後會代謝還原成 HCO₃⁻，此時補鹼容易造成反彈性鹼中毒，且會讓後續判讀失真。治療應以病因為主 — 僅在 pH < 7.1 且病因治療已啟動仍持續惡化時才考慮。',
     whyLactate: '乳酸偏高代表有機酸堆積，即使 AG 因低白蛋白而看似正常也一樣。乳酸酸中毒的治療是恢復組織灌流與供氧，不是補鹼 — 乳酸清除後會自行還原成 HCO₃⁻。僅在 pH < 7.1 且灌流已積極處理仍無改善時才考慮。',
     doseLabelBE: 'NaHCO₃ 首劑（依 BE）', doseNeedBE: '需 BE 為負值',
     s10be: 'HCO₃⁻ 缺乏總量（依 base excess）= 0.3 × BW × (−BE)',
@@ -4048,6 +4063,21 @@ const AB_S = {
     whyYes: 'Normal-AG (hyperchloraemic) acidosis reflects genuine bicarbonate loss, so replacement is rational. Ventilation and perfusion still come first.',
     warnVent: '⚠ Confirm adequate ventilation before dosing (spontaneous breathing or intubated with IPPV). Bicarbonate generates CO₂; if it cannot be exhaled, intracellular acidosis worsens.',
     phos: 'Phosphate (optional)',
+    sDelta: 'Delta ratio ΔAG ÷ ΔHCO₃⁻ (is anything else present besides the high AG?)',
+    dr_low: '< 0.8 → a concurrent normal-AG (hyperchloraemic) acidosis',
+    dr_mid: '0.8–2 → a pure high-AG metabolic acidosis',
+    dr_high: '> 2 → a concurrent metabolic alkalosis, or compensatory high HCO₃⁻ from chronic respiratory acidosis',
+    sOrganic: 'Source of the anion gap excess (how much remains beyond lactate)',
+    sOrganicOut: '{v} mEq/L is not explained by lactate → look for other organic acids',
+    sOrganicLac: 'fully explained by lactate',
+    organicTitle: 'Organic acid accumulation — work it up from the anion gap',
+    organicWhy: '{v} mEq/L of anion cannot be explained by lactate, chloride, albumin or phosphate. Other unmeasured strong anions are present; giving bicarbonate only masks the number. Find and treat the cause:',
+    org_dka: 'Ketoacidosis: measure blood or urine ketones (urine dipsticks detect β-hydroxybutyrate poorly, so a negative result does not exclude it). Treat diabetic ketoacidosis with fluids, an insulin CRI and potassium — not bicarbonate.',
+    org_uremia: 'Uraemic acidosis: check BUN, creatinine, SDMA and phosphate. Assess urine output and the need for dialysis in acute kidney injury.',
+    org_eg: 'Ethylene glycol: common after licking radiator coolant. Check the osmolal gap, calcium oxalate crystalluria and a falling calcium. Extremely time-critical — fomepizole or ethanol works only within about 4 hours.',
+    org_salicylate: 'Salicylate and other toxicoses: take a medication and exposure history (aspirin, metaldehyde, bisphenols). Cats metabolise salicylate very slowly and are poisoned at low doses.',
+    org_other: 'Others: severe rhabdomyolysis, tumour lysis syndrome, propylene glycol infusion, starvation ketosis. Recheck electrolytes to exclude laboratory error.',
+    whyOrganicUnexplained: 'The anion gap shows unmeasured strong anions beyond lactate (ketoacids, uraemic acids, ethylene glycol metabolites, salicylate). These organic acids regenerate bicarbonate once the cause is treated, so giving bicarbonate now risks rebound alkalosis and distorts later interpretation. Treat the cause; consider bicarbonate only if pH < 7.1 and the patient continues to deteriorate despite cause-directed therapy.',
     whyLactate: 'A raised lactate means organic acid is accumulating, even when the anion gap looks normal because of hypoalbuminaemia. Lactic acidosis is treated by restoring perfusion and oxygen delivery, not with bicarbonate — the lactate regenerates bicarbonate once cleared. Consider bicarbonate only if pH < 7.1 and perfusion has already been addressed aggressively without improvement.',
     doseLabelBE: 'NaHCO₃ first dose (from BE)', doseNeedBE: 'requires a negative BE',
     s10be: 'Total HCO₃⁻ deficit from base excess = 0.3 × BW × (−BE)',
@@ -4111,6 +4141,21 @@ const AB_S = {
     whyYes: '正常 AG（高クロール）型アシドーシスは HCO₃⁻ が実際に失われている状態であり、補充は理にかなう。ただし換気と灌流の確保が先。',
     warnVent: '⚠ 投与前に換気が十分であることを確認（自発呼吸あり、または挿管して IPPV）。炭酸水素ナトリウムは CO₂ を産生し、排出できなければ細胞内アシドーシスが悪化する。',
     phos: 'リン（任意）',
+    sDelta: 'Delta ratio ΔAG ÷ ΔHCO₃⁻（高 AG 以外の病態が併存するか）',
+    dr_low: '< 0.8 → 正常 AG（高クロール）型アシドーシスの併存',
+    dr_mid: '0.8–2 → 純粋な高 AG 型代謝性アシドーシス',
+    dr_high: '> 2 → 代謝性アルカローシスの併存、または慢性呼吸性アシドーシスの代償による高 HCO₃⁻',
+    sOrganic: 'AG 上昇分の内訳（乳酸以外に残る量）',
+    sOrganicOut: '{v} mEq/L は乳酸で説明できない → 他の有機酸を検索',
+    sOrganicLac: '乳酸で完全に説明可能',
+    organicTitle: '有機酸の蓄積 — アニオンギャップから原因を追う',
+    organicWhy: '{v} mEq/L の陰イオンが乳酸・クロール・アルブミン・リンでは説明できません。他の未測定強陰イオンが存在しており、補正は数値を覆い隠すだけです。原因を特定して治療してください：',
+    org_dka: 'ケトアシドーシス：血中または尿中ケトンを測定（尿試験紙は β-ヒドロキシ酪酸の検出感度が低く、陰性でも除外できない）。糖尿病性ケトアシドーシスは輸液・インスリン CRI・カリウム補充で治療し、補正は行わない。',
+    org_uremia: '尿毒症性アシドーシス：BUN、クレアチニン、SDMA、リンを確認。急性腎障害では尿量と透析の必要性を評価する。',
+    org_eg: 'エチレングリコール中毒：クーラント液をなめて発症することが多い。浸透圧ギャップ、シュウ酸カルシウム結晶尿、カルシウム低下を確認。時間との勝負で、ホメピゾールやエタノールは約 4 時間以内でなければ無効。',
+    org_salicylate: 'サリチル酸その他の中毒：投薬歴と曝露歴を聴取（アスピリン、メタアルデヒド、ビスフェノール類）。猫はサリチル酸の代謝が非常に遅く低用量でも中毒になる。',
+    org_other: 'その他：重度の横紋筋融解、腫瘍崩壊症候群、プロピレングリコール投与、飢餓性ケトーシス。検査誤差を除外するため電解質も再検する。',
+    whyOrganicUnexplained: 'アニオンギャップは乳酸以外の未測定強陰イオン（ケト酸、尿毒症性酸、エチレングリコール代謝物、サリチル酸）の存在を示しています。これらの有機酸は原因治療により代謝されて HCO₃⁻ に戻るため、この時点での補正はリバウンドのアルカローシスを招き、以後の判読も歪めます。原因治療を優先し、pH < 7.1 かつ原因治療下でも悪化が続く場合にのみ補正を検討してください。',
     whyLactate: '乳酸の上昇は有機酸の蓄積を意味します。低アルブミン血症のためアニオンギャップが正常に見える場合でも同様です。乳酸アシドーシスの治療は組織灌流と酸素供給の回復であって補正ではありません — 乳酸は代謝されれば HCO₃⁻ に戻ります。pH < 7.1 かつ灌流を十分に是正しても改善しない場合にのみ検討します。',
     doseLabelBE: 'NaHCO₃ 初回量（BE 法）', doseNeedBE: 'BE が負の値である必要',
     s10be: 'base excess による HCO₃⁻ 総不足量 = 0.3 × BW × (−BE)',
@@ -4232,14 +4277,45 @@ function AcidBaseCard({
   const acidTypeName = acidType === 'high' ? S.highAG : acidType === 'low' ? S.lowAG : acidType === 'normal' ? S.normalAG : '—';
   const acidTypeNote = acidType === 'high' ? S.highAGnote : acidType === 'low' ? S.lowAGnote : acidType === 'normal' ? S.normalAGnote : '';
 
+  // ── 半定量 BE 拆解（簡化強離子模型）─────────────────────
+  const nPhos = parseFloat(phos) || 0;
+  const beFW = hasLytes ? R.fwK * (nNa - R.na) : 0;
+  const beCl = hasLytes ? R.cl - clCorr : 0;
+  const beAlb = nAlb > 0 ? 3.7 * (R.albN - nAlb) : 0;
+  const bePhos = nPhos > 0 ? 0.58 * (R.phosN - nPhos) : 0;
+  const beLac = nLac > 0 ? -nLac : 0;
+  const beSum = beFW + beCl + beAlb + bePhos + beLac;
+  const beUMA = isFinite(be) && hasLytes ? be - beSum : 0;
+  const SIG_CUT = 5;
+
+  // ── 以 anion gap 追查有機酸 ─────────────────────────────
+  // ΔAG / ΔHCO₃⁻（delta ratio）：判斷高 AG 之外是否還併有其他型態
+  const agMid = (R.ag[0] + R.ag[1]) / 2;
+  const deltaAG = agUse - agMid;
+  const deltaHco3 = R.hco3N - hco3;
+  // delta ratio 只在 AG 確實升高時才有判讀意義（AG 正常時分子沒有意義）
+  const hasDelta = hasLytes && hco3 > 0 && deltaHco3 > 2 && agUse > R.ag[1];
+  const deltaRatio = hasDelta ? deltaAG / deltaHco3 : null;
+  const deltaVerdict = !hasDelta ? '' : deltaRatio < 0.8 ? S.dr_low : deltaRatio > 2 ? S.dr_high : S.dr_mid;
+  // AG 超出上限的部分中，乳酸能解釋多少、剩下多少是其他有機酸
+  const agExcess = hasLytes && hco3 > 0 ? Math.max(agUse - R.ag[1], 0) : 0;
+  const agUnexplained = agExcess - nLac;
+  const unexplainedSig = agUnexplained >= 5;
+  const umaSig = isFinite(be) && hasLytes && beUMA <= -SIG_CUT;
+  // 有機酸堆積的任一證據：高 AG、乳酸升高、AG 有乳酸解釋不了的部分、
+  // 或半定量殘差顯示未測定強陰離子
+  const organicSuspect = agHigh || nLac >= 3 || unexplainedSig || umaSig;
+
   // 是否給碳酸氫鈉
   let verdict = null, why = '';
   if (hasGas) {
     if (primary === 'respAcid' || primary === 'mixedAcid') { verdict = 'no'; why = S.whyNoResp; }
     else if (!acidemia || nPH >= 7.2) { verdict = 'no'; why = S.whyNoPh; }
-    else if (acidType === 'high') { verdict = 'caution'; why = S.whyNoHighAG; }
-    // 乳酸升高代表有機酸成分，即使 AG 因低白蛋白而看似正常也不該補鹼
-    else if (nLac >= 3) { verdict = 'caution'; why = S.whyLactate; }
+    // 有機酸堆積就不該補鹼 — 不論 AG 是否因低白蛋白而看似正常
+    else if (organicSuspect) {
+      verdict = 'caution';
+      why = unexplainedSig || umaSig ? S.whyOrganicUnexplained : nLac >= 3 ? S.whyLactate : S.whyNoHighAG;
+    }
     else if (primary === 'metAcid') { verdict = 'yes'; why = S.whyYes; }
     else { verdict = 'no'; why = S.whyNoPh; }
   }
@@ -4254,16 +4330,6 @@ function AcidBaseCard({
   const firstMl = firstDose / conc;
   const showDose = verdict === 'yes' || verdict === 'caution';
 
-  // ── 半定量 BE 拆解（簡化強離子模型）─────────────────────
-  const nPhos = parseFloat(phos) || 0;
-  const beFW = hasLytes ? R.fwK * (nNa - R.na) : 0;
-  const beCl = hasLytes ? R.cl - clCorr : 0;
-  const beAlb = nAlb > 0 ? 3.7 * (R.albN - nAlb) : 0;
-  const bePhos = nPhos > 0 ? 0.58 * (R.phosN - nPhos) : 0;
-  const beLac = nLac > 0 ? -nLac : 0;
-  const beSum = beFW + beCl + beAlb + bePhos + beLac;
-  const beUMA = isFinite(be) && hasLytes ? be - beSum : 0;
-  const SIG_CUT = 5;
   const comps = [
     { key: 'fw', v: beFW, on: hasLytes && Math.abs(beFW) >= 3 },
     { key: 'cl', v: beCl, on: hasLytes && Math.abs(beCl) >= 3 },
@@ -4317,6 +4383,20 @@ function AcidBaseCard({
     }
     if (acidType) {
       steps.push({ label: S.s6, expr: `AG ${nf(agUse, 1)} vs ${R.ag[0]}–${R.ag[1]}`, out: acidTypeName });
+    }
+    if (hasDelta) {
+      steps.push({
+        label: S.sDelta,
+        expr: `ΔAG ÷ ΔHCO₃⁻ = (${nf(agUse, 1)} − ${nf(agMid, 0)}) ÷ (${R.hco3N} − ${nf(hco3, 1)}) = ${nf(deltaAG, 1)} ÷ ${nf(deltaHco3, 1)}`,
+        out: `${nf(deltaRatio, 2)}　${deltaVerdict}`
+      });
+    }
+    if (agExcess > 0) {
+      steps.push({
+        label: S.sOrganic,
+        expr: `AG 超出上限 = ${nf(agUse, 1)} − ${R.ag[1]} = ${nf(agExcess, 1)}；乳酸可解釋 ${nf(nLac, 1)}`,
+        out: agUnexplained > 0 ? fill(S.sOrganicOut, { v: nf(agUnexplained, 1) }) : S.sOrganicLac
+      });
     }
     steps.push({
       label: S.s7,
@@ -4437,7 +4517,22 @@ function AcidBaseCard({
     unit: "mL",
     sub: showDose && deficit > 0 ? fill(S.doseSub, { t: nf(deficit, 1) }) : verdict === 'no' ? S.doseNone : '—',
     color: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
-  })), needStewart && /*#__PURE__*/React.createElement("div", {
+  })), (unexplainedSig || umaSig) && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-500/40 bg-red-500/10 p-3 space-y-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-mono uppercase tracking-[0.15em] text-red-300 font-bold"
+  }, S.organicTitle), /*#__PURE__*/React.createElement("p", {
+    className: "text-[12px] text-red-100 leading-relaxed"
+  }, fill(S.organicWhy, {
+    v: nf(unexplainedSig ? agUnexplained : -beUMA, 1)
+  })), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-1"
+  }, ['dka', 'uremia', 'eg', 'salicylate', 'other'].map(k => /*#__PURE__*/React.createElement("li", {
+    key: k,
+    className: "flex gap-2 text-[11px] text-red-100 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-red-400 shrink-0 font-mono"
+  }, "▸"), /*#__PURE__*/React.createElement("span", null, S['org_' + k]))))), needStewart && /*#__PURE__*/React.createElement("div", {
     className: "rounded-lg border border-indigo-500/40 bg-indigo-500/5 p-3 space-y-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-[11px] font-mono uppercase tracking-[0.15em] text-indigo-300 font-bold"
