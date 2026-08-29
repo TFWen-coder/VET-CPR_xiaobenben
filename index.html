@@ -3981,7 +3981,7 @@ const AB_S = {
     albHint: '{sp}正常約 {v} g/dL', course: '呼吸性病程', acute: '急性', chronic: '慢性 > 2–5 天',
     target: '目標 HCO₃⁻', targetHint: '部分矯正即可，勿補到正常',
     product: 'NaHCO₃ 製劑',
-    primaryLabel: '原發性異常', agLabel: '陰離子間隙（白蛋白校正）', doseLabel: 'NaHCO₃ 首劑',
+    primaryLabel: '原發性異常', agLabel: '陰離子間隙（白蛋白校正）', doseLabel: 'NaHCO₃ 首劑（(目標 − 實測 HCO₃⁻) × BW × 0.3 的 1/3）',
     doseSub: '總缺乏 {t} mEq 的 1/3，20–30 分鐘給完', doseNone: '本型不建議給碳酸氫鈉',
     agSub: '參考 {a}–{b}．未校正 {u}', needAll: '需填入 Na⁺、K⁺、Cl⁻',
     s1: 'pH 判讀', s2: '原發性異常判定', s3: '預期代償（{c}）', s3ok: '代償在預期範圍內，為單純性異常',
@@ -4032,7 +4032,9 @@ const AB_S = {
     org_other: '其他：嚴重橫紋肌溶解、腫瘤溶解症候群、丙二醇輸注、飢餓性酮症。同時複查電解質確認不是檢驗誤差。',
     whyOrganicUnexplained: 'Anion gap 顯示有乳酸以外的未測定強陰離子堆積（酮酸、尿毒酸、乙二醇代謝物、水楊酸等）。這類有機酸在病因處理後會代謝還原成 HCO₃⁻，此時補鹼容易造成反彈性鹼中毒，且會讓後續判讀失真。治療應以病因為主 — 僅在 pH < 7.1 且病因治療已啟動仍持續惡化時才考慮。',
     whyLactate: '乳酸偏高代表有機酸堆積，即使 AG 因低白蛋白而看似正常也一樣。乳酸酸中毒的治療是恢復組織灌流與供氧，不是補鹼 — 乳酸清除後會自行還原成 HCO₃⁻。僅在 pH < 7.1 且灌流已積極處理仍無改善時才考慮。',
-    doseLabelBE: 'NaHCO₃ 首劑（依 BE）', doseNeedBE: '需 BE 為負值',
+    doseLabelBE: 'NaHCO₃ 首劑（−BE × BW × 0.3 的 1/3）', doseNeedBE: '需 BE 為負值',
+    doseSubBE: '{b} × {w} × 0.3 ÷ 3 ＝ {m} mEq ÷ {c} mEq/mL（總缺乏 {t} mEq）．20–30 分鐘給完',
+    doseSubTgt: '({g} − {h}) × {w} × 0.3 ÷ 3 ＝ {m} mEq ÷ {c} mEq/mL（總缺乏 {t} mEq）．20–30 分鐘給完',
     s10be: 'HCO₃⁻ 缺乏總量（依 base excess）= 0.3 × BW × (−BE)',
     s11be: '首劑（總缺乏的 1/3）與體積 — BE 法',
     s11out: '{v} mL，20–30 分鐘輸完',
@@ -4069,7 +4071,7 @@ const AB_S = {
     albHint: '{sp} normal about {v} g/dL', course: 'Respiratory course', acute: 'Acute', chronic: 'Chronic > 2–5 days',
     target: 'Target HCO₃⁻', targetHint: 'partial correction only — do not normalise',
     product: 'NaHCO₃ product',
-    primaryLabel: 'Primary disorder', agLabel: 'Anion gap (albumin-corrected)', doseLabel: 'NaHCO₃ first dose',
+    primaryLabel: 'Primary disorder', agLabel: 'Anion gap (albumin-corrected)', doseLabel: 'NaHCO₃ first dose (one third of (target − measured HCO₃⁻) × BW × 0.3)',
     doseSub: 'one third of the {t} mEq deficit, over 20–30 min', doseNone: 'bicarbonate not advised for this pattern',
     agSub: 'reference {a}–{b} · uncorrected {u}', needAll: 'enter Na⁺, K⁺ and Cl⁻',
     s1: 'pH interpretation', s2: 'Primary disorder', s3: 'Expected compensation ({c})', s3ok: 'compensation is within the expected range — a simple disorder',
@@ -4120,7 +4122,9 @@ const AB_S = {
     org_other: 'Others: severe rhabdomyolysis, tumour lysis syndrome, propylene glycol infusion, starvation ketosis. Recheck electrolytes to exclude laboratory error.',
     whyOrganicUnexplained: 'The anion gap shows unmeasured strong anions beyond lactate (ketoacids, uraemic acids, ethylene glycol metabolites, salicylate). These organic acids regenerate bicarbonate once the cause is treated, so giving bicarbonate now risks rebound alkalosis and distorts later interpretation. Treat the cause; consider bicarbonate only if pH < 7.1 and the patient continues to deteriorate despite cause-directed therapy.',
     whyLactate: 'A raised lactate means organic acid is accumulating, even when the anion gap looks normal because of hypoalbuminaemia. Lactic acidosis is treated by restoring perfusion and oxygen delivery, not with bicarbonate — the lactate regenerates bicarbonate once cleared. Consider bicarbonate only if pH < 7.1 and perfusion has already been addressed aggressively without improvement.',
-    doseLabelBE: 'NaHCO₃ first dose (from BE)', doseNeedBE: 'requires a negative BE',
+    doseLabelBE: 'NaHCO₃ first dose (one third of −BE × BW × 0.3)', doseNeedBE: 'requires a negative BE',
+    doseSubBE: '{b} × {w} × 0.3 ÷ 3 = {m} mEq ÷ {c} mEq/mL (total deficit {t} mEq) · over 20–30 min',
+    doseSubTgt: '({g} − {h}) × {w} × 0.3 ÷ 3 = {m} mEq ÷ {c} mEq/mL (total deficit {t} mEq) · over 20–30 min',
     s10be: 'Total HCO₃⁻ deficit from base excess = 0.3 × BW × (−BE)',
     s11be: 'First dose (one third of the deficit) and volume — BE method',
     s11out: '{v} mL over 20–30 min',
@@ -4157,7 +4161,7 @@ const AB_S = {
     albHint: '{sp}の正常値は約 {v} g/dL', course: '呼吸性の経過', acute: '急性', chronic: '慢性 > 2–5 日',
     target: '目標 HCO₃⁻', targetHint: '部分補正にとどめ、正常化させない',
     product: 'NaHCO₃ 製剤',
-    primaryLabel: '原発性異常', agLabel: 'アニオンギャップ（アルブミン補正）', doseLabel: 'NaHCO₃ 初回量',
+    primaryLabel: '原発性異常', agLabel: 'アニオンギャップ（アルブミン補正）', doseLabel: 'NaHCO₃ 初回量（(目標 − 実測 HCO₃⁻) × BW × 0.3 の 1/3）',
     doseSub: '総不足 {t} mEq の 1/3 を 20–30 分で', doseNone: 'この病型では炭酸水素ナトリウムは推奨されない',
     agSub: '参考値 {a}–{b}・未補正 {u}', needAll: 'Na⁺、K⁺、Cl⁻ を入力',
     s1: 'pH の判読', s2: '原発性異常の判定', s3: '予測される代償（{c}）', s3ok: '代償は予測範囲内 — 単純性の異常',
@@ -4208,7 +4212,9 @@ const AB_S = {
     org_other: 'その他：重度の横紋筋融解、腫瘍崩壊症候群、プロピレングリコール投与、飢餓性ケトーシス。検査誤差を除外するため電解質も再検する。',
     whyOrganicUnexplained: 'アニオンギャップは乳酸以外の未測定強陰イオン（ケト酸、尿毒症性酸、エチレングリコール代謝物、サリチル酸）の存在を示しています。これらの有機酸は原因治療により代謝されて HCO₃⁻ に戻るため、この時点での補正はリバウンドのアルカローシスを招き、以後の判読も歪めます。原因治療を優先し、pH < 7.1 かつ原因治療下でも悪化が続く場合にのみ補正を検討してください。',
     whyLactate: '乳酸の上昇は有機酸の蓄積を意味します。低アルブミン血症のためアニオンギャップが正常に見える場合でも同様です。乳酸アシドーシスの治療は組織灌流と酸素供給の回復であって補正ではありません — 乳酸は代謝されれば HCO₃⁻ に戻ります。pH < 7.1 かつ灌流を十分に是正しても改善しない場合にのみ検討します。',
-    doseLabelBE: 'NaHCO₃ 初回量（BE 法）', doseNeedBE: 'BE が負の値である必要',
+    doseLabelBE: 'NaHCO₃ 初回量（−BE × BW × 0.3 の 1/3）', doseNeedBE: 'BE が負の値である必要',
+    doseSubBE: '{b} × {w} × 0.3 ÷ 3 ＝ {m} mEq ÷ {c} mEq/mL（総不足 {t} mEq）・20–30 分で',
+    doseSubTgt: '({g} − {h}) × {w} × 0.3 ÷ 3 ＝ {m} mEq ÷ {c} mEq/mL（総不足 {t} mEq）・20–30 分で',
     s10be: 'base excess による HCO₃⁻ 総不足量 = 0.3 × BW × (−BE)',
     s11be: '初回量（総不足の 1/3）と容量 — BE 法',
     s11out: '{v} mL を 20–30 分で',
@@ -4581,13 +4587,17 @@ function AcidBaseCard({
     label: S.doseLabelBE,
     value: showDose && firstMlBE > 0 ? nf(firstMlBE, 1) : '—',
     unit: "mL",
-    sub: showDose && deficitBE > 0 ? fill(S.doseSub, { t: nf(deficitBE, 1) }) : verdict === 'no' ? S.doseNone : S.doseNeedBE,
+    sub: showDose && deficitBE > 0 ? fill(S.doseSubBE, {
+      b: nf(-be, 1), w: nf(w, 1), m: nf(firstDoseBE, 1), c: conc, t: nf(deficitBE, 1)
+    }) : verdict === 'no' ? S.doseNone : S.doseNeedBE,
     color: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
   }), /*#__PURE__*/React.createElement(BigStat, {
     label: S.doseLabel,
     value: showDose && firstMl > 0 ? nf(firstMl, 1) : '—',
     unit: "mL",
-    sub: showDose && deficit > 0 ? fill(S.doseSub, { t: nf(deficit, 1) }) : verdict === 'no' ? S.doseNone : '—',
+    sub: showDose && deficit > 0 ? fill(S.doseSubTgt, {
+      g: nf(nTarget, 0), h: nf(hco3, 1), w: nf(w, 1), m: nf(firstDose, 1), c: conc, t: nf(deficit, 1)
+    }) : verdict === 'no' ? S.doseNone : '—',
     color: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
   })), (unexplainedSig || umaSig) && /*#__PURE__*/React.createElement("div", {
     className: "rounded-lg border border-red-500/40 bg-red-500/10 p-3 space-y-2"
