@@ -341,8 +341,15 @@ const UI = {
   preferred: { zh: '首選', en: 'Preferred', ja: '第一選択' },
   defibNote: { zh: '適應症：VF / pulseless VT。Asystole 與 PEA 不電擊。電擊後立即恢復按壓，2 分鐘後再評估。', en: 'Indicated for VF / pulseless VT only. Do not shock asystole or PEA. Resume compressions immediately after the shock and reassess in 2 minutes.', ja: '適応は VF / 無脈性 VT のみ。心静止と PEA には除細動しない。通電後は直ちに圧迫を再開し、2 分後に再評価する。' },
   ocrCn: { zh: '拍照自動帶入檢驗值', en: 'Fill lab values from a photo', ja: '写真から検査値を自動入力' },
-  ocrSub: { zh: '拍血氣或生化報告單，自動辨識 pH、PaCO₂、HCO₃⁻、BE、Na、K、Cl、乳酸、白蛋白、血磷、PCV 並填入下方各卡片。辨識在本機完成，照片不會上傳。', en: 'Photograph a blood gas or chemistry printout to read pH, PaCO₂, HCO₃⁻, BE, Na, K, Cl, lactate, albumin, phosphate and PCV into the cards below. Recognition runs on this device; the photo is never uploaded.', ja: '血液ガスや生化学の報告書を撮影すると pH、PaCO₂、HCO₃⁻、BE、Na、K、Cl、乳酸、アルブミン、リン、PCV を読み取り下のカードに入力します。認識は端末内で完結し、写真は送信されません。' },
-  ocrPick: { zh: '拍照或選擇圖片', en: 'Take or choose a photo', ja: '撮影または画像を選択' },
+  ocrSub: { zh: '可連續加入多張報告單 — 血氣與生化的項目會自動合併（例如白蛋白、血磷通常只在生化上）。辨識 pH、PaCO₂、HCO₃⁻、BE、Na、K、Cl、乳酸、白蛋白、血磷、PCV。辨識在本機完成，照片不會上傳。', en: 'Add as many report photos as you need — values from the blood gas and the chemistry panel are merged automatically (albumin and phosphate usually appear only on the chemistry). Reads pH, PaCO₂, HCO₃⁻, BE, Na, K, Cl, lactate, albumin, phosphate and PCV. Recognition runs on this device; photos are never uploaded.', ja: '報告書は何枚でも追加できます — 血液ガスと生化学の項目は自動的に統合されます（アルブミンやリンは通常생化学のみに記載）。pH、PaCO₂、HCO₃⁻、BE、Na、K、Cl、乳酸、アルブミン、リン、PCV を読み取ります。認識は端末内で完結し、写真は送信されません。' },
+  ocrPick: { zh: '拍照', en: 'Take a photo', ja: '撮影' },
+  ocrPickFiles: { zh: '選擇圖片（可多選）', en: 'Choose images (multiple)', ja: '画像を選択（複数可）' },
+  ocrClear: { zh: '清除全部', en: 'Clear all', ja: 'すべて削除' },
+  ocrProgress: { zh: '第 {i}/{n} 張', en: 'image {i} of {n}', ja: '{n} 枚中 {i} 枚目' },
+  ocrFound: { zh: '辨識到 {n} 項', en: '{n} values', ja: '{n} 項目' },
+  ocrDocN: { zh: '報告 {n}', en: 'Report {n}', ja: '報告 {n}' },
+  ocrConflict: { zh: '不同報告數值不同', en: 'differs between reports', ja: '報告間で数値が異なる' },
+  ocrConflictNote: { zh: '有項目在不同報告上讀到不同數值（紅字標示）。可能是兩次採血時間不同，也可能是其中一次辨識錯誤 — 這些項目預設不勾選，請確認要用哪一份再手動勾選或直接在卡片上修改。', en: 'Some values differ between reports (shown in red). That may reflect two different sampling times, or one of them was misread. These are left unchecked by default — decide which report to trust, then tick it or edit the field directly on the card.', ja: '一部の項目で報告書ごとに数値が異なります（赤字）。採血時刻の違いによる場合も、片方の誤認識による場合もあります。これらは既定で未選択です — どちらを採用するか確認のうえ選択するか、カード上で直接修正してください。' },
   ocrBusy: { zh: '辨識中', en: 'Reading', ja: '認識中' },
   ocrNone: { zh: '這張圖沒有辨識到可用的檢驗項目。試著拍近一點、對正、避免反光與陰影，或改用光線充足的環境重拍。', en: 'No usable values were found in this image. Try moving closer, keeping the page square to the camera, avoiding glare and shadow, or retaking it in better light.', ja: 'この画像から利用できる検査項目を認識できませんでした。近づける、正対させる、反射や影を避ける、明るい場所で撮り直すなどをお試しください。' },
   ocrFail: { zh: '辨識失敗', en: 'Recognition failed', ja: '認識に失敗しました' },
@@ -3232,75 +3239,121 @@ function LabImportCard({
   const t = useT();
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState('');
   const [err, setErr] = useState('');
-  const [photo, setPhoto] = useState('');
-  const [rows, setRows] = useState(null);
+  const [docs, setDocs] = useState([]);   // { id, name, url, text, found: [] }
   const [picked, setPicked] = useState({});
-  const [rawText, setRawText] = useState('');
-  const [showRaw, setShowRaw] = useState(false);
+  const [showRaw, setShowRaw] = useState('');
   const E = React.createElement;
 
-  const run = async file => {
-    if (!file) return;
+  // 多份報告合併：同一項目若在不同檔案出現不同數值，標為衝突並要求人工選擇
+  const groups = {};
+  docs.forEach(d => d.found.forEach(r => {
+    (groups[r.key] = groups[r.key] || []).push({ ...r, src: d.name });
+  }));
+  const rows = LAB_ANALYTES.map(a => a.key).filter(k => groups[k]).map(k => {
+    const list = groups[k];
+    const distinct = [...new Set(list.map(x => x.value))];
+    return { ...list[list.length - 1], all: list, conflict: distinct.length > 1 };
+  });
+
+  // 檔案有增減時重算預設勾選：合理範圍內且無衝突才預設勾選
+  useEffect(() => {
+    const init = {};
+    rows.forEach(r => { init[r.key] = r.inRange && !r.conflict; });
+    setPicked(init);
+  }, [docs]);
+
+  const runFiles = async fileList => {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
     setErr('');
-    setRows(null);
-    setRawText('');
     setBusy(true);
-    setProgress(0);
     try {
-      const url = URL.createObjectURL(file);
-      setPhoto(url);
-      const img = await new Promise((res, rej) => {
-        const im = new Image();
-        im.onload = () => res(im);
-        im.onerror = () => rej(new Error('image decode failed'));
-        im.src = url;
-      });
-      const canvas = preprocessImage(img, 1800);
       const Tesseract = await loadTesseract();
-      const worker = await Tesseract.createWorker('eng', 1, {
-        logger: m => {
-          if (m.status === 'recognizing text') setProgress(Math.round(m.progress * 100));
-        }
-      });
-      const out = await worker.recognize(canvas);
-      await worker.terminate();
-      const text = out && out.data ? out.data.text || '' : '';
-      setRawText(text);
-      const parsed = parseLabText(text);
-      setRows(parsed);
-      // 只有落在合理範圍內的項目預設勾選；超出範圍者需使用者主動確認
-      const init = {};
-      parsed.forEach(r => { init[r.key] = r.inRange; });
-      setPicked(init);
-      if (parsed.length === 0) setErr(t('ocrNone'));
+      const added = [];
+      for (let n = 0; n < files.length; n++) {
+        const file = files[n];
+        setStage(files.length > 1 ? fill(t('ocrProgress'), { i: n + 1, n: files.length }) : '');
+        setProgress(0);
+        const url = URL.createObjectURL(file);
+        const img = await new Promise((res, rej) => {
+          const im = new Image();
+          im.onload = () => res(im);
+          im.onerror = () => rej(new Error('image decode failed'));
+          im.src = url;
+        });
+        const canvas = preprocessImage(img, 1800);
+        const worker = await Tesseract.createWorker('eng', 1, {
+          logger: m => {
+            if (m.status === 'recognizing text') setProgress(Math.round(m.progress * 100));
+          }
+        });
+        const out = await worker.recognize(canvas);
+        await worker.terminate();
+        const text = out && out.data ? out.data.text || '' : '';
+        added.push({
+          id: Date.now() + '-' + n,
+          name: file.name || fill(t('ocrDocN'), { n: docs.length + n + 1 }),
+          url, text, found: parseLabText(text)
+        });
+      }
+      setDocs(d => [...d, ...added]);
+      if (added.every(a => a.found.length === 0)) setErr(t('ocrNone'));
     } catch (e) {
       setErr(t('ocrFail') + '：' + (e && e.message ? e.message : String(e)));
     } finally {
       setBusy(false);
+      setStage('');
     }
   };
 
+  const removeDoc = id => setDocs(d => d.filter(x => x.id !== id));
   const apply = () => {
-    if (!rows) return;
     const out = {};
     rows.forEach(r => { if (picked[r.key]) out[r.key] = r.value; });
     if (Object.keys(out).length) onApply({ ...out, __t: Date.now() });
   };
-  const chosen = rows ? rows.filter(r => picked[r.key]).length : 0;
+  const chosen = rows.filter(r => picked[r.key]).length;
 
-  // ── 拍照按鈕列 ──
-  const pickBtn = E('label', {
+  const fileBtn = (labelKey, extra) => E('label', {
     className: `inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-indigo-500/50 bg-indigo-500/10 text-indigo-200 text-sm font-medium cursor-pointer transition-all ${busy ? 'opacity-50 pointer-events-none' : 'hover:bg-indigo-500/20'}`
-  }, E(Camera, { className: 'w-4 h-4' }), t('ocrPick'), E('input', {
-    type: 'file', accept: 'image/*', capture: 'environment', className: 'hidden',
-    onChange: e => run(e.target.files && e.target.files[0])
-  }));
-  const statusEl = busy ? E('span', { className: 'text-[12px] font-mono text-indigo-300' }, t('ocrBusy'), ' ', progress, '%') : null;
-  const thumbEl = photo && !busy ? E('img', { src: photo, alt: '', className: 'h-14 w-auto rounded border border-slate-700' }) : null;
-  const controls = E('div', { className: 'flex flex-wrap items-center gap-2' }, pickBtn, statusEl, thumbEl);
+  }, E(Camera, { className: 'w-4 h-4' }), t(labelKey), E('input', Object.assign({
+    type: 'file', accept: 'image/*', className: 'hidden',
+    onChange: e => { runFiles(e.target.files); e.target.value = ''; }
+  }, extra)));
 
-  // ── 審核表 ──
+  const controls = E('div', { className: 'flex flex-wrap items-center gap-2' },
+    fileBtn('ocrPick', { capture: 'environment' }),
+    fileBtn('ocrPickFiles', { multiple: true }),
+    busy ? E('span', { className: 'text-[12px] font-mono text-indigo-300' }, t('ocrBusy'), ' ', stage, ' ', progress, '%') : null,
+    docs.length && !busy ? E('button', {
+      onClick: () => { setDocs([]); setErr(''); },
+      className: 'px-3 py-2 rounded-lg border border-slate-700 text-xs font-mono text-slate-400 hover:text-red-300 hover:border-red-500/50'
+    }, t('ocrClear')) : null);
+
+  // 已載入的報告清單
+  const docList = docs.length ? E('div', { className: 'flex flex-wrap gap-2' }, docs.map(d => E('div', {
+    key: d.id,
+    className: 'flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/50 px-2 py-1.5'
+  },
+    E('img', { src: d.url, alt: '', className: 'h-9 w-auto rounded border border-slate-800' }),
+    E('div', { className: 'min-w-0' },
+      E('div', { className: 'text-[11px] font-mono text-slate-300 truncate max-w-[9rem]' }, d.name),
+      E('div', { className: 'text-[10px] font-mono text-slate-500' }, fill(t('ocrFound'), { n: d.found.length }))),
+    E('button', {
+      onClick: () => setShowRaw(showRaw === d.id ? '' : d.id),
+      className: 'text-[10px] font-mono text-slate-500 hover:text-slate-300 px-1'
+    }, 'T'),
+    E('button', {
+      onClick: () => removeDoc(d.id),
+      className: 'text-[13px] font-mono text-slate-500 hover:text-red-300 px-1'
+    }, '×')))) : null;
+
+  const rawPre = showRaw ? E('pre', {
+    className: 'text-[10px] font-mono text-slate-500 bg-slate-950/70 border border-slate-800 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap max-h-48'
+  }, (docs.find(d => d.id === showRaw) || {}).text || '') : null;
+
   const rowEl = r => E('label', {
     key: r.key,
     className: `flex items-center gap-3 px-3 py-2 border-b border-slate-800 last:border-b-0 cursor-pointer transition-colors ${picked[r.key] ? 'bg-indigo-500/10' : 'bg-slate-950/40 hover:bg-slate-900/60'}`
@@ -3311,29 +3364,24 @@ function LabImportCard({
       className: 'w-4 h-4 accent-indigo-500 shrink-0'
     }),
     E('span', { className: 'text-[11px] font-mono text-slate-400 w-14 shrink-0' }, t('ocrf_' + r.key)),
-    E('span', { className: `font-mono text-base font-bold shrink-0 ${r.inRange ? 'text-indigo-200' : 'text-amber-300'}` }, r.value),
+    E('span', { className: `font-mono text-base font-bold shrink-0 ${r.conflict ? 'text-red-300' : r.inRange ? 'text-indigo-200' : 'text-amber-300'}` }, r.value),
     E('span', { className: 'text-[10px] font-mono text-slate-500 shrink-0' }, r.unit),
     r.inRange ? null : E('span', { className: 'text-[10px] font-mono text-amber-400 shrink-0' }, '⚠ ', fill(t('ocrOutOfRange'), { a: r.min, b: r.max })),
-    E('span', { className: 'ml-auto text-[10px] font-mono text-slate-600 truncate max-w-[42%] text-right', title: r.line }, r.line)
+    r.conflict ? E('span', { className: 'text-[10px] font-mono text-red-300 shrink-0' }, '⚠ ', t('ocrConflict'), ' ', r.all.map(x => x.value).join(' / ')) : null,
+    E('span', { className: 'ml-auto text-[10px] font-mono text-slate-600 truncate max-w-[38%] text-right', title: r.all.map(x => x.src + '：' + x.line).join('\n') }, r.all.length > 1 ? r.all.map(x => x.src).join(', ') : r.line)
   );
-  const table = rows && rows.length ? E('div', { className: 'rounded-lg border border-slate-700 overflow-hidden' }, rows.map(rowEl)) : null;
+
   const applyBtn = E('button', {
     onClick: apply, disabled: chosen === 0,
     className: `px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${chosen > 0 ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25' : 'border-slate-700 text-slate-600 cursor-not-allowed'}`
   }, fill(t('ocrApply'), { n: chosen }));
-  const rawBtn = E('button', {
-    onClick: () => setShowRaw(s => !s),
-    className: 'px-3 py-2 rounded-lg border border-slate-700 text-xs font-mono text-slate-400 hover:text-slate-200'
-  }, t('ocrRaw'));
-  const rawPre = showRaw ? E('pre', {
-    className: 'text-[10px] font-mono text-slate-500 bg-slate-950/70 border border-slate-800 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap max-h-48'
-  }, rawText) : null;
-  const review = rows && rows.length
+
+  const review = rows.length
     ? E('div', { className: 'space-y-2' },
         E(Warn, { tone: 'red' }, '⚠ ', t('ocrVerify')),
-        table,
-        E('div', { className: 'flex flex-wrap items-center gap-2' }, applyBtn, rawBtn),
-        rawPre)
+        rows.some(r => r.conflict) ? E(Warn, { tone: 'amber' }, '⚠ ', t('ocrConflictNote')) : null,
+        E('div', { className: 'rounded-lg border border-slate-700 overflow-hidden' }, rows.map(rowEl)),
+        E('div', { className: 'flex flex-wrap items-center gap-2' }, applyBtn))
     : null;
 
   return E(CalcCard, {
@@ -3343,6 +3391,8 @@ function LabImportCard({
     sub: t('ocrSub')
   },
     controls,
+    docList,
+    rawPre,
     err ? E(Warn, { tone: 'amber' }, err) : null,
     review,
     E(Warn, { tone: 'slate' }, t('ocrPrivacy'))
