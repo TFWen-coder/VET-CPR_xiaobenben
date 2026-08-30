@@ -223,6 +223,11 @@ const Beaker = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.
 const ChevronDown = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
   d: "m6 9 6 6 6-6"
 }));
+const Gauge = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "m12 14 4-4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M3.34 19a10 10 0 1 1 17.32 0"
+}));
 const Camera = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
   d: "M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
 }), /*#__PURE__*/React.createElement("circle", {
@@ -269,7 +274,9 @@ const UI = {
   tabDrugs: { zh: '急救藥物', en: 'Drugs', ja: '救急薬' },
   tabCri: { zh: '升壓 / CRI', en: 'Vasopressors', ja: '昇圧薬 / CRI' },
   tabFluid: { zh: '輸液 / 電擊', en: 'Fluids / Defib', ja: '輸液 / 除細動' },
-  tabLytes: { zh: '電解質 / 輸血 / 酸鹼', en: 'Lytes / Transfusion / Acid-Base', ja: '電解質 / 輸血 / 酸塩基' },
+  tabLytes: { zh: '電解質 / 輸血', en: 'Lytes / Transfusion', ja: '電解質 / 輸血' },
+  tabAcid: { zh: '酸鹼', en: 'Acid-Base', ja: '酸塩基' },
+  acidIntro: { zh: '輸入血氣與電解質後，會判定原發性異常、檢查代償是否適當、分辨高 AG 與高氯型，並算出兩種公式的碳酸氫鈉劑量。多重因素同時作用時會提示改用 Stewart／半定量分析。上方可直接拍報告單自動帶入。', en: 'Enter the blood gas and electrolytes to identify the primary disorder, check whether compensation is appropriate, separate high-AG from hyperchloraemic acidosis, and calculate the bicarbonate dose by two formulas. When several factors act at once it flags the need for a Stewart / semi-quantitative approach. You can photograph the report above to fill everything in.', ja: '血液ガスと電解質を入力すると、原発性異常の判定、代償の適否の確認、高 AG 型と高クロール型の判別、2 つの式による炭酸水素ナトリウム用量の算出を行います。複数の要因が同時に作用する場合は Stewart／半定量的アプローチへの切替を提示します。上部で報告書を撮影して自動入力もできます。' },
   szConc: { zh: '劑型濃度', en: 'Concentration', ja: '製剤濃度' },
   szNoDoseForSpecies: { zh: '本藥物沒有適用於{sp}的劑量 — 請展開下方「注意事項」確認原因（部分藥物對特定物種為禁忌）。', en: 'No dose is listed for this species ({sp}) — open "Cautions" below for the reason; some drugs are contraindicated in particular species.', ja: 'この動物種（{sp}）に対する用量は設定されていません — 下の「注意事項」で理由を確認してください。特定の種で禁忌となる薬剤があります。' },
   tabSeizure: { zh: '癲癇處置', en: 'Seizures', ja: 'てんかん発作' },
@@ -323,7 +330,7 @@ const UI = {
   prbcLabel: { zh: 'pRBC 濃厚紅血球', en: 'pRBC packed red cells', ja: 'pRBC 濃厚赤血球' },
   prbcSub: { zh: '{a} mL/kg．依 PCV 目標調整', en: '{a} mL/kg · adjust to target PCV', ja: '{a} mL/kg・目標 PCV に応じて調整' },
   ffpLabel: { zh: 'FFP 新鮮冷凍血漿', en: 'FFP fresh frozen plasma', ja: 'FFP 新鮮凍結血漿' },
-  ffpSub: { zh: '{a} mL/kg．凝血病；詳見電解質 / 輸血 / 酸鹼', en: '{a} mL/kg · coagulopathy; see Lytes / Transfusion / Acid-Base', ja: '{a} mL/kg・凝固異常；電解質 / 輸血 / 酸塩基を参照' },
+  ffpSub: { zh: '{a} mL/kg．凝血病；詳見電解質 / 輸血', en: '{a} mL/kg · coagulopathy; see Lytes / Transfusion', ja: '{a} mL/kg・凝固異常；電解質 / 輸血を参照' },
   catOverload: { zh: '⚠ 貓對體液過載敏感：每次 bolus 後務必聽診肺音與評估呼吸窘迫，必要時放慢或停止。', en: '⚠ Cats are prone to volume overload: auscultate the lungs and check for respiratory distress after every bolus; slow or stop if needed.', ja: '⚠ 猫は輸液過剰に弱い：ボーラスごとに肺音聴診と呼吸窮迫の評価を行い、必要なら減速・中止する。' },
   rabbitOverload: { zh: '⚠ 兔對體液過載極敏感且易低體溫：小量分次給予，每次 bolus 後聽肺音、量體溫，並保持安靜避免壓力性休克。', en: '⚠ Rabbits are highly prone to volume overload and hypothermia: give small split boluses, auscultate and check temperature after each, and minimise handling stress.', ja: '⚠ ウサギは輸液過剰と低体温に非常に弱い：少量分割で投与し、毎回肺音聴診と体温測定を行い、取扱いストレスを最小限にする。' },
   defibEnergy: { zh: '電擊去顫能量', en: 'Defibrillation Energy', ja: '除細動エネルギー' },
@@ -573,9 +580,9 @@ const EMERGENCY_DRUGS = [{
     route: 'IV slow'
   }],
   note: {
-    zh: '需與 epinephrine 分流給予；確保通氣足夠才用。→ 血氣判讀、酸中毒分型與依 BE 計算的給法，見「電解質 / 輸血 / 酸鹼」分頁的 Acid-Base & Bicarbonate。',
-    en: 'Give through a separate line from epinephrine; only use once ventilation is adequate. → For blood gas interpretation, acidosis subtyping and BE-based dosing see Acid-Base & Bicarbonate on the Lytes / Transfusion / Acid-Base tab.',
-    ja: 'アドレナリンとは別ラインで投与し、換気が十分な場合にのみ使用する。→ 血液ガスの判読、アシドーシスの病型分類、BE に基づく投与量は「電解質 / 輸血 / 酸塩基」タブの Acid-Base & Bicarbonate を参照。'
+    zh: '需與 epinephrine 分流給予；確保通氣足夠才用。→ 血氣判讀、酸中毒分型與依 BE 計算的給法，見「酸鹼」分頁。',
+    en: 'Give through a separate line from epinephrine; only use once ventilation is adequate. → For blood gas interpretation, acidosis subtyping and BE-based dosing see the Acid-Base tab.',
+    ja: 'アドレナリンとは別ラインで投与し、換気が十分な場合にのみ使用する。→ 血液ガスの判読、アシドーシスの病型分類、BE に基づく投与量は「酸塩基」タブを参照。'
   }
 }, {
   name: 'Calcium gluconate 10%',
@@ -2404,6 +2411,9 @@ function VetShockCalculator() {
   const [tab, setTab] = useState('emergency');
   const [checked, setChecked] = useState({});
   const [views, setViews] = useState(null);
+  // 拍照辨識的結果放在最上層 — 報告單同時含電解質與血氣，
+  // 兩個分頁都要吃得到
+  const [imported, setImported] = useState(null);
   useEffect(() => {
     // Free counter API (Abacus). Fails silently when offline.
     fetch('https://abacus.jasoncameron.dev/hit/tfwen-vet-cpcr/views').then(r => r.json()).then(d => {
@@ -2445,6 +2455,10 @@ function VetShockCalculator() {
     id: 'lytes',
     key: 'tabLytes',
     icon: Beaker
+  }, {
+    id: 'acidbase',
+    key: 'tabAcid',
+    icon: Gauge
   }, {
     id: 'ecg',
     key: 'tabEcg',
@@ -2571,7 +2585,14 @@ function VetShockCalculator() {
     species: species
   }), tab === 'lytes' && /*#__PURE__*/React.createElement(ElectrolyteView, {
     w: w,
-    species: species
+    species: species,
+    imported: imported,
+    setImported: setImported
+  }), tab === 'acidbase' && /*#__PURE__*/React.createElement(AcidBaseView, {
+    w: w,
+    species: species,
+    imported: imported,
+    setImported: setImported
   }), tab === 'seizure' && /*#__PURE__*/React.createElement(SeizureView, {
     w: w,
     species: species
@@ -4943,11 +4964,11 @@ function AcidBaseCard({
 }
 function ElectrolyteView({
   w,
-  species
+  species,
+  imported,
+  setImported
 }) {
   const t = useT();
-  // 拍照辨識的結果集中放在這裡，再分發給各張卡片
-  const [imported, setImported] = useState(null);
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-5"
   }, /*#__PURE__*/React.createElement("div", {
@@ -4964,6 +4985,26 @@ function ElectrolyteView({
     w: w, imported: imported
   }), /*#__PURE__*/React.createElement(PhosphateCard, {
     w: w, species: species
+  }));
+}
+
+// ───────────────────────────────────────────────────────────────
+// 酸鹼 — 獨立分頁
+// ───────────────────────────────────────────────────────────────
+
+function AcidBaseView({
+  w,
+  species,
+  imported,
+  setImported
+}) {
+  const t = useT();
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 leading-relaxed border border-slate-800 rounded-lg p-3 bg-slate-900/40"
+  }, /*#__PURE__*/React.createElement("p", null, t('acidIntro'))), /*#__PURE__*/React.createElement(LabImportCard, {
+    onApply: setImported
   }), /*#__PURE__*/React.createElement(AcidBaseCard, {
     w: w, species: species, imported: imported
   }));
