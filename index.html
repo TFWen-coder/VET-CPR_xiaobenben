@@ -348,12 +348,13 @@ const UI = {
   ocrProgress: { zh: '第 {i}/{n} 張', en: 'image {i} of {n}', ja: '{n} 枚中 {i} 枚目' },
   ocrFound: { zh: '辨識到 {n} 項', en: '{n} values', ja: '{n} 項目' },
   ocrDocN: { zh: '報告 {n}', en: 'Report {n}', ja: '報告 {n}' },
+  ocrEdited: { zh: '已改，原值', en: 'edited, was', ja: '修正済み、元の値' },
   ocrConflict: { zh: '不同報告數值不同', en: 'differs between reports', ja: '報告間で数値が異なる' },
   ocrConflictNote: { zh: '有項目在不同報告上讀到不同數值（紅字標示）。可能是兩次採血時間不同，也可能是其中一次辨識錯誤 — 這些項目預設不勾選，請確認要用哪一份再手動勾選或直接在卡片上修改。', en: 'Some values differ between reports (shown in red). That may reflect two different sampling times, or one of them was misread. These are left unchecked by default — decide which report to trust, then tick it or edit the field directly on the card.', ja: '一部の項目で報告書ごとに数値が異なります（赤字）。採血時刻の違いによる場合も、片方の誤認識による場合もあります。これらは既定で未選択です — どちらを採用するか確認のうえ選択するか、カード上で直接修正してください。' },
   ocrBusy: { zh: '辨識中', en: 'Reading', ja: '認識中' },
   ocrNone: { zh: '這張圖沒有辨識到可用的檢驗項目。試著拍近一點、對正、避免反光與陰影，或改用光線充足的環境重拍。', en: 'No usable values were found in this image. Try moving closer, keeping the page square to the camera, avoiding glare and shadow, or retaking it in better light.', ja: 'この画像から利用できる検査項目を認識できませんでした。近づける、正対させる、反射や影を避ける、明るい場所で撮り直すなどをお試しください。' },
   ocrFail: { zh: '辨識失敗', en: 'Recognition failed', ja: '認識に失敗しました' },
-  ocrVerify: { zh: '這是 OCR 辨識結果，不是檢驗報告本身。務必逐項與報告單核對後再套用 — 小數點位置尤其容易讀錯（7.21 讀成 721），而這些數值會直接影響碳酸氫鈉與補鈉補鉀的劑量。', en: 'These are OCR results, not the report itself. Check every line against the printout before applying — the decimal point is especially easy to misread (7.21 as 721), and these values feed directly into the bicarbonate, sodium and potassium dose calculations.', ja: 'これは OCR の認識結果であり報告書そのものではありません。適用前に必ず 1 項目ずつ原本と照合してください — 特に小数点の位置は誤読しやすく（7.21 を 721 と読むなど）、これらの値は炭酸水素ナトリウムやナトリウム・カリウム補正の用量に直結します。' },
+  ocrVerify: { zh: '這是 OCR 辨識結果，不是檢驗報告本身。務必逐項與報告單核對後再套用；數值可直接在下方欄位修改 — 小數點位置尤其容易讀錯（7.21 讀成 721），而這些數值會直接影響碳酸氫鈉與補鈉補鉀的劑量。', en: 'These are OCR results, not the report itself. Check every line against the printout before applying — you can correct any value directly in the field below — the decimal point is especially easy to misread (7.21 as 721), and these values feed directly into the bicarbonate, sodium and potassium dose calculations.', ja: 'これは OCR の認識結果であり報告書そのものではありません。適用前に必ず 1 項目ずつ原本と照合してください。数値は下の欄で直接修正できます — 特に小数点の位置は誤読しやすく（7.21 を 721 と読むなど）、これらの値は炭酸水素ナトリウムやナトリウム・カリウム補正の用量に直結します。' },
   ocrOutOfRange: { zh: '超出 {a}–{b}', en: 'outside {a}–{b}', ja: '{a}–{b} の範囲外' },
   ocrApply: { zh: '套用勾選的 {n} 項', en: 'Apply {n} selected', ja: '選択した {n} 項目を適用' },
   ocrRaw: { zh: '原始辨識文字', en: 'Raw OCR text', ja: '認識テキスト' },
@@ -3243,8 +3244,20 @@ function LabImportCard({
   const [err, setErr] = useState('');
   const [docs, setDocs] = useState([]);   // { id, name, url, text, found: [] }
   const [picked, setPicked] = useState({});
+  const [edits, setEdits] = useState({}); // 使用者手動更正的值，key 為項目
   const [showRaw, setShowRaw] = useState('');
   const E = React.createElement;
+
+  // 顯示與套用一律以「使用者改過的值」優先，範圍檢查也跟著重算
+  const valOf = r => edits[r.key] !== undefined ? edits[r.key] : String(r.value);
+  const numOf = r => parseFloat(valOf(r));
+  const editedOf = r => edits[r.key] !== undefined && parseFloat(edits[r.key]) !== r.value;
+  const okOf = r => { const v = numOf(r); return isFinite(v) && v >= r.min && v <= r.max; };
+  const setEdit = (key, v) => {
+    setEdits(e => ({ ...e, [key]: v }));
+    // 手動改過就視為確認要用，自動勾選；清空則不強制
+    if (isFinite(parseFloat(v))) setPicked(p => ({ ...p, [key]: true }));
+  };
 
   // 多份報告合併：同一項目若在不同檔案出現不同數值，標為衝突並要求人工選擇
   const groups = {};
@@ -3257,10 +3270,13 @@ function LabImportCard({
     return { ...list[list.length - 1], all: list, conflict: distinct.length > 1 };
   });
 
-  // 檔案有增減時重算預設勾選：合理範圍內且無衝突才預設勾選
+  // 檔案有增減時重算預設勾選：合理範圍內且無衝突才預設勾選。
+  // 使用者已手動更正過的項目維持勾選，不因為加了新報告而被推翻。
   useEffect(() => {
     const init = {};
-    rows.forEach(r => { init[r.key] = r.inRange && !r.conflict; });
+    rows.forEach(r => {
+      init[r.key] = edits[r.key] !== undefined ? isFinite(parseFloat(edits[r.key])) : r.inRange && !r.conflict;
+    });
     setPicked(init);
   }, [docs]);
 
@@ -3311,10 +3327,14 @@ function LabImportCard({
   const removeDoc = id => setDocs(d => d.filter(x => x.id !== id));
   const apply = () => {
     const out = {};
-    rows.forEach(r => { if (picked[r.key]) out[r.key] = r.value; });
+    rows.forEach(r => {
+      if (!picked[r.key]) return;
+      const v = numOf(r);
+      if (isFinite(v)) out[r.key] = v;   // 欄位被清空時略過，不寫入 NaN
+    });
     if (Object.keys(out).length) onApply({ ...out, __t: Date.now() });
   };
-  const chosen = rows.filter(r => picked[r.key]).length;
+  const chosen = rows.filter(r => picked[r.key] && isFinite(numOf(r))).length;
 
   const fileBtn = (labelKey, extra) => E('label', {
     className: `inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-indigo-500/50 bg-indigo-500/10 text-indigo-200 text-sm font-medium cursor-pointer transition-all ${busy ? 'opacity-50 pointer-events-none' : 'hover:bg-indigo-500/20'}`
@@ -3354,22 +3374,39 @@ function LabImportCard({
     className: 'text-[10px] font-mono text-slate-500 bg-slate-950/70 border border-slate-800 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap max-h-48'
   }, (docs.find(d => d.id === showRaw) || {}).text || '') : null;
 
-  const rowEl = r => E('label', {
-    key: r.key,
-    className: `flex items-center gap-3 px-3 py-2 border-b border-slate-800 last:border-b-0 cursor-pointer transition-colors ${picked[r.key] ? 'bg-indigo-500/10' : 'bg-slate-950/40 hover:bg-slate-900/60'}`
-  },
-    E('input', {
-      type: 'checkbox', checked: !!picked[r.key],
-      onChange: () => setPicked(p => ({ ...p, [r.key]: !p[r.key] })),
-      className: 'w-4 h-4 accent-indigo-500 shrink-0'
-    }),
-    E('span', { className: 'text-[11px] font-mono text-slate-400 w-14 shrink-0' }, t('ocrf_' + r.key)),
-    E('span', { className: `font-mono text-base font-bold shrink-0 ${r.conflict ? 'text-red-300' : r.inRange ? 'text-indigo-200' : 'text-amber-300'}` }, r.value),
-    E('span', { className: 'text-[10px] font-mono text-slate-500 shrink-0' }, r.unit),
-    r.inRange ? null : E('span', { className: 'text-[10px] font-mono text-amber-400 shrink-0' }, '⚠ ', fill(t('ocrOutOfRange'), { a: r.min, b: r.max })),
-    r.conflict ? E('span', { className: 'text-[10px] font-mono text-red-300 shrink-0' }, '⚠ ', t('ocrConflict'), ' ', r.all.map(x => x.value).join(' / ')) : null,
-    E('span', { className: 'ml-auto text-[10px] font-mono text-slate-600 truncate max-w-[38%] text-right', title: r.all.map(x => x.src + '：' + x.line).join('\n') }, r.all.length > 1 ? r.all.map(x => x.src).join(', ') : r.line)
-  );
+  // 用 div 而非 label：數值欄是可編輯的 input，
+  // 若整列包在 label 裡，點輸入框會連帶切換勾選
+  const rowEl = r => {
+    const ok = okOf(r);
+    const edited = editedOf(r);
+    const toggle = () => setPicked(p => ({ ...p, [r.key]: !p[r.key] }));
+    return E('div', {
+      key: r.key,
+      className: `flex items-center gap-2 px-3 py-2 border-b border-slate-800 last:border-b-0 transition-colors ${picked[r.key] ? 'bg-indigo-500/10' : 'bg-slate-950/40'}`
+    },
+      E('input', {
+        type: 'checkbox', checked: !!picked[r.key], onChange: toggle,
+        className: 'w-4 h-4 accent-indigo-500 shrink-0 cursor-pointer'
+      }),
+      E('span', {
+        onClick: toggle,
+        className: 'text-[11px] font-mono text-slate-400 w-14 shrink-0 cursor-pointer select-none'
+      }, t('ocrf_' + r.key)),
+      E('input', {
+        type: 'number', inputMode: 'decimal', step: 'any', value: valOf(r),
+        onChange: e => setEdit(r.key, e.target.value),
+        className: `w-20 shrink-0 bg-slate-950/70 border rounded px-1.5 py-1 font-mono text-sm font-bold outline-none transition-colors ${edited ? 'border-emerald-500/60 text-emerald-200' : r.conflict ? 'border-red-500/50 text-red-300' : ok ? 'border-slate-700 text-indigo-200 focus:border-indigo-500/60' : 'border-amber-500/50 text-amber-300'}`
+      }),
+      E('span', { className: 'text-[10px] font-mono text-slate-500 shrink-0' }, r.unit),
+      edited ? E('span', { className: 'text-[10px] font-mono text-emerald-400 shrink-0' }, t('ocrEdited'), ' ', r.value) : null,
+      ok ? null : E('span', { className: 'text-[10px] font-mono text-amber-400 shrink-0' }, '⚠ ', fill(t('ocrOutOfRange'), { a: r.min, b: r.max })),
+      r.conflict && !edited ? E('span', { className: 'text-[10px] font-mono text-red-300 shrink-0' }, '⚠ ', t('ocrConflict'), ' ', r.all.map(x => x.value).join(' / ')) : null,
+      E('span', {
+        className: 'ml-auto text-[10px] font-mono text-slate-600 truncate max-w-[32%] text-right',
+        title: r.all.map(x => x.src + '：' + x.line).join('\n')
+      }, r.all.length > 1 ? r.all.map(x => x.src).join(', ') : r.line)
+    );
+  };
 
   const applyBtn = E('button', {
     onClick: apply, disabled: chosen === 0,
