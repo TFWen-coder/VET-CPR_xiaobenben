@@ -348,6 +348,10 @@ const UI = {
   ocrProgress: { zh: '第 {i}/{n} 張', en: 'image {i} of {n}', ja: '{n} 枚中 {i} 枚目' },
   ocrFound: { zh: '辨識到 {n} 項', en: '{n} values', ja: '{n} 項目' },
   ocrDocN: { zh: '報告 {n}', en: 'Report {n}', ja: '報告 {n}' },
+  ocrLang: { zh: '報告語言', en: 'Report language', ja: '報告書の言語' },
+  ocrLangEng: { zh: '英數（最快）', en: 'Latin (fastest)', ja: '英数（最速）' },
+  ocrLangZh: { zh: '含中文標籤', en: 'With Chinese labels', ja: '中国語ラベルあり' },
+  ocrLangJa: { zh: '含日文標籤', en: 'With Japanese labels', ja: '日本語ラベルあり' },
   ocrEdited: { zh: '已改，原值', en: 'edited, was', ja: '修正済み、元の値' },
   ocrConflict: { zh: '不同報告數值不同', en: 'differs between reports', ja: '報告間で数値が異なる' },
   ocrConflictNote: { zh: '有項目在不同報告上讀到不同數值（紅字標示）。可能是兩次採血時間不同，也可能是其中一次辨識錯誤 — 這些項目預設不勾選，請確認要用哪一份再手動勾選或直接在卡片上修改。', en: 'Some values differ between reports (shown in red). That may reflect two different sampling times, or one of them was misread. These are left unchecked by default — decide which report to trust, then tick it or edit the field directly on the card.', ja: '一部の項目で報告書ごとに数値が異なります（赤字）。採血時刻の違いによる場合も、片方の誤認識による場合もあります。これらは既定で未選択です — どちらを採用するか確認のうえ選択するか、カード上で直接修正してください。' },
@@ -358,7 +362,7 @@ const UI = {
   ocrOutOfRange: { zh: '超出 {a}–{b}', en: 'outside {a}–{b}', ja: '{a}–{b} の範囲外' },
   ocrApply: { zh: '套用勾選的 {n} 項', en: 'Apply {n} selected', ja: '選択した {n} 項目を適用' },
   ocrRaw: { zh: '原始辨識文字', en: 'Raw OCR text', ja: '認識テキスト' },
-  ocrPrivacy: { zh: '辨識引擎（Tesseract.js）於首次使用時從 CDN 載入約 4 MB，需要網路；載入後影像處理全在本機完成。熱感應紙、反光、皺摺與手寫字都會明顯降低準確度 — 把它當成省去打字的輔助，不是免除核對的理由。', en: 'The recognition engine (Tesseract.js) downloads about 4 MB from a CDN on first use and needs a connection; after that all image processing happens on this device. Thermal paper, glare, creases and handwriting all reduce accuracy substantially — treat this as a way to save typing, not a reason to skip checking.', ja: '認識エンジン（Tesseract.js）は初回使用時に CDN から約 4 MB を取得するため通信が必要です。その後の画像処理はすべて端末内で行われます。感熱紙・反射・しわ・手書きは精度を大きく下げます — 入力の手間を省く補助であって、確認を省く理由ではありません。' },
+  ocrPrivacy: { zh: '辨識引擎（Tesseract.js）於首次使用時從 CDN 載入約 4 MB，需要網路；載入後影像處理全在本機完成。多數中文報告（如 VetStat）會同時印出英文縮寫，用預設的「英數」即可讀到；只有標籤純中文時才需要切換語言，中文語言包會額外下載數 MB。熱感應紙、反光、皺摺與手寫字都會明顯降低準確度 — 把它當成省去打字的輔助，不是免除核對的理由。', en: 'The recognition engine (Tesseract.js) downloads about 4 MB from a CDN on first use and needs a connection; after that all image processing happens on this device. Most Chinese reports (VetStat and similar) also print the English abbreviations, so the default Latin setting reads them fine; switch language only when the labels are Chinese or Japanese alone, which downloads several more MB. Thermal paper, glare, creases and handwriting all reduce accuracy substantially — treat this as a way to save typing, not a reason to skip checking.', ja: '認識エンジン（Tesseract.js）は初回使用時に CDN から約 4 MB を取得するため通信が必要です。その後の画像処理はすべて端末内で行われます。中国語の報告書（VetStat など）の多くは英語略号も併記されるため既定の「英数」で読み取れます。ラベルが中国語・日本語のみの場合だけ言語を切り替えてください（追加で数 MB を取得します）。感熱紙・反射・しわ・手書きは精度を大きく下げます — 入力の手間を省く補助であって、確認を省く理由ではありません。' },
   ocrf_ph: { zh: 'pH', en: 'pH', ja: 'pH' },
   ocrf_pco2: { zh: 'PaCO₂', en: 'PaCO₂', ja: 'PaCO₂' },
   ocrf_hco3: { zh: 'HCO₃⁻', en: 'HCO₃⁻', ja: 'HCO₃⁻' },
@@ -2260,18 +2264,21 @@ const SZ_DOSING = {
 // 每個項目：辨識用的標籤樣式、合理範圍、要填進哪些欄位
 // 順序即比對優先序 — 較長／較specific 的標籤必須排在前面
 // （例如 HCO3 要先於 CO2，pCO2 要先於 pO2，iCa 要先於 Ca）
+// 標籤同時涵蓋英文、繁體中文與日文 —— 不少機型印的是中文欄位名
 const LAB_ANALYTES = [
-  { key: 'hco3', re: /(?:^|[^A-Za-z])(?:c?HCO\s*3|HCO₃|BICARB(?:ONATE)?|TCO2|TCO₂)/i, min: 1, max: 60, unit: 'mmol/L' },
-  { key: 'be', re: /(?:^|[^A-Za-z])(?:ABE|SBE|BE\s*\(?(?:ecf|b)?\)?|BASE\s*EXCESS)(?![A-Za-z])/i, min: -45, max: 45, unit: 'mmol/L', signed: true },
-  { key: 'pco2', re: /(?:^|[^A-Za-z])p\s*CO\s*2|PCO₂|PACO2|PVCO2/i, min: 5, max: 150, unit: 'mmHg' },
-  { key: 'ph', re: /(?:^|[^A-Za-z])pH(?![A-Za-z])/i, min: 6.5, max: 8.0, unit: '' },
-  { key: 'na', re: /(?:^|[^A-Za-z])Na\s*\+?(?![A-Za-z])/i, min: 90, max: 200, unit: 'mEq/L' },
-  { key: 'k', re: /(?:^|[^A-Za-z])K\s*\+?(?![A-Za-z])/i, min: 1, max: 12, unit: 'mEq/L' },
-  { key: 'cl', re: /(?:^|[^A-Za-z])Cl\s*-?(?![A-Za-z])/i, min: 60, max: 160, unit: 'mEq/L' },
-  { key: 'lac', re: /(?:^|[^A-Za-z])(?:LAC(?:TATE)?)(?![A-Za-z])/i, min: 0, max: 30, unit: 'mmol/L' },
-  { key: 'alb', re: /(?:^|[^A-Za-z])(?:ALB(?:UMIN)?)(?![A-Za-z])/i, min: 0.3, max: 7, unit: 'g/dL' },
-  { key: 'phos', re: /(?:^|[^A-Za-z])(?:PHOS(?:PHATE|PHORUS)?|iP|PO4)(?![A-Za-z])/i, min: 0.3, max: 25, unit: 'mg/dL' },
-  { key: 'pcv', re: /(?:^|[^A-Za-z])(?:PCV|H[CG]T|HAEMATOCRIT|HEMATOCRIT)(?![A-Za-z])/i, min: 5, max: 80, unit: '%' }
+  // tCO₂ 與 HCO₃⁻ 在同一張報告上常是分開的兩列（數值也不同），
+  // 因此只在找不到真正的 HCO₃⁻ 時才用 tCO₂ 當替代
+  { key: 'hco3', re: /(?:^|[^A-Za-z])(?:c?HCO\s*3|HCO₃|BICARB(?:ONATE)?)|重碳酸(?:根|鹽)?|碳酸氫(?:根|鹽)|碳酸氫離子|重炭酸/i, alt: /(?:^|[^A-Za-z])t?CO\s*2|總二氧化碳/i, min: 1, max: 60, unit: 'mmol/L' },
+  { key: 'be', re: /(?:^|[^A-Za-z])(?:ABE|SBE|BE\s*\(?(?:ecf|b)?\)?|BASE\s*EXCESS)(?![A-Za-z])|鹼(?:基)?(?:過剩|超量|過量)|剩餘鹼|鹼餘|塩基過剰/i, min: -45, max: 45, unit: 'mmol/L', signed: true },
+  { key: 'pco2', re: /(?:^|[^A-Za-z])p\s*CO\s*2|PCO₂|PACO2|PVCO2|二氧化碳分壓|炭酸ガス分圧/i, min: 5, max: 150, unit: 'mmHg' },
+  { key: 'ph', re: /(?:^|[^A-Za-z])pH(?![A-Za-z])|酸鹼值|酸鹼度|血液酸鹼|水素イオン/i, min: 6.5, max: 8.0, unit: '' },
+  { key: 'na', re: /(?:^|[^A-Za-z])Na\s*\+?(?![A-Za-z])|鈉離子|鈉|ナトリウム/i, min: 90, max: 200, unit: 'mEq/L' },
+  { key: 'k', re: /(?:^|[^A-Za-z])K\s*\+?(?![A-Za-z])|鉀離子|鉀|カリウム/i, min: 1, max: 12, unit: 'mEq/L' },
+  { key: 'cl', re: /(?:^|[^A-Za-z])Cl\s*-?(?![A-Za-z])|氯離子|氯(?!化)|クロール|塩素/i, min: 60, max: 160, unit: 'mEq/L' },
+  { key: 'lac', re: /(?:^|[^A-Za-z])(?:LAC(?:TATE)?)(?![A-Za-z])|乳酸(?!林格)|乳酸鹽/i, min: 0, max: 30, unit: 'mmol/L' },
+  { key: 'alb', re: /(?:^|[^A-Za-z])(?:ALB(?:UMIN)?)(?![A-Za-z])|白蛋白|アルブミン/i, min: 0.3, max: 7, unit: 'g/dL' },
+  { key: 'phos', re: /(?:^|[^A-Za-z])(?:PHOS(?:PHATE|PHORUS)?|iP|PO4)(?![A-Za-z])|無機磷|血磷|磷酸鹽|磷(?!酸鉀)|リン/i, min: 0.3, max: 25, unit: 'mg/dL' },
+  { key: 'pcv', re: /(?:^|[^A-Za-z])(?:PCV|H[CG]T|HAEMATOCRIT|HEMATOCRIT)(?![A-Za-z])|血比容|血球容積|血容比|紅血球容積|ヘマトクリット/i, min: 5, max: 80, unit: '%' }
 ];
 
 // OCR 常見混淆：O/o→0、l/I/|→1、S/s→5，逗號→小數點。
@@ -2283,34 +2290,80 @@ const normaliseNumericTokens = s => s.split(/(\s+)/).map(tok => /\d/.test(tok)
 
 // 從一行文字中抽出第一個合理的數值
 function extractNumber(line, signed) {
-  // 先切掉標籤本身，避免把標籤裡的數字（HCO3 的 3、pCO2 的 2）當成值
-  const cleaned = normaliseNumericTokens(line
-    .replace(/HCO\s*3|HCO₃|TCO\s*2|pCO\s*2|PCO₂|pO\s*2|PO4|SO\s*2/gi, ' ')
-    .replace(/\bK\s*\+|\bNa\s*\+|\bCl\s*-/gi, ' '));
-  const pat = signed ? /(-|−|–)?\s*(\d{1,4}(?:\.\d{1,3})?)/g : /(\d{1,4}(?:\.\d{1,3})?)/g;
-  let m;
-  while ((m = pat.exec(cleaned)) !== null) {
-    const raw = signed ? (m[1] ? '-' : '') + m[2] : m[1];
-    const v = parseFloat(raw);
-    if (isFinite(v)) return v;
+  const stripped = line
+    // 先移除參考區間（如 24.0 - 26.0）— 否則數值本身沒讀到時，
+    // 會把區間下限誤當成檢驗值。負值如 -12.4 破折號前沒有數字，不受影響。
+    .replace(/\d+(?:[.,]\d+)?\s*[-–~]\s*\d+(?:[.,]\d+)?/g, ' ')
+    // 再切掉標籤本身，避免把標籤裡的數字（HCO3 的 3、pCO2 的 2）當成值
+    .replace(/HCO\s*3|HCO₃|TCO\s*2|pCO\s*2|PCO₂|pO\s*2|PO4|SO\s*2|O\s*2\s*\)/gi, ' ')
+    .replace(/\bK\s*\+|\bNa\s*\+|\bCl\s*-/gi, ' ');
+  // 逐 token 判斷：整個 token 必須是純數字才算數值。
+  // 中文標籤被英文語言包誤讀時常產生像 ig8= 這種夾帶數字的雜訊，
+  // 若只用正則掃描會把裡面的 8 當成檢驗值。
+  const toks = stripped.split(/\s+/);
+  let pendingMinus = false;
+  for (const tok of toks) {
+    if (/^[-−–]$/.test(tok)) { pendingMinus = true; continue; }
+    if (!/\d/.test(tok)) { pendingMinus = false; continue; }
+    let s = tok.replace(/[Oo]/g, '0').replace(/[lI|]/g, '1').replace(/[Ss]/g, '5').replace(/,/g, '.');
+    s = s.replace(/^[([{"']+/, '').replace(/[)\]}"':;%]+$/, '');
+    if (!/^[-−–+]?\d{1,4}(?:\.\d{1,3})?$/.test(s)) { pendingMinus = false; continue; }
+    let v = parseFloat(s.replace(/[−–]/g, '-'));
+    if (!isFinite(v)) { pendingMinus = false; continue; }
+    if (signed && pendingMinus && v > 0) v = -v;
+    return v;
   }
   return null;
 }
 
 // 解析整段 OCR 文字 → [{ key, value, line, inRange }]
+// 三輪比對，處理雙語報告「中文標籤帶數值、下一行才是英文縮寫」的版面
 function parseLabText(text) {
   const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 1);
   const found = {};
-  for (const line of lines) {
+  const usedLine = new Set();   // 已被當成數值來源的行，避免一個數字被兩個項目搶走
+  const take = (a, v, line, idx) => {
+    found[a.key] = { key: a.key, value: v, line, inRange: v >= a.min && v <= a.max, min: a.min, max: a.max, unit: a.unit };
+    usedLine.add(idx);
+  };
+
+  // ① 標籤與數值在同一行
+  lines.forEach((line, idx) => {
     for (const a of LAB_ANALYTES) {
-      if (found[a.key]) continue;
-      if (!a.re.test(line)) continue;
+      if (found[a.key] || !a.re.test(line)) continue;
       const v = extractNumber(line, a.signed);
       if (v === null) continue;
-      found[a.key] = { key: a.key, value: v, line, inRange: v >= a.min && v <= a.max, min: a.min, max: a.max, unit: a.unit };
-      break; // 一行只認一個項目
+      take(a, v, line, idx);
+      break;
     }
-  }
+  });
+
+  // ② 標籤在這行、數值在上一行
+  //    VetStat 等機型：「重碳酸根 (動脈) 38.4 mmol/L」換行後才是「(HCO3(art))」，
+  //    英文 OCR 讀不出中文標籤時，只能靠下一行的英文縮寫回頭認上一行的數值
+  lines.forEach((line, idx) => {
+    for (const a of LAB_ANALYTES) {
+      if (found[a.key] || !a.re.test(line)) continue;
+      if (extractNumber(line, a.signed) !== null) continue;  // 這行自己就有數字，不屬於此情形
+      if (idx === 0 || usedLine.has(idx - 1)) continue;
+      const v = extractNumber(lines[idx - 1], a.signed);
+      if (v === null) continue;
+      take(a, v, lines[idx - 1] + '  ⟵  ' + line, idx - 1);
+      break;
+    }
+  });
+
+  // ③ 替代標籤（例如只有 tCO₂ 沒有 HCO₃⁻ 時才拿來頂替）
+  lines.forEach((line, idx) => {
+    for (const a of LAB_ANALYTES) {
+      if (found[a.key] || !a.alt || !a.alt.test(line) || usedLine.has(idx)) continue;
+      const v = extractNumber(line, a.signed);
+      if (v === null) continue;
+      take(a, v, line, idx);
+      break;
+    }
+  });
+
   return LAB_ANALYTES.map(a => found[a.key]).filter(Boolean);
 }
 
@@ -3246,6 +3299,9 @@ function LabImportCard({
   const [picked, setPicked] = useState({});
   const [edits, setEdits] = useState({}); // 使用者手動更正的值，key 為項目
   const [showRaw, setShowRaw] = useState('');
+  // 報告語言：預設只載英數（最快最小）。多數中文報告仍會印英文縮寫，
+  // 靠「標籤在下一行」的比對就能讀到；純中文標籤的報告才需要中文語言包。
+  const [ocrLang, setOcrLang] = useState('eng');
   const E = React.createElement;
 
   // 顯示與套用一律以「使用者改過的值」優先，範圍檢查也跟著重算
@@ -3300,7 +3356,7 @@ function LabImportCard({
           im.src = url;
         });
         const canvas = preprocessImage(img, 1800);
-        const worker = await Tesseract.createWorker('eng', 1, {
+        const worker = await Tesseract.createWorker(ocrLang, 1, {
           logger: m => {
             if (m.status === 'recognizing text') setProgress(Math.round(m.progress * 100));
           }
@@ -3343,9 +3399,20 @@ function LabImportCard({
     onChange: e => { runFiles(e.target.files); e.target.value = ''; }
   }, extra)));
 
+  const langSel = E('label', { className: 'flex items-center gap-1.5 text-[11px] font-mono text-slate-400' },
+    t('ocrLang'),
+    E('select', {
+      value: ocrLang, onChange: e => setOcrLang(e.target.value), disabled: busy,
+      className: 'rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1.5 text-[11px] font-mono text-slate-200 outline-none focus:border-indigo-500/60'
+    },
+      E('option', { value: 'eng', className: 'bg-slate-900' }, t('ocrLangEng')),
+      E('option', { value: 'chi_tra+eng', className: 'bg-slate-900' }, t('ocrLangZh')),
+      E('option', { value: 'jpn+eng', className: 'bg-slate-900' }, t('ocrLangJa'))));
+
   const controls = E('div', { className: 'flex flex-wrap items-center gap-2' },
     fileBtn('ocrPick', { capture: 'environment' }),
     fileBtn('ocrPickFiles', { multiple: true }),
+    langSel,
     busy ? E('span', { className: 'text-[12px] font-mono text-indigo-300' }, t('ocrBusy'), ' ', stage, ' ', progress, '%') : null,
     docs.length && !busy ? E('button', {
       onClick: () => { setDocs([]); setErr(''); },
