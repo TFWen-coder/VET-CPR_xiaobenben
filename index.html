@@ -4448,6 +4448,16 @@ const AB_S = {
     warnVent: '⚠ 給藥前必須確認通氣足夠（有自主呼吸或已插管給予 IPPV）。碳酸氫鈉會產生 CO₂，若無法排出將加重細胞內酸中毒。',
     phos: '血磷（可留空）',
     po2: 'PO₂（可留空）', so2: 'SO₂（可留空）',
+    sample: '採檢部位', sampleArt: '動脈', sampleVen: '靜脈',
+    venTag: '靜脈血',
+    venWarn: '靜脈血判讀：參考範圍已依靜脈調整（pH −0.03、PCO₂ +5、HCO₃⁻ +1），但代償公式本身是由動脈值推導的，此處僅為近似。灌流不良時靜動脈 CO₂ 差會遠大於 5，換算最不準的時候正好是病人最重的時候。酸鹼與電解質的判讀在靜脈血上大致可靠；氧合則完全不能用靜脈血評估。',
+    venSuspect: 'PO₂ 只有 {v} mmHg 但標為動脈血 —— 這個數值落在靜脈範圍內。動脈採樣不易，機器上的採檢別也常沿用預設值；若實際抽的是靜脈血，目前的 P/F 與 A-a 判讀會嚴重誤導。',
+    venSwitch: '改為靜脈血',
+    venExtractOk: '組織攝氧率正常', venExtractHigh: '組織攝氧率上升',
+    rec_venLimits: '靜脈血不能評估肺的氧合 —— P/F 與 A-a 皆不適用（兩者都以動脈血為前提），已停止計算。要判斷氧合請改抽動脈血或搭配 SpO₂ 與胸腔影像。',
+    rec_venExtract: '靜脈 PO₂／ScvO₂ 偏低代表組織攝氧率上升，通常是氧氣輸送不足：心輸出量低、血容不足、貧血，或動脈端本身缺氧。查血壓、乳酸、PCV 與心臟超音波，優先補足輸送而非只給氧。',
+    rec_venSo2High: '靜脈 SO₂ 偏高：可能是敗血症的組織利用障礙、動靜脈分流，或採樣時混入動脈血 —— 先確認採樣品質再解讀。',
+    rec_venRespAcid: '靜脈 PCO₂ 本來就比動脈高約 5 mmHg，且灌流差時差距更大。此處的呼吸性酸中毒程度可能被高估 —— 若臨床上要據此決定是否插管，建議補抽動脈血確認。',
     fio2: 'FiO₂', fio2Hint: '室內空氣 0.21；純氧 1.0',
     patm: '大氣壓', patmHint: '海平面 760',
     courseAuto: '自動判斷',
@@ -4570,6 +4580,16 @@ const AB_S = {
     warnVent: '⚠ Confirm adequate ventilation before dosing (spontaneous breathing or intubated with IPPV). Bicarbonate generates CO₂; if it cannot be exhaled, intracellular acidosis worsens.',
     phos: 'Phosphate (optional)',
     po2: 'PO₂ (optional)', so2: 'SO₂ (optional)',
+    sample: 'Sample site', sampleArt: 'Arterial', sampleVen: 'Venous',
+    venTag: 'Venous sample',
+    venWarn: 'Venous interpretation: reference ranges have been shifted for venous blood (pH −0.03, PCO₂ +5, HCO₃⁻ +1), but the compensation formulas themselves are derived from arterial values, so this is an approximation. With poor perfusion the veno-arterial CO₂ gap widens well beyond 5 — the conversion is least reliable exactly when the patient is sickest. Acid-base and electrolyte interpretation is broadly reliable on venous blood; oxygenation cannot be assessed from it at all.',
+    venSuspect: 'PO₂ is only {v} mmHg yet the sample is marked arterial — that value sits in the venous range. Arterial sampling is difficult and the analyser’s sample-type setting is often left at its default; if this was in fact venous blood, the current P/F and A-a interpretation is seriously misleading.',
+    venSwitch: 'mark as venous',
+    venExtractOk: 'oxygen extraction normal', venExtractHigh: 'raised oxygen extraction',
+    rec_venLimits: 'Venous blood cannot assess pulmonary oxygenation — both P/F and A-a assume an arterial sample and have been suppressed. To judge oxygenation, take an arterial sample or combine SpO₂ with thoracic imaging.',
+    rec_venExtract: 'A low venous PO₂ / ScvO₂ means tissues are extracting more oxygen, usually because delivery is inadequate: low cardiac output, hypovolaemia, anaemia, or arterial hypoxaemia. Check blood pressure, lactate, PCV and echocardiography, and restore delivery rather than simply giving oxygen.',
+    rec_venSo2High: 'A high venous SO₂ may reflect impaired tissue utilisation in sepsis, arteriovenous shunting, or arterial contamination of the sample — confirm sampling quality before interpreting it.',
+    rec_venRespAcid: 'Venous PCO₂ already runs about 5 mmHg above arterial, and the gap widens further with poor perfusion, so the degree of respiratory acidosis here may be overstated. If this is going to drive an intubation decision, confirm with an arterial sample.',
     fio2: 'FiO₂', fio2Hint: 'room air 0.21; pure oxygen 1.0',
     patm: 'Barometric pressure', patmHint: 'sea level 760',
     courseAuto: 'Auto',
@@ -4692,6 +4712,16 @@ const AB_S = {
     warnVent: '⚠ 投与前に換気が十分であることを確認（自発呼吸あり、または挿管して IPPV）。炭酸水素ナトリウムは CO₂ を産生し、排出できなければ細胞内アシドーシスが悪化する。',
     phos: 'リン（任意）',
     po2: 'PO₂（任意）', so2: 'SO₂（任意）',
+    sample: '採血部位', sampleArt: '動脈', sampleVen: '静脈',
+    venTag: '静脈血',
+    venWarn: '静脈血の判読：参考範囲は静脈血用に補正しています（pH −0.03、PCO₂ +5、HCO₃⁻ +1）が、代償式自体は動脈値から導かれたものであり、ここでの評価は近似にすぎません。灌流不良では静動脈 CO₂ 較差が 5 をはるかに超え、換算が最も不正確になるのは患者が最も重篤なときです。酸塩基と電解質の判読は静脈血でもおおむね信頼できますが、酸素化は静脈血では評価できません。',
+    venSuspect: 'PO₂ が {v} mmHg しかないのに動脈血と設定されています — この値は静脈血の範囲です。動脈採血は難しく、分析装置の採血種別も既定値のままにされがちです。実際に静脈血であれば、現在の P/F と A-a の判読は重大な誤りを招きます。',
+    venSwitch: '静脈血に変更',
+    venExtractOk: '組織の酸素摂取は正常', venExtractHigh: '組織の酸素摂取が亢進',
+    rec_venLimits: '静脈血では肺の酸素化を評価できません — P/F と A-a はいずれも動脈血を前提とするため算出を停止しました。酸素化を判断するには動脈採血を行うか、SpO₂ と胸部画像を併用してください。',
+    rec_venExtract: '静脈 PO₂／ScvO₂ の低下は組織の酸素摂取亢進を意味し、多くは酸素供給の不足によります：低心拍出、循環血液量減少、貧血、あるいは動脈血自体の低酸素。血圧・乳酸・PCV・心エコーを確認し、酸素投与だけでなく供給の回復を優先します。',
+    rec_venSo2High: '静脈 SO₂ の上昇は敗血症における組織の利用障害、動静脈シャント、または採血時の動脈血混入を示唆します — 判読の前に採血の質を確認してください。',
+    rec_venRespAcid: '静脈 PCO₂ はもともと動脈より約 5 mmHg 高く、灌流不良ではさらに差が開きます。ここでの呼吸性アシドーシスの程度は過大評価の可能性があり、挿管の判断に用いるなら動脈血での確認を推奨します。',
     fio2: 'FiO₂', fio2Hint: '室内空気 0.21、純酸素 1.0',
     patm: '大気圧', patmHint: '海面 760',
     courseAuto: '自動判定',
@@ -4819,6 +4849,19 @@ function AcidBaseCard({
   const [fio2, setFio2] = useState('0.21');
   const [patm, setPatm] = useState('760');
   const [course, setCourse] = useState('auto');
+  const [sample, setSample] = useState('art');
+  // 靜脈血相對動脈血的位移（犬貓相近）：pH 低約 0.03、PCO₂ 高約 5、HCO₃⁻ 高約 1。
+  // 灌流不良時靜動脈 CO₂ 差會遠大於 5，此時換算最不可靠 —— 病人越重越不準。
+  const isVen = sample === 'ven';
+  const VEN = { ph: -0.03, co2: 5, hco3: 1 };
+  const RG = {
+    // pH 位移後要收斂小數，否則 7.35 − 0.03 會顯示成 7.319999999999999
+    pH: isVen ? [Math.round((R.pH[0] + VEN.ph) * 100) / 100, Math.round((R.pH[1] + VEN.ph) * 100) / 100] : R.pH,
+    paco2: isVen ? [R.paco2[0] + VEN.co2, R.paco2[1] + VEN.co2] : R.paco2,
+    hco3: isVen ? [R.hco3[0] + VEN.hco3, R.hco3[1] + VEN.hco3] : R.hco3,
+    paco2N: isVen ? R.paco2N + VEN.co2 : R.paco2N,
+    hco3N: isVen ? R.hco3N + VEN.hco3 : R.hco3N
+  };
   useImported(imported, {
     ph: setPH, pco2: setPaco2, hco3: setHco3In, be: setBeIn,
     na: setNa, k: setK, cl: setCl, alb: setAlb, lac: setLac, phos: setPhos,
@@ -4851,12 +4894,12 @@ function AcidBaseCard({
   const hasLytes = nNa > 0 && nK > 0 && nCl > 0;
 
   // 原發性異常
-  const acidemia = hasGas && nPH < R.pH[0];
-  const alkalemia = hasGas && nPH > R.pH[1];
-  const lowHco3 = hco3 < R.hco3[0];
-  const highHco3 = hco3 > R.hco3[1];
-  const lowCO2 = nCO2 > 0 && nCO2 < R.paco2[0];
-  const highCO2 = nCO2 > R.paco2[1];
+  const acidemia = hasGas && nPH < RG.pH[0];
+  const alkalemia = hasGas && nPH > RG.pH[1];
+  const lowHco3 = hco3 < RG.hco3[0];
+  const highHco3 = hco3 > RG.hco3[1];
+  const lowCO2 = nCO2 > 0 && nCO2 < RG.paco2[0];
+  const highCO2 = nCO2 > RG.paco2[1];
   let primary = null;
   if (hasGas) {
     if (acidemia) primary = lowHco3 && highCO2 ? 'mixedAcid' : lowHco3 ? 'metAcid' : highCO2 ? 'respAcid' : 'metAcid';
@@ -4870,8 +4913,8 @@ function AcidBaseCard({
   let effCourse = course === 'auto' ? 'acute' : course;
   const isMetabolic = primary === 'metAcid' || primary === 'metAlk';
   if (hasGas && isMetabolic && nCO2 > 0) {
-    expVal = R.paco2N + 0.7 * (hco3 - R.hco3N);
-    expLabel = `PaCO₂ = ${R.paco2N} + 0.7 × (${nf(hco3, 1)} − ${R.hco3N}) = ${nf(expVal, 1)} ± 3 mmHg`;
+    expVal = RG.paco2N + 0.7 * (hco3 - RG.hco3N);
+    expLabel = `PaCO₂ = ${RG.paco2N} + 0.7 × (${nf(hco3, 1)} − ${RG.hco3N}) = ${nf(expVal, 1)} ± 3 mmHg`;
     compVerdict = nCO2 > expVal + 3 ? S.s3hi : nCO2 < expVal - 3 ? S.s3lo : S.s3ok;
   } else if (hasGas && (primary === 'respAcid' || primary === 'respAlk') && nCO2 > 0) {
     // 自動判斷急慢性：比較實測 HCO₃⁻ 較接近哪一組代償預期。
@@ -4879,13 +4922,13 @@ function AcidBaseCard({
     // 兩組預期值差距很大，數值本身就足以分辨。
     const fA = primary === 'respAcid' ? 0.15 : 0.25;
     const fC = primary === 'respAcid' ? 0.35 : 0.55;
-    const expA = R.hco3N + fA * (nCO2 - R.paco2N);
-    const expC = R.hco3N + fC * (nCO2 - R.paco2N);
+    const expA = RG.hco3N + fA * (nCO2 - RG.paco2N);
+    const expC = RG.hco3N + fC * (nCO2 - RG.paco2N);
     autoChronic = Math.abs(hco3 - expC) < Math.abs(hco3 - expA);
     effCourse = course === 'auto' ? autoChronic ? 'chronic' : 'acute' : course;
     const f = effCourse === 'chronic' ? fC : fA;
     expVal = effCourse === 'chronic' ? expC : expA;
-    expLabel = `HCO₃⁻ = ${R.hco3N} + ${f} × (${nf(nCO2, 0)} − ${R.paco2N}) = ${nf(expVal, 1)} ± 2 mmol/L`;
+    expLabel = `HCO₃⁻ = ${RG.hco3N} + ${f} × (${nf(nCO2, 0)} − ${RG.paco2N}) = ${nf(expVal, 1)} ± 2 mmol/L`;
     compVerdict = hco3 > expVal + 2 ? S.s3hiM : hco3 < expVal - 2 ? S.s3loM : S.s3ok;
     // 使用者選了急性但數值明顯偏向慢性時提示
     courseHint = course === 'acute' && autoChronic && Math.abs(hco3 - expA) > 3;
@@ -4902,7 +4945,7 @@ function AcidBaseCard({
   // 酸中毒分型只在「確實有代謝性酸中毒成分」時才有意義。
   // 單純呼吸性酸中毒的 HCO₃⁻ 是代償性升高，若只因 pH 偏低就套上
   // 「高氯型／HCO₃⁻ 實質流失」的標籤會完全誤導。
-  const hasMetAcid = hco3 > 0 && (hco3 < R.hco3[0] || isFinite(be) && be <= -3);
+  const hasMetAcid = hco3 > 0 && (hco3 < RG.hco3[0] || isFinite(be) && be <= -3);
   const acidType = !hasMetAcid ? null : agHigh ? 'high' : agLow ? 'low' : 'normal';
 
   // ── 半定量 BE 拆解（簡化強離子模型）─────────────────────
@@ -4920,7 +4963,7 @@ function AcidBaseCard({
   // ΔAG / ΔHCO₃⁻（delta ratio）：判斷高 AG 之外是否還併有其他型態
   const agMid = (R.ag[0] + R.ag[1]) / 2;
   const deltaAG = agUse - agMid;
-  const deltaHco3 = R.hco3N - hco3;
+  const deltaHco3 = RG.hco3N - hco3;
   // delta ratio 只在 AG 確實升高時才有判讀意義（AG 正常時分子沒有意義）
   const hasDelta = hasLytes && hco3 > 0 && deltaHco3 > 2 && agUse > R.ag[1];
   const deltaRatio = hasDelta ? deltaAG / deltaHco3 : null;
@@ -4946,7 +4989,14 @@ function AcidBaseCard({
   const nSo2 = parseFloat(so2) || 0;
   const nFio2 = parseFloat(fio2) || 0;
   const nPatm = parseFloat(patm) || 760;
-  const hasOxy = nPo2 > 0 && nFio2 > 0;
+  const hasOxy = nPo2 > 0 && nFio2 > 0 && !isVen;
+  // 靜脈血：PO₂ 與 SO₂ 反映的是組織攝氧，不是肺的氧合能力
+  const venO2 = isVen && nPo2 > 0;
+  const venO2Low = venO2 && nPo2 < 35;
+  const venSo2Low = isVen && nSo2 > 0 && nSo2 < 65;
+  const venSo2High = isVen && nSo2 > 80;
+  // 標為動脈但數值落在靜脈範圍 —— 機器上的採檢別常被設錯
+  const suspectVen = !isVen && nPo2 > 0 && nPo2 >= 20 && nPo2 <= 55 && (nSo2 === 0 || nSo2 < 85);
   // P/F 比：FiO₂ 以小數表示（室內空氣 0.21）
   const pfRatio = hasOxy ? nPo2 / nFio2 : 0;
   // 肺泡氣體方程式：PAO₂ = FiO₂ × (Patm − 47) − PaCO₂ / 0.8
@@ -5027,6 +5077,12 @@ function AcidBaseCard({
     if (verdict === 'yes') recs.push(fill(S.rec_bicarbYes, { v: nf(firstMlBE, 1) }));
     if (verdict === 'caution') recs.push(S.rec_bicarbCaution);
   }
+  if (isVen) {
+    recs.push(S.rec_venLimits);
+    if (venO2Low || venSo2Low) recs.push(S.rec_venExtract);
+    if (venSo2High) recs.push(S.rec_venSo2High);
+    if (primary === 'respAcid') recs.push(S.rec_venRespAcid);
+  }
   if (hasOxy) {
     if (severeHypox) recs.push(S.rec_severeHypox);
     else if (hypoxaemia) recs.push(S.rec_hypox);
@@ -5046,12 +5102,12 @@ function AcidBaseCard({
   if (hasGas) {
     steps.push({
       label: S.s1,
-      expr: `pH ${nf(nPH, 2)}（${species === 'dog' ? '犬' : species === 'cat' ? '貓' : '兔'} ${R.pH[0]}–${R.pH[1]}）`,
+      expr: `pH ${nf(nPH, 2)}（${species === 'dog' ? '犬' : species === 'cat' ? '貓' : '兔'} ${RG.pH[0]}–${RG.pH[1]}）`,
       out: acidemia ? S.acidemia : alkalemia ? S.alkalemia : S.phNormal
     });
     steps.push({
       label: S.s2,
-      expr: `HCO₃⁻ ${nf(hco3, 1)}（${R.hco3[0]}–${R.hco3[1]}）${hco3Derived ? ' ← BE 反推' : ''}；PaCO₂ ${nCO2 ? nf(nCO2, 0) : '—'}（${R.paco2[0]}–${R.paco2[1]}）`,
+      expr: `HCO₃⁻ ${nf(hco3, 1)}（${RG.hco3[0]}–${RG.hco3[1]}）${hco3Derived ? ' ← BE 反推' : ''}；PaCO₂ ${nCO2 ? nf(nCO2, 0) : '—'}（${RG.paco2[0]}–${RG.paco2[1]}）`,
       out: primaryName
     });
     if (expVal !== null) {
@@ -5086,7 +5142,7 @@ function AcidBaseCard({
     if (hasDelta) {
       steps.push({
         label: S.sDelta,
-        expr: `ΔAG ÷ ΔHCO₃⁻ = (${nf(agUse, 1)} − ${nf(agMid, 0)}) ÷ (${R.hco3N} − ${nf(hco3, 1)}) = ${nf(deltaAG, 1)} ÷ ${nf(deltaHco3, 1)}`,
+        expr: `ΔAG ÷ ΔHCO₃⁻ = (${nf(agUse, 1)} − ${nf(agMid, 0)}) ÷ (${RG.hco3N} − ${nf(hco3, 1)}) = ${nf(deltaAG, 1)} ÷ ${nf(deltaHco3, 1)}`,
         out: `${nf(deltaRatio, 2)}　${deltaVerdict}`
       });
     }
@@ -5203,6 +5259,10 @@ function AcidBaseCard({
     /*#__PURE__*/React.createElement("div", { className: "col-span-2" }, /*#__PURE__*/React.createElement(SelectField, {
       label: S.product, value: prod, onChange: setProd, options: BICARB_PRODUCTS
     })),
+    /*#__PURE__*/React.createElement("div", { className: "col-span-2" }, /*#__PURE__*/React.createElement(Seg, {
+      label: S.sample, value: sample, onChange: setSample, color: "cyan",
+      options: [{ value: 'art', label: S.sampleArt }, { value: 'ven', label: S.sampleVen }]
+    })),
     /*#__PURE__*/React.createElement("div", { className: "col-span-2 sm:col-span-4" }, /*#__PURE__*/React.createElement(Seg, {
       label: S.course, value: course, onChange: setCourse, color: "cyan",
       options: [{ value: 'auto', label: S.courseAuto }, { value: 'acute', label: S.acute }, { value: 'chronic', label: S.chronic }]
@@ -5294,7 +5354,14 @@ function AcidBaseCard({
     tone: acidType === 'high' ? 'red' : acidType === 'low' ? 'amber' : 'emerald'
   }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, acidTypeName), " — ", acidTypeNote), verdict && /*#__PURE__*/React.createElement(Warn, {
     tone: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
-  }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, "NaHCO₃ ", verdict === 'yes' ? S.giveYes : verdict === 'caution' ? S.giveCaution : S.giveNo), " — ", why), courseHint && /*#__PURE__*/React.createElement(Warn, {
+  }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, "NaHCO₃ ", verdict === 'yes' ? S.giveYes : verdict === 'caution' ? S.giveCaution : S.giveNo), " — ", why), isVen && /*#__PURE__*/React.createElement(Warn, {
+    tone: "amber"
+  }, "⚠ ", S.venWarn), suspectVen && /*#__PURE__*/React.createElement(Warn, {
+    tone: "amber"
+  }, "⚠ ", fill(S.venSuspect, { v: nf(nPo2, 0) }), " ", /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSample('ven'),
+    className: "underline underline-offset-2 text-amber-200 hover:text-amber-100 font-mono"
+  }, S.venSwitch)), courseHint && /*#__PURE__*/React.createElement(Warn, {
     tone: "amber"
   }, "⚠ ", S.courseHintTxt, " ", /*#__PURE__*/React.createElement("button", {
     onClick: () => setCourse('chronic'),
@@ -5309,7 +5376,7 @@ function AcidBaseCard({
     className: "text-[11px] font-mono uppercase tracking-[0.15em] text-cyan-300 font-bold"
   }, S.sumTitle), /*#__PURE__*/React.createElement("p", {
     className: "text-[13px] text-cyan-50 leading-relaxed"
-  }, primaryName, compVerdict ? '．' + compVerdict : '', acidType ? '．' + acidTypeName : '', hasOxy ? '．' + (severeHypox ? S.oxy_severe : hypoxaemia ? S.oxy_low : S.oxy_ok) + (pAO2 > 0 ? '（A-a ' + nf(aaGrad, 0) + (aaHigh ? ' ↑' : '') + '）' : '') : ''), /*#__PURE__*/React.createElement("div", {
+  }, isVen ? S.venTag + '．' : '', primaryName, compVerdict ? '．' + compVerdict : '', acidType ? '．' + acidTypeName : '', hasOxy ? '．' + (severeHypox ? S.oxy_severe : hypoxaemia ? S.oxy_low : S.oxy_ok) + (pAO2 > 0 ? '（A-a ' + nf(aaGrad, 0) + (aaHigh ? ' ↑' : '') + '）' : '') : '', venO2 ? '．' + (venO2Low || venSo2Low ? S.venExtractHigh : S.venExtractOk) : ''), /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] font-mono uppercase tracking-[0.15em] text-cyan-300 font-bold pt-1"
   }, S.sumRec), /*#__PURE__*/React.createElement("ol", {
     className: "space-y-1"
