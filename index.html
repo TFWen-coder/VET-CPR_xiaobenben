@@ -2271,6 +2271,8 @@ const LAB_ANALYTES = [
   { key: 'hco3', re: /(?:^|[^A-Za-z])(?:c?HCO\s*3|HCO₃|BICARB(?:ONATE)?)|重碳酸(?:根|鹽)?|碳酸氫(?:根|鹽)|碳酸氫離子|重炭酸/i, alt: /(?:^|[^A-Za-z])t?CO\s*2|總二氧化碳/i, min: 1, max: 60, unit: 'mmol/L' },
   { key: 'be', re: /(?:^|[^A-Za-z])(?:ABE|SBE|BE\s*\(?(?:ecf|b)?\)?|BASE\s*EXCESS)(?![A-Za-z])|鹼(?:基)?(?:過剩|超量|過量)|剩餘鹼|鹼餘|塩基過剰/i, min: -45, max: 45, unit: 'mmol/L', signed: true },
   { key: 'pco2', re: /(?:^|[^A-Za-z])p\s*CO\s*2|PCO₂|PACO2|PVCO2|二氧化碳分壓|炭酸ガス分圧/i, min: 5, max: 150, unit: 'mmHg' },
+  { key: 'po2', re: /(?:^|[^A-Za-z])p\s*O\s*2|PO₂|PAO2|氧分壓|酸素分圧/i, min: 10, max: 600, unit: 'mmHg' },
+  { key: 'so2', re: /(?:^|[^A-Za-z])s\s*O\s*2|SO₂|SAO2|氧飽和度|酸素飽和度/i, min: 30, max: 100, unit: '%' },
   { key: 'ph', re: /(?:^|[^A-Za-z])pH(?![A-Za-z])|酸鹼值|酸鹼度|血液酸鹼|水素イオン/i, min: 6.5, max: 8.0, unit: '' },
   { key: 'na', re: /(?:^|[^A-Za-z])Na\s*\+?(?![A-Za-z])|鈉離子|鈉|ナトリウム/i, min: 90, max: 200, unit: 'mEq/L' },
   { key: 'k', re: /(?:^|[^A-Za-z])K\s*\+?(?![A-Za-z])|鉀離子|鉀|カリウム/i, min: 1, max: 12, unit: 'mEq/L' },
@@ -4445,6 +4447,38 @@ const AB_S = {
     whyYes: '正常 AG（高氯）型酸中毒代表 HCO₃⁻ 確實流失，補鹼是合理的。仍須先確保通氣與灌流。',
     warnVent: '⚠ 給藥前必須確認通氣足夠（有自主呼吸或已插管給予 IPPV）。碳酸氫鈉會產生 CO₂，若無法排出將加重細胞內酸中毒。',
     phos: '血磷（可留空）',
+    po2: 'PO₂（可留空）', so2: 'SO₂（可留空）',
+    fio2: 'FiO₂', fio2Hint: '室內空氣 0.21；純氧 1.0',
+    patm: '大氣壓', patmHint: '海平面 760',
+    courseAuto: '自動判斷',
+    courseHintTxt: '實測 HCO₃⁻ 比較接近慢性代償的預期值，目前卻選了急性。慢性呼吸性酸中毒需 2–5 天才建立完整的腎臟代償。',
+    courseSwitch: '切換為慢性',
+    sOxy1: '氧合指數 P/F ratio = PaO₂ ÷ FiO₂',
+    pf_ok: '正常（> 400）', pf_mild: '輕度下降（300–400）', pf_moderate: '中度受損（200–300）', pf_severe: '重度受損（< 200）',
+    sOxy2: '肺泡動脈氧分壓差 A-a gradient（肺泡氣體方程式，水蒸氣壓 47、呼吸商 0.8）',
+    aa_ok: '正常（≤ {v}）', aa_high: '升高（> {v}）→ 肺本身有換氣血流不匹配、分流或擴散障礙',
+    oxy_ok: '氧合正常', oxy_low: '低血氧', oxy_severe: '重度低血氧',
+    sumTitle: '血氣總結', sumRec: '建議事項',
+    rec_vent: '首要是恢復通氣：確認呼吸道通暢、評估是否需插管與正壓通氣。呼吸性酸中毒的 CO₂ 只能靠通氣排出，補鹼無效。',
+    rec_chronicVent: '慢性代償者不要把 PaCO₂ 快速降到正常 — 腎臟代償來不及跟上會造成代償後鹼中毒；以恢復到該患者的基礎值為目標。',
+    rec_hypervent: '找過度換氣的原因：疼痛、焦慮、發燒、低血氧、敗血症、中樞病變、肝性腦病；先排除低血氧再考慮鎮靜。',
+    rec_highAG: '高 AG 型：治療病因才是關鍵（乳酸看灌流、酮酸看胰島素與輸液、尿毒看腎功能、疑中毒查乙二醇與水楊酸）。',
+    rec_normalAG: '正常 AG（高氯）型：確認 HCO₃⁻ 的流失途徑 — 腹瀉、腎小管酸中毒、輸尿管移植；止住流失來源。',
+    rec_iatroCl: '先檢視輸液處方：若近期給過大量 0.9% NaCl，改用低氯平衡液（LRS、Normosol-R）通常就會自行改善。',
+    rec_metAlk: '代謝性鹼中毒多為嘔吐失氯或利尿劑：補充 0.9% NaCl 與氯離子，並矯正低血鉀；對利尿劑相關者考慮 acetazolamide。',
+    rec_bicarbYes: '可考慮 NaHCO₃ 首劑 {v} mL（依 BE 法），20–30 分鐘輸完後回測血氣再決定是否續給。',
+    rec_bicarbCaution: '本型不宜以補鹼為主要處置 — 先處理病因，僅在 pH < 7.1 且病因治療已啟動仍持續惡化時才考慮。',
+    rec_severeHypox: 'PaO₂ < 60 mmHg 已在氧解離曲線陡降段，飽和度會急速下滑：立即給氧並準備氣道介入。',
+    rec_hypox: '低血氧：給氧並持續監測 SpO₂，找出原因後針對處理。',
+    rec_aaNormal: 'A-a 正常代表肺本身交換功能沒問題，缺氧來自換氣不足 — 單給氧只能治標，必須改善通氣（解除氣道阻塞、拮抗鎮靜劑、必要時正壓通氣）。',
+    rec_aaHigh: 'A-a 升高代表肺實質或血流問題：肺水腫、肺炎、ARDS、肺栓塞、肺出血；安排胸腔影像與 POCUS，給氧的同時處理原發病灶。',
+    rec_pfModerate: 'P/F 200–300 屬中度氧合受損，比照急性肺損傷處理：提高 FiO₂、考慮高流量氧氣或 CPAP，並嚴格限制過量輸液。',
+    rec_pfSevere: 'P/F < 200 屬重度氧合受損：多需機械通氣與肺保護策略（低潮氣量、適當 PEEP），儘早轉入加護照護。',
+    rec_stewart: '本例多重因素同時作用，單看 pH 與 HCO₃⁻ 會失真 — 請對照上方的半定量拆解逐項處理。',
+    rec_hypoK: '血鉀偏低：矯正酸鹼會讓鉀進一步下降，補鹼或給胰島素前先補鉀，並排除低血鎂。',
+    rec_hyperK: '血鉀偏高：立即做 ECG，必要時 calcium gluconate 保護心肌，再以胰島素／葡萄糖與輸液降鉀。',
+    rec_lactate: '乳酸升高以恢復組織灌流為核心：輸液、升壓、給氧、止血，並以乳酸清除速率追蹤治療反應。',
+    rec_recheck: '處置後 20–30 分鐘回測血氣，並同步追蹤電解質與離子鈣；單一時間點的數值不足以判斷趨勢。',
     normalAGsid: '正常 AG／高氯型（SID 下降，非 HCO₃⁻ 流失）',
     normalAGsidNote: '氯相對過多使強離子差下降而產生酸中毒。血檢本身無法分辨是「氯被灌進去」還是「HCO₃⁻ 被排出去」— 要看病史：大量 0.9% NaCl 輸液後屬前者，換低氯平衡液即可改善；腹瀉、腎小管酸中毒、輸尿管移植屬後者，是真的持續流失 HCO₃⁻，補鹼較有依據。兩者的實驗室數據長得一樣。',
     sqTriggerTitle: '為什麼這一例需要 Stewart',
@@ -4535,6 +4569,38 @@ const AB_S = {
     whyYes: 'Normal-AG (hyperchloraemic) acidosis reflects genuine bicarbonate loss, so replacement is rational. Ventilation and perfusion still come first.',
     warnVent: '⚠ Confirm adequate ventilation before dosing (spontaneous breathing or intubated with IPPV). Bicarbonate generates CO₂; if it cannot be exhaled, intracellular acidosis worsens.',
     phos: 'Phosphate (optional)',
+    po2: 'PO₂ (optional)', so2: 'SO₂ (optional)',
+    fio2: 'FiO₂', fio2Hint: 'room air 0.21; pure oxygen 1.0',
+    patm: 'Barometric pressure', patmHint: 'sea level 760',
+    courseAuto: 'Auto',
+    courseHintTxt: 'The measured HCO₃⁻ sits closer to the chronic compensation prediction, but acute is currently selected. Full renal compensation for a chronic respiratory acidosis takes 2–5 days.',
+    courseSwitch: 'switch to chronic',
+    sOxy1: 'Oxygenation index P/F ratio = PaO₂ ÷ FiO₂',
+    pf_ok: 'normal (> 400)', pf_mild: 'mildly reduced (300–400)', pf_moderate: 'moderately impaired (200–300)', pf_severe: 'severely impaired (< 200)',
+    sOxy2: 'Alveolar-arterial oxygen gradient (alveolar gas equation, water vapour 47, respiratory quotient 0.8)',
+    aa_ok: 'normal (≤ {v})', aa_high: 'raised (> {v}) → V/Q mismatch, shunt or diffusion impairment in the lung itself',
+    oxy_ok: 'oxygenation normal', oxy_low: 'hypoxaemia', oxy_severe: 'severe hypoxaemia',
+    sumTitle: 'Blood gas summary', sumRec: 'Recommendations',
+    rec_vent: 'Restoring ventilation comes first: confirm a patent airway and assess the need for intubation and positive-pressure ventilation. The CO₂ of a respiratory acidosis can only leave through ventilation — bicarbonate does not help.',
+    rec_chronicVent: 'With chronic compensation, do not drive PaCO₂ down to normal quickly — renal compensation cannot keep up and post-hypercapnic alkalosis follows. Aim for this patient’s own baseline.',
+    rec_hypervent: 'Find the driver of hyperventilation: pain, anxiety, fever, hypoxaemia, sepsis, intracranial disease, hepatic encephalopathy. Exclude hypoxaemia before reaching for sedation.',
+    rec_highAG: 'High-AG pattern: treating the cause is what matters (lactate → perfusion, ketoacids → insulin and fluids, uraemia → renal function, suspected toxin → ethylene glycol and salicylate).',
+    rec_normalAG: 'Normal-AG (hyperchloraemic) pattern: identify where bicarbonate is being lost — diarrhoea, renal tubular acidosis, ureteral transposition — and stop the loss.',
+    rec_iatroCl: 'Review the fluid prescription first: if large-volume 0.9% NaCl has been given recently, switching to a balanced low-chloride fluid (LRS, Normosol-R) usually corrects it on its own.',
+    rec_metAlk: 'Metabolic alkalosis is usually chloride loss from vomiting or diuretics: give 0.9% NaCl to replace chloride, correct hypokalaemia, and consider acetazolamide when diuretic-related.',
+    rec_bicarbYes: 'A first NaHCO₃ dose of {v} mL (BE method) is reasonable — give over 20–30 min, then recheck the gas before deciding on more.',
+    rec_bicarbCaution: 'Bicarbonate should not be the main intervention in this pattern — treat the cause, and consider it only if pH < 7.1 and the patient keeps deteriorating despite cause-directed therapy.',
+    rec_severeHypox: 'PaO₂ below 60 mmHg is on the steep part of the dissociation curve, where saturation falls fast: give oxygen now and prepare for airway intervention.',
+    rec_hypox: 'Hypoxaemia: give oxygen, monitor SpO₂ continuously, and treat the underlying cause once identified.',
+    rec_aaNormal: 'A normal A-a gradient means the lung is exchanging properly and the hypoxaemia comes from hypoventilation — oxygen alone only masks it; ventilation must be improved (relieve airway obstruction, reverse sedatives, ventilate if needed).',
+    rec_aaHigh: 'A raised A-a gradient points to parenchymal or vascular lung disease: oedema, pneumonia, ARDS, thromboembolism, haemorrhage. Arrange thoracic imaging and POCUS, and treat the lesion alongside oxygen therapy.',
+    rec_pfModerate: 'A P/F of 200–300 is moderate impairment — manage as acute lung injury: raise FiO₂, consider high-flow oxygen or CPAP, and avoid fluid overload.',
+    rec_pfSevere: 'A P/F below 200 is severe impairment: mechanical ventilation with lung-protective settings (low tidal volume, appropriate PEEP) is usually required — escalate to intensive care early.',
+    rec_stewart: 'Several factors are acting at once here, so pH and HCO₃⁻ alone are misleading — work through the semi-quantitative partition above component by component.',
+    rec_hypoK: 'Potassium is low: correcting the acidosis will drive it lower still. Replace potassium before giving bicarbonate or insulin, and exclude hypomagnesaemia.',
+    rec_hyperK: 'Potassium is high: obtain an ECG immediately, protect the myocardium with calcium gluconate if indicated, then lower it with insulin/dextrose and fluids.',
+    rec_lactate: 'A raised lactate is about restoring tissue perfusion: fluids, vasopressors, oxygen and haemostasis — follow the lactate clearance rate to judge the response.',
+    rec_recheck: 'Recheck the blood gas 20–30 min after intervening, alongside electrolytes and ionised calcium. A single time point cannot show a trend.',
     normalAGsid: 'Normal-AG / hyperchloraemic (reduced SID, not HCO₃⁻ loss)',
     normalAGsidNote: 'A relative excess of chloride has lowered the strong ion difference. Bloodwork alone cannot distinguish chloride being infused from bicarbonate being lost — the history decides: after large-volume 0.9% NaCl it is the former and switching to a balanced fluid corrects it; with diarrhoea, renal tubular acidosis or ureteral transposition it is genuine ongoing bicarbonate loss and replacement is better justified. The laboratory picture is identical in both.',
     sqTriggerTitle: 'Why Stewart applies to this case',
@@ -4625,6 +4691,38 @@ const AB_S = {
     whyYes: '正常 AG（高クロール）型アシドーシスは HCO₃⁻ が実際に失われている状態であり、補充は理にかなう。ただし換気と灌流の確保が先。',
     warnVent: '⚠ 投与前に換気が十分であることを確認（自発呼吸あり、または挿管して IPPV）。炭酸水素ナトリウムは CO₂ を産生し、排出できなければ細胞内アシドーシスが悪化する。',
     phos: 'リン（任意）',
+    po2: 'PO₂（任意）', so2: 'SO₂（任意）',
+    fio2: 'FiO₂', fio2Hint: '室内空気 0.21、純酸素 1.0',
+    patm: '大気圧', patmHint: '海面 760',
+    courseAuto: '自動判定',
+    courseHintTxt: '実測 HCO₃⁻ は慢性代償の予測値により近いのに、現在は急性が選択されています。慢性呼吸性アシドーシスの腎代償が完成するには 2–5 日を要します。',
+    courseSwitch: '慢性に切替',
+    sOxy1: '酸素化指数 P/F 比 = PaO₂ ÷ FiO₂',
+    pf_ok: '正常（> 400）', pf_mild: '軽度低下（300–400）', pf_moderate: '中等度障害（200–300）', pf_severe: '高度障害（< 200）',
+    sOxy2: '肺胞気動脈血酸素分圧較差 A-a gradient（肺胞気式、水蒸気圧 47、呼吸商 0.8）',
+    aa_ok: '正常（≤ {v}）', aa_high: '開大（> {v}）→ 換気血流不均等、シャント、拡散障害など肺自体の問題',
+    oxy_ok: '酸素化は正常', oxy_low: '低酸素血症', oxy_severe: '高度低酸素血症',
+    sumTitle: '血液ガス総括', sumRec: '推奨事項',
+    rec_vent: 'まず換気の回復：気道の開通を確認し、挿管と陽圧換気の要否を評価する。呼吸性アシドーシスの CO₂ は換気でしか排出できず、補正は無効。',
+    rec_chronicVent: '慢性代償例では PaCO₂ を急速に正常化させない — 腎代償が追いつかず高炭酸ガス血症後アルカローシスを来す。その個体の基礎値を目標とする。',
+    rec_hypervent: '過換気の原因を検索：疼痛、不安、発熱、低酸素血症、敗血症、頭蓋内疾患、肝性脳症。鎮静を考える前に低酸素血症を除外する。',
+    rec_highAG: '高 AG 型：原因治療が要（乳酸なら灌流、ケト酸ならインスリンと輸液、尿毒症なら腎機能、中毒疑いならエチレングリコールとサリチル酸）。',
+    rec_normalAG: '正常 AG（高クロール）型：HCO₃⁻ の喪失経路を特定する — 下痢、尿細管性アシドーシス、尿管移植 — そして喪失を止める。',
+    rec_iatroCl: 'まず輸液処方を見直す：直近に大量の 0.9% NaCl を投与しているなら、低クロールの平衡輸液（LRS、Normosol-R）への変更だけで改善することが多い。',
+    rec_metAlk: '代謝性アルカローシスの多くは嘔吐や利尿薬によるクロール喪失：0.9% NaCl でクロールを補い低カリウム血症を是正、利尿薬関連ならアセタゾラミドも検討。',
+    rec_bicarbYes: 'NaHCO₃ 初回量 {v} mL（BE 法）を検討可。20–30 分かけて投与し、血液ガスを再検してから追加の可否を判断する。',
+    rec_bicarbCaution: 'この病型では補正を主体にしない — 原因治療を優先し、pH < 7.1 かつ原因治療下でも悪化が続く場合にのみ検討する。',
+    rec_severeHypox: 'PaO₂ 60 mmHg 未満は解離曲線の急峻部で飽和度が急落する：直ちに酸素投与し気道確保の準備を。',
+    rec_hypox: '低酸素血症：酸素投与と SpO₂ の持続監視を行い、原因を特定して対処する。',
+    rec_aaNormal: 'A-a が正常なら肺のガス交換自体は保たれており、低酸素は換気不足による — 酸素投与だけでは対症的で、換気の改善（気道閉塞の解除、鎮静薬の拮抗、必要なら陽圧換気）が必須。',
+    rec_aaHigh: 'A-a の開大は肺実質・血流の問題を示す：肺水腫、肺炎、ARDS、肺血栓塞栓症、肺出血。胸部画像と POCUS を実施し、酸素投与と並行して原発病変を治療する。',
+    rec_pfModerate: 'P/F 200–300 は中等度障害 — 急性肺損傷に準じて管理：FiO₂ を上げ、高流量酸素や CPAP を検討し、輸液過剰を厳に避ける。',
+    rec_pfSevere: 'P/F 200 未満は高度障害：肺保護戦略（低一回換気量、適切な PEEP）による人工呼吸を要することが多く、早期に集中治療へ移行する。',
+    rec_stewart: '本例は複数の要因が同時に作用しており pH と HCO₃⁻ だけでは判断を誤る — 上記の半定量分解を成分ごとに確認して対処する。',
+    rec_hypoK: 'カリウムが低値：アシドーシスの補正でさらに低下する。補正やインスリン投与の前にカリウムを補い、低マグネシウム血症を除外する。',
+    rec_hyperK: 'カリウムが高値：直ちに ECG を確認し、必要ならグルコン酸カルシウムで心筋を保護、続いてインスリン／ブドウ糖と輸液で低下させる。',
+    rec_lactate: '乳酸上昇の本質は組織灌流の回復：輸液、昇圧、酸素、止血を行い、乳酸クリアランスで治療反応を追跡する。',
+    rec_recheck: '介入 20–30 分後に血液ガスを再検し、電解質とイオン化カルシウムも併せて追跡する。単一時点の値では推移を判断できない。',
     normalAGsid: '正常 AG／高クロール型（SID 低下であり HCO₃⁻ の喪失ではない）',
     normalAGsidNote: 'クロールの相対的過剰により強イオン差が低下しています。血液検査だけでは「クロールが入れられた」のか「HCO₃⁻ が失われた」のかを区別できません — 判断は病歴によります：大量の 0.9% NaCl 投与後なら前者で、平衡輸液への変更で改善します。下痢・尿細管性アシドーシス・尿管移植なら後者で、実際に HCO₃⁻ を持続的に喪失しており補充の根拠があります。検査所見は両者で同一です。',
     sqTriggerTitle: 'この症例で Stewart が必要な理由',
@@ -4716,10 +4814,15 @@ function AcidBaseCard({
   const [alb, setAlb] = useState('');
   const [lac, setLac] = useState('');
   const [phos, setPhos] = useState('');
-  const [course, setCourse] = useState('acute');
+  const [po2, setPo2] = useState('');
+  const [so2, setSo2] = useState('');
+  const [fio2, setFio2] = useState('0.21');
+  const [patm, setPatm] = useState('760');
+  const [course, setCourse] = useState('auto');
   useImported(imported, {
     ph: setPH, pco2: setPaco2, hco3: setHco3In, be: setBeIn,
-    na: setNa, k: setK, cl: setCl, alb: setAlb, lac: setLac, phos: setPhos
+    na: setNa, k: setK, cl: setCl, alb: setAlb, lac: setLac, phos: setPhos,
+    po2: setPo2, so2: setSo2
   });
   const [target, setTarget] = useState('15');
   const [prod, setProd] = useState('0.83');
@@ -4763,16 +4866,29 @@ function AcidBaseCard({
   const primaryName = { metAcid: S.metAcid, metAlk: S.metAlk, respAcid: S.respAcid, respAlk: S.respAlk, mixedAcid: `${S.mixed}：${S.metAcid} + ${S.respAcid}`, mixedAlk: `${S.mixed}：${S.metAlk} + ${S.respAlk}`, compensated: S.compensated, normal: S.normalAB }[primary] || '—';
 
   // 預期代償
-  let expLabel = '', expVal = null, compVerdict = '', isMetabolic = primary === 'metAcid' || primary === 'metAlk';
+  let expLabel = '', expVal = null, compVerdict = '', autoChronic = false, courseHint = false;
+  let effCourse = course === 'auto' ? 'acute' : course;
+  const isMetabolic = primary === 'metAcid' || primary === 'metAlk';
   if (hasGas && isMetabolic && nCO2 > 0) {
     expVal = R.paco2N + 0.7 * (hco3 - R.hco3N);
     expLabel = `PaCO₂ = ${R.paco2N} + 0.7 × (${nf(hco3, 1)} − ${R.hco3N}) = ${nf(expVal, 1)} ± 3 mmHg`;
     compVerdict = nCO2 > expVal + 3 ? S.s3hi : nCO2 < expVal - 3 ? S.s3lo : S.s3ok;
   } else if (hasGas && (primary === 'respAcid' || primary === 'respAlk') && nCO2 > 0) {
-    const f = primary === 'respAcid' ? course === 'chronic' ? 0.35 : 0.15 : course === 'chronic' ? 0.55 : 0.25;
-    expVal = R.hco3N + f * (nCO2 - R.paco2N);
+    // 自動判斷急慢性：比較實測 HCO₃⁻ 較接近哪一組代償預期。
+    // 慢性代償靠腎臟保留碳酸氫根，需 2–5 天才完全建立，
+    // 兩組預期值差距很大，數值本身就足以分辨。
+    const fA = primary === 'respAcid' ? 0.15 : 0.25;
+    const fC = primary === 'respAcid' ? 0.35 : 0.55;
+    const expA = R.hco3N + fA * (nCO2 - R.paco2N);
+    const expC = R.hco3N + fC * (nCO2 - R.paco2N);
+    autoChronic = Math.abs(hco3 - expC) < Math.abs(hco3 - expA);
+    effCourse = course === 'auto' ? autoChronic ? 'chronic' : 'acute' : course;
+    const f = effCourse === 'chronic' ? fC : fA;
+    expVal = effCourse === 'chronic' ? expC : expA;
     expLabel = `HCO₃⁻ = ${R.hco3N} + ${f} × (${nf(nCO2, 0)} − ${R.paco2N}) = ${nf(expVal, 1)} ± 2 mmol/L`;
     compVerdict = hco3 > expVal + 2 ? S.s3hiM : hco3 < expVal - 2 ? S.s3loM : S.s3ok;
+    // 使用者選了急性但數值明顯偏向慢性時提示
+    courseHint = course === 'acute' && autoChronic && Math.abs(hco3 - expA) > 3;
   }
 
   // AG 與分型
@@ -4783,7 +4899,11 @@ function AcidBaseCard({
   const agLow = agUse < R.ag[0];
   const clCorr = hasLytes ? nCl * (R.na / nNa) : 0;
   const sid = hasLytes ? nNa + nK - (nCl + nLac) : 0;
-  const acidType = !acidemia && primary !== 'metAcid' ? null : agHigh ? 'high' : agLow ? 'low' : 'normal';
+  // 酸中毒分型只在「確實有代謝性酸中毒成分」時才有意義。
+  // 單純呼吸性酸中毒的 HCO₃⁻ 是代償性升高，若只因 pH 偏低就套上
+  // 「高氯型／HCO₃⁻ 實質流失」的標籤會完全誤導。
+  const hasMetAcid = hco3 > 0 && (hco3 < R.hco3[0] || isFinite(be) && be <= -3);
+  const acidType = !hasMetAcid ? null : agHigh ? 'high' : agLow ? 'low' : 'normal';
 
   // ── 半定量 BE 拆解（簡化強離子模型）─────────────────────
   const nPhos = parseFloat(phos) || 0;
@@ -4820,6 +4940,25 @@ function AcidBaseCard({
   // — 標籤與說明需分開，否則會與「不是真的缺 HCO₃⁻」的判定自相矛盾
   const acidTypeName = acidType === 'high' ? S.highAG : acidType === 'low' ? S.lowAG : acidType === 'normal' ? iatroCl ? S.normalAGsid : S.normalAG : '—';
   const acidTypeNote = acidType === 'high' ? S.highAGnote : acidType === 'low' ? S.lowAGnote : acidType === 'normal' ? iatroCl ? S.normalAGsidNote : S.normalAGnote : '';
+
+  // ── 氧合 ────────────────────────────────────────────────
+  const nPo2 = parseFloat(po2) || 0;
+  const nSo2 = parseFloat(so2) || 0;
+  const nFio2 = parseFloat(fio2) || 0;
+  const nPatm = parseFloat(patm) || 760;
+  const hasOxy = nPo2 > 0 && nFio2 > 0;
+  // P/F 比：FiO₂ 以小數表示（室內空氣 0.21）
+  const pfRatio = hasOxy ? nPo2 / nFio2 : 0;
+  // 肺泡氣體方程式：PAO₂ = FiO₂ × (Patm − 47) − PaCO₂ / 0.8
+  const pAO2 = hasOxy && nCO2 > 0 ? nFio2 * (nPatm - 47) - nCO2 / 0.8 : 0;
+  const aaGrad = pAO2 ? pAO2 - nPo2 : 0;
+  // 室內空氣下正常 A-a < 10–15；FiO₂ 每上升 10% 約可放寬 5–7
+  const aaUpper = 15 + Math.max(0, (nFio2 - 0.21)) * 100 * 0.6;
+  const aaHigh = pAO2 > 0 && aaGrad > aaUpper;
+  const hypoxaemia = nPo2 > 0 && nPo2 < 80;
+  const severeHypox = nPo2 > 0 && nPo2 < 60;
+  const pfSevere = hasOxy && pfRatio < 200;
+  const pfModerate = hasOxy && pfRatio >= 200 && pfRatio < 300;
 
   // 是否給碳酸氫鈉
   let verdict = null, why = '';
@@ -4873,6 +5012,35 @@ function AcidBaseCard({
     { key: 'lowAG', on: agLow }
   ].filter(x => x.on);
   const needStewart = hasGas && hasLytes && stewartTriggers.length > 0;
+
+  // ── 總結與建議 ──────────────────────────────────────────
+  const recs = [];
+  if (hasGas) {
+    if (primary === 'respAcid' || primary === 'mixedAcid') {
+      recs.push(S.rec_vent);
+      if (effCourse === 'chronic') recs.push(S.rec_chronicVent);
+    }
+    if (primary === 'respAlk') recs.push(S.rec_hypervent);
+    if (primary === 'metAcid' && acidType === 'high') recs.push(S.rec_highAG);
+    if (primary === 'metAcid' && acidType === 'normal') recs.push(iatroCl ? S.rec_iatroCl : S.rec_normalAG);
+    if (primary === 'metAlk') recs.push(S.rec_metAlk);
+    if (verdict === 'yes') recs.push(fill(S.rec_bicarbYes, { v: nf(firstMlBE, 1) }));
+    if (verdict === 'caution') recs.push(S.rec_bicarbCaution);
+  }
+  if (hasOxy) {
+    if (severeHypox) recs.push(S.rec_severeHypox);
+    else if (hypoxaemia) recs.push(S.rec_hypox);
+    // 缺氧時 A-a 是關鍵鑑別：正常代表純換氣不足，升高代表肺本身有問題
+    if (hypoxaemia && !aaHigh) recs.push(S.rec_aaNormal);
+    if (hypoxaemia && aaHigh) recs.push(S.rec_aaHigh);
+    if (pfSevere) recs.push(S.rec_pfSevere);
+    else if (pfModerate) recs.push(S.rec_pfModerate);
+  }
+  if (needStewart) recs.push(S.rec_stewart);
+  if (nK > 0 && nK < 3.5) recs.push(S.rec_hypoK);
+  if (nK >= 6) recs.push(S.rec_hyperK);
+  if (nLac >= 3) recs.push(S.rec_lactate);
+  recs.push(S.rec_recheck);
 
   const steps = [];
   if (hasGas) {
@@ -4964,6 +5132,20 @@ function AcidBaseCard({
       out: fill(S.s11out, { v: nf(firstMl, 1) })
     });
   }
+  if (hasOxy) {
+    steps.push({
+      label: S.sOxy1,
+      expr: `P/F = ${nf(nPo2, 0)} ÷ ${nFio2}`,
+      out: `${nf(pfRatio, 0)}　${pfSevere ? S.pf_severe : pfModerate ? S.pf_moderate : pfRatio < 400 ? S.pf_mild : S.pf_ok}`
+    });
+    if (pAO2 > 0) {
+      steps.push({
+        label: S.sOxy2,
+        expr: `PAO₂ = ${nFio2} × (${nf(nPatm, 0)} − 47) − ${nf(nCO2, 0)} ÷ 0.8 = ${nf(pAO2, 1)}；A-a = ${nf(pAO2, 1)} − ${nf(nPo2, 0)}`,
+        out: `${nf(aaGrad, 1)} mmHg　${aaHigh ? fill(S.aa_high, { v: nf(aaUpper, 0) }) : fill(S.aa_ok, { v: nf(aaUpper, 0) })}`
+      });
+    }
+  }
   if (needStewart) {
     steps.push({
       label: S.sq1,
@@ -5013,13 +5195,17 @@ function AcidBaseCard({
     /*#__PURE__*/React.createElement(NumField, { label: S.alb, value: alb, onChange: setAlb, unit: "g/dL", step: "0.1", hint: fill(S.albHint, { sp: t(species), v: R.albN }) }),
     /*#__PURE__*/React.createElement(NumField, { label: S.lac, value: lac, onChange: setLac, unit: "mmol/L", step: "0.1", hint: S.opt }),
     /*#__PURE__*/React.createElement(NumField, { label: S.phos, value: phos, onChange: setPhos, unit: "mg/dL", step: "0.1", hint: S.opt }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.po2, value: po2, onChange: setPo2, unit: "mmHg", step: "1", hint: S.opt }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.so2, value: so2, onChange: setSo2, unit: "%", step: "1", hint: S.opt }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.fio2, value: fio2, onChange: setFio2, step: "0.01", hint: S.fio2Hint }),
+    /*#__PURE__*/React.createElement(NumField, { label: S.patm, value: patm, onChange: setPatm, unit: "mmHg", step: "1", hint: S.patmHint }),
     /*#__PURE__*/React.createElement(NumField, { label: S.target, value: target, onChange: setTarget, unit: "mmol/L", step: "1", hint: S.targetHint }),
     /*#__PURE__*/React.createElement("div", { className: "col-span-2" }, /*#__PURE__*/React.createElement(SelectField, {
       label: S.product, value: prod, onChange: setProd, options: BICARB_PRODUCTS
     })),
     /*#__PURE__*/React.createElement("div", { className: "col-span-2 sm:col-span-4" }, /*#__PURE__*/React.createElement(Seg, {
       label: S.course, value: course, onChange: setCourse, color: "cyan",
-      options: [{ value: 'acute', label: S.acute }, { value: 'chronic', label: S.chronic }]
+      options: [{ value: 'auto', label: S.courseAuto }, { value: 'acute', label: S.acute }, { value: 'chronic', label: S.chronic }]
     }))
   ), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
@@ -5108,11 +5294,31 @@ function AcidBaseCard({
     tone: acidType === 'high' ? 'red' : acidType === 'low' ? 'amber' : 'emerald'
   }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, acidTypeName), " — ", acidTypeNote), verdict && /*#__PURE__*/React.createElement(Warn, {
     tone: verdict === 'yes' ? 'emerald' : verdict === 'caution' ? 'amber' : 'red'
-  }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, "NaHCO₃ ", verdict === 'yes' ? S.giveYes : verdict === 'caution' ? S.giveCaution : S.giveNo), " — ", why), /*#__PURE__*/React.createElement(Formula, {
+  }, /*#__PURE__*/React.createElement("span", { className: "font-mono font-bold" }, "NaHCO₃ ", verdict === 'yes' ? S.giveYes : verdict === 'caution' ? S.giveCaution : S.giveNo), " — ", why), courseHint && /*#__PURE__*/React.createElement(Warn, {
+    tone: "amber"
+  }, "⚠ ", S.courseHintTxt, " ", /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCourse('chronic'),
+    className: "underline underline-offset-2 text-amber-200 hover:text-amber-100 font-mono"
+  }, S.courseSwitch)), /*#__PURE__*/React.createElement(Formula, {
     steps: steps, color: "cyan"
   }), showDose && /*#__PURE__*/React.createElement(Warn, {
     tone: "red"
-  }, S.warnVent), /*#__PURE__*/React.createElement(MonitorList, {
+  }, S.warnVent), hasGas && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border-2 border-cyan-500/40 bg-cyan-500/5 p-3 space-y-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-mono uppercase tracking-[0.15em] text-cyan-300 font-bold"
+  }, S.sumTitle), /*#__PURE__*/React.createElement("p", {
+    className: "text-[13px] text-cyan-50 leading-relaxed"
+  }, primaryName, compVerdict ? '．' + compVerdict : '', acidType ? '．' + acidTypeName : '', hasOxy ? '．' + (severeHypox ? S.oxy_severe : hypoxaemia ? S.oxy_low : S.oxy_ok) + (pAO2 > 0 ? '（A-a ' + nf(aaGrad, 0) + (aaHigh ? ' ↑' : '') + '）' : '') : ''), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono uppercase tracking-[0.15em] text-cyan-300 font-bold pt-1"
+  }, S.sumRec), /*#__PURE__*/React.createElement("ol", {
+    className: "space-y-1"
+  }, recs.map((r, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    className: "flex gap-2 text-[12px] text-cyan-50 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-cyan-400 shrink-0 font-mono"
+  }, String(i + 1).padStart(2, '0')), /*#__PURE__*/React.createElement("span", null, r))))), /*#__PURE__*/React.createElement(MonitorList, {
     items: AB_MONITOR, color: "cyan"
   }));
 }
