@@ -4261,7 +4261,8 @@ function PotassiumCard({
 const P_S = {
   zh: {
     cn: '補磷酸鉀．原液 3 mmol/mL', sub: '0.03–0.12 mmol/kg/hr 連續輸注 6 小時，並自動帶出同時輸入的鉀負荷。',
-    rate: '磷輸注速率', low: '0.03 起始', mid: '0.06 中', high: '0.12 上限',
+    rate: '磷輸注速率', low: '0.03 保守', mid: '0.06 中', high: '0.12 嚴重低血磷',
+    severe: '⚠ 目前為 {v} mmol/kg/hr，適用於嚴重低血磷（< 1.0 mg/dL，或已出現溶血、肌無力、呼吸肌疲勞）。輕中度低血磷請改用 0.03 保守速率；高速率務必每 6 小時回測磷、鉀、鈣。',
     custom: '自訂速率', customHint: '保守區間 0.01–0.03',
     hours: '輸注時數', hoursHint: '標準 6 hr 後回測',
     carrier: '載液總量（可覆寫）', carrierHint: '留空 = maintenance {m} mL/kg/hr × {h} hr',
@@ -4282,7 +4283,8 @@ const P_S = {
   },
   en: {
     cn: 'Potassium phosphate · stock 3 mmol/mL', sub: '0.03–0.12 mmol/kg/hr as a 6-hour infusion, with the accompanying potassium load calculated automatically.',
-    rate: 'Phosphate infusion rate', low: '0.03 start', mid: '0.06 mid', high: '0.12 max',
+    rate: 'Phosphate infusion rate', low: '0.03 conservative', mid: '0.06 mid', high: '0.12 severe',
+    severe: '⚠ The current rate of {v} mmol/kg/hr is meant for severe hypophosphataemia (< 1.0 mg/dL, or with haemolysis, weakness or respiratory muscle fatigue). For mild to moderate hypophosphataemia use the conservative 0.03 rate; at higher rates recheck phosphate, potassium and calcium every 6 hours.',
     custom: 'Custom rate', customHint: 'conservative range 0.01–0.03',
     hours: 'Infusion hours', hoursHint: 'standard 6 hr, then recheck',
     carrier: 'Total carrier volume (override)', carrierHint: 'blank = maintenance {m} mL/kg/hr × {h} hr',
@@ -4303,7 +4305,8 @@ const P_S = {
   },
   ja: {
     cn: 'リン酸カリウム・原液 3 mmol/mL', sub: '0.03–0.12 mmol/kg/hr で 6 時間持続投与し、同時に入るカリウム負荷も自動算出します。',
-    rate: 'リン投与速度', low: '0.03 開始', mid: '0.06 中間', high: '0.12 上限',
+    rate: 'リン投与速度', low: '0.03 保守的', mid: '0.06 中間', high: '0.12 重度低リン',
+    severe: '⚠ 現在の {v} mmol/kg/hr は重度低リン血症（< 1.0 mg/dL、または溶血・筋力低下・呼吸筋疲労を伴う場合）向けです。軽度〜中等度では保守的な 0.03 を使用し、高速度では 6 時間ごとにリン・カリウム・カルシウムを再検してください。',
     custom: '任意の速度', customHint: '保守的な範囲は 0.01–0.03',
     hours: '投与時間', hoursHint: '標準 6 時間で再検',
     carrier: 'キャリア液の総量（上書き可）', carrierHint: '空欄 = 維持 {m} mL/kg/hr × {h} hr',
@@ -4329,7 +4332,8 @@ function PhosphateCard({
 }) {
   const lang = useLang();
   const S = P_S[lang] || P_S.zh;
-  const [dose, setDose] = useState('0.03');
+  // 預設為嚴重低血磷的速率；輕中度改選 0.03
+  const [dose, setDose] = useState('0.12');
   const [hours, setHours] = useState('6');
   const [carrier, setCarrier] = useState('');
   const maint = FLUID_PROTOCOLS[species].maintenancePerHr;
@@ -4421,7 +4425,9 @@ function PhosphateCard({
     steps: steps, color: "indigo"
   }), kOver && /*#__PURE__*/React.createElement(Warn, {
     tone: "red"
-  }, fill(S.warnK, { v: nf(kPerKg, 3) })), tinyVol && /*#__PURE__*/React.createElement(Warn, {
+  }, fill(S.warnK, { v: nf(kPerKg, 3) })), d > 0.03 && /*#__PURE__*/React.createElement(Warn, {
+    tone: "amber"
+  }, fill(S.severe, { v: d })), tinyVol && /*#__PURE__*/React.createElement(Warn, {
     tone: "amber"
   }, fill(S.warnTiny, { v: nf(mlRate, 3), h: nf(h, 0) })), /*#__PURE__*/React.createElement(Warn, {
     tone: "red"
