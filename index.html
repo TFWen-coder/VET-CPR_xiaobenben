@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0d14" />
-  <meta name="description" content="急救小本本 3.1．犬貓兔休克與心肺復甦劑量計算機 — RECOVER 2024" />
-  <title>急救小本本 3.1</title>
+  <meta name="description" content="急救小本本 3.2．犬貓兔休克與心肺復甦劑量計算機 — RECOVER 2024" />
+  <title>急救小本本 3.2</title>
 
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" href="favicon.png" />
@@ -13,7 +13,7 @@
 
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="急救小本本 3.1" />
+  <meta name="apple-mobile-web-app-title" content="急救小本本 3.2" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="format-detection" content="telephone=no" />
 
@@ -63,6 +63,14 @@
       .no-print { display: none !important; }
       body { background: white !important; color: black !important; }
       .grid-bg { background-image: none !important; }
+      /* 劑量表：只印表格本身，改成白底黑字 */
+      @page { margin: 10mm; }
+      .sheet-mode header, .sheet-mode main > *:not(.print-sheet) { display: none !important; }
+      .sheet-mode, .sheet-mode main { background: white !important; padding: 0 !important; }
+      .print-sheet, .print-sheet * { color: #000 !important; background: transparent !important; border-color: #999 !important; text-shadow: none !important; box-shadow: none !important; }
+      .print-sheet { border: none !important; padding: 0 !important; }
+      .print-sheet table { font-size: 9pt; }
+      .print-sheet tr { break-inside: avoid; }
     }
     #loading {
       position: fixed; inset: 0;
@@ -80,13 +88,15 @@
     <div id="loading"><div><span class="dot"></span>loading...</div></div>
   </div>
 
-  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <!-- React 18.3.1 放在本站，離線也能載入 -->
+  <script src="vendor/react.production.min.js"></script>
+  <script src="vendor/react-dom.production.min.js"></script>
 
   <script>
 const {
   useState,
   useEffect,
+  useRef,
   useContext,
   createContext
 } = React;
@@ -175,6 +185,13 @@ const ListChecks = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/Re
 }), /*#__PURE__*/React.createElement("path", {
   d: "M13 18h8"
 }));
+const Printer = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
+  d: "M6 9V2h12v7"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M6 14h12v8H6z"
+}));
 const AlertTriangle = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.createElement("path", {
   d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
 }), /*#__PURE__*/React.createElement("path", {
@@ -262,7 +279,7 @@ const Rabbit = p => /*#__PURE__*/React.createElement(Svg, p, /*#__PURE__*/React.
 // ───────────────────────────────────────────────────────────────
 
 const UI = {
-  appTitle: { zh: '急救小本本 3.1', en: 'Vet Emergency Pocketbook 3.1', ja: '救急ハンドブック 3.1' },
+  appTitle: { zh: '急救小本本 3.2', en: 'Vet Emergency Pocketbook 3.2', ja: '救急ハンドブック 3.2' },
   // 英文版留空 — 直譯讀起來彆扭，寧可不放
   appSlogan: { zh: '陪你救他一命', en: '', ja: 'その一命を、あなたと共に' },
   appSub: { zh: '犬貓兔休克與心肺復甦計算機．RECOVER 2024', en: 'Shock & CPCR calculator for dogs, cats and rabbits · RECOVER 2024', ja: '犬・猫・ウサギのショックと心肺蘇生計算機・RECOVER 2024' },
@@ -278,6 +295,8 @@ const UI = {
   tabAcid: { zh: '酸鹼', en: 'Acid-Base', ja: '酸塩基' },
   acidIntro: { zh: '輸入血氣與電解質後，會判定原發性異常、檢查代償是否適當、分辨高 AG 與高氯型，並算出兩種公式的碳酸氫鈉劑量。多重因素同時作用時會提示改用 Stewart／半定量分析。上方可直接拍報告單自動帶入。', en: 'Enter the blood gas and electrolytes to identify the primary disorder, check whether compensation is appropriate, separate high-AG from hyperchloraemic acidosis, and calculate the bicarbonate dose by two formulas. When several factors act at once it flags the need for a Stewart / semi-quantitative approach. You can photograph the report above to fill everything in.', ja: '血液ガスと電解質を入力すると、原発性異常の判定、代償の適否の確認、高 AG 型と高クロール型の判別、2 つの式による炭酸水素ナトリウム用量の算出を行います。複数の要因が同時に作用する場合は Stewart／半定量的アプローチへの切替を提示します。上部で報告書を撮影して自動入力もできます。' },
   szConc: { zh: '劑型濃度', en: 'Concentration', ja: '製剤濃度' },
+  perHead: { zh: '隻', en: 'animal', ja: '頭' },
+  capped: { zh: '（已達單次上限）', en: '(capped at max dose)', ja: '（1 回上限に到達）' },
   szNoDoseForSpecies: { zh: '本藥物沒有適用於{sp}的劑量 — 請展開下方「注意事項」確認原因（部分藥物對特定物種為禁忌）。', en: 'No dose is listed for this species ({sp}) — open "Cautions" below for the reason; some drugs are contraindicated in particular species.', ja: 'この動物種（{sp}）に対する用量は設定されていません — 下の「注意事項」で理由を確認してください。特定の種で禁忌となる薬剤があります。' },
   tabSeizure: { zh: '癲癇處置', en: 'Seizures', ja: 'てんかん発作' },
   szIntro: { zh: '面對正在抽搐的犬貓，依序回答問題會走到對應的處置情境，並列出當下該做什麼與可用藥物。下方為完整癲癇相關藥物的劑量與臨床指引。', en: 'For a dog or cat that is seizing, answer each question to reach the matching clinical scenario with what to do now and which drugs to use. Full dosing and clinical guidance for every seizure drug follows below.', ja: '発作中の犬猫について、質問に順に答えると該当する対応シナリオに到達し、いま何をすべきか・どの薬を使うかが示されます。下部に全てのてんかん関連薬の用量と臨床指針があります。' },
@@ -303,11 +322,14 @@ const UI = {
   urg_normal: { zh: '正常', en: 'Normal', ja: '正常' },
   tabFlow: { zh: 'CPR 流程', en: 'CPR Algorithm', ja: 'CPR フロー' },
   tabChecklist: { zh: '檢查清單', en: 'Checklist', ja: 'チェックリスト' },
+  tabSheet: { zh: '劑量表', en: 'Dose sheet', ja: '用量表' },
   needWeight: { zh: '請於上方輸入體重後產生個別劑量。流程與清單可不輸入體重直接查閱。', en: 'Enter body weight above to generate patient-specific doses. The algorithm and checklist tabs work without a weight.', ja: '上部に体重を入力すると個別用量が計算されます。フローとチェックリストは体重なしでも閲覧できます。' },
+  weightOdd: { zh: '⚠ {w} kg 超出{sp}的合理體重（> {max} kg）。是否誤把公克當成公斤？所有劑量都依此體重計算，請再確認一次。', en: '⚠ {w} kg is above a plausible weight for a {sp} (> {max} kg). Was it entered in grams? Every dose is calculated from this weight — please double-check.', ja: '⚠ {w} kg は{sp}として妥当な体重（> {max} kg）を超えています。グラムで入力していませんか？すべての用量はこの体重で計算されます。再確認してください。' },
   grpRed: { zh: 'CPR 一線藥物', en: 'First-line CPR Drugs', ja: 'CPR 一次薬' },
   grpAmber: { zh: '抗心律不整 / 電解質', en: 'Antiarrhythmics / Electrolytes', ja: '抗不整脈 / 電解質' },
   grpCyan: { zh: '代謝 / 酸鹼支持', en: 'Metabolic / Acid-Base', ja: '代謝 / 酸塩基' },
   grpIndigo: { zh: '反轉藥物', en: 'Reversal Agents', ja: '拮抗薬' },
+  grpEmerald: { zh: '過敏性休克 Anaphylaxis', en: 'Anaphylaxis', ja: 'アナフィラキシー' },
   monitoring: { zh: '監測 / Monitoring', en: 'Monitoring', ja: 'モニタリング' },
   criIntro: { zh: '下列為標準稀釋濃度下的輸注速率（mL/hr）。Low / Mid / High 為常用劑量階梯。實際使用請從低劑量起始並依血壓、心率反應逐步調整。', en: 'Infusion rates (mL/hr) at the standard dilutions below. Low / Mid / High are the usual dose steps — start low and titrate to blood pressure and heart rate.', ja: '以下は標準希釈での投与速度（mL/hr）です。Low / Mid / High は常用量の段階で、低用量から開始し血圧・心拍の反応をみて調整します。' },
   syringeRecipe: { zh: '注射幫浦速算法', en: 'Syringe Pump Quick Math', ja: 'シリンジポンプ速算法' },
@@ -339,6 +361,7 @@ const UI = {
   defibIntBi: { zh: '開胸．雙相', en: 'Internal · biphasic', ja: '開胸・二相性' },
   defibIntMono: { zh: '開胸．單相', en: 'Internal · monophasic', ja: '開胸・単相性' },
   preferred: { zh: '首選', en: 'Preferred', ja: '第一選択' },
+  defibCap: { zh: '⚠ 超過多數機型上限 {c} J — 直接用最大輸出，並確認貴院機型的上限', en: '⚠ Above the {c} J maximum of most devices — use the maximum output and check your own unit’s limit', ja: '⚠ 多くの機種の上限 {c} J を超える — 最大出力を使用し、自院の機種の上限を確認' },
   defibNote: { zh: '適應症：VF / pulseless VT。Asystole 與 PEA 不電擊。電擊後立即恢復按壓，2 分鐘後再評估。', en: 'Indicated for VF / pulseless VT only. Do not shock asystole or PEA. Resume compressions immediately after the shock and reassess in 2 minutes.', ja: '適応は VF / 無脈性 VT のみ。心静止と PEA には除細動しない。通電後は直ちに圧迫を再開し、2 分後に再評価する。' },
   ocrCn: { zh: '拍照自動帶入檢驗值', en: 'Fill lab values from a photo', ja: '写真から検査値を自動入力' },
   ocrSub: { zh: '可連續加入多張報告單 — 血氣與生化的項目會自動合併（例如白蛋白、血磷通常只在生化上）。辨識 pH、PaCO₂、HCO₃⁻、BE、Na、K、Cl、乳酸、白蛋白、血磷、PCV。辨識在本機完成，照片不會上傳。', en: 'Add as many report photos as you need — values from the blood gas and the chemistry panel are merged automatically (albumin and phosphate usually appear only on the chemistry). Reads pH, PaCO₂, HCO₃⁻, BE, Na, K, Cl, lactate, albumin, phosphate and PCV. Recognition runs on this device; photos are never uploaded.', ja: '報告書は何枚でも追加できます — 血液ガスと生化学の項目は自動的に統合されます（アルブミンやリンは通常생化学のみに記載）。pH、PaCO₂、HCO₃⁻、BE、Na、K、Cl、乳酸、アルブミン、リン、PCV を読み取ります。認識は端末内で完結し、写真は送信されません。' },
@@ -386,7 +409,7 @@ const UI = {
   resetAll: { zh: '全部重設', en: 'Reset all', ja: 'すべてリセット' },
   step: { zh: 'Step', en: 'Step', ja: 'Step' },
   disclaimer: { zh: '本工具僅供臨床參考。劑量為一般參考範圍，實際使用須結合患者狀況、藥廠濃度與臨床判斷。', en: 'For clinical reference only. Doses are general ranges — always combine with patient status, the concentration of your own product, and clinical judgement.', ja: '本ツールは臨床参考用です。用量は一般的な範囲であり、実際の使用では患者の状態・製剤濃度・臨床判断を必ず併せて考慮してください。' },
-  noStore: { zh: '資料不留存．每次重新開啟皆為新狀態。', en: 'Nothing is stored — every reload starts fresh.', ja: 'データは保存されません。再読み込みごとに初期状態になります。' },
+  noStore: { zh: '輸入的病患數值不會上傳，重新開啟即清空．CPR 計時紀錄只存在這台裝置，按「清除」即刪除．僅匿名傳送一次「開啟次數」。', en: 'Patient values are never uploaded and clear on reload · the CPR log stays on this device until you clear it · only an anonymous open count is sent.', ja: '入力した患者データは送信されず、再読み込みで消去・CPR 記録はこの端末内のみに保存され「消去」で削除・匿名の起動回数のみ送信します。' },
   rabbitCaveat: { zh: '⚠ 兔的劑量主要外推自異寵文獻與臨床經驗，RECOVER 2024 僅涵蓋犬貓。兔的心肺復甦預後極差，且多數個體具 atropinesterase 使 atropine 效果不可靠 — 首選 glycopyrrolate。', en: '⚠ Rabbit doses are largely extrapolated from exotic-companion-mammal literature and clinical experience; RECOVER 2024 covers dogs and cats only. CPCR prognosis in rabbits is very poor, and many individuals carry atropinesterase making atropine unreliable — glycopyrrolate is preferred.', ja: '⚠ ウサギの用量はエキゾチック動物の文献と臨床経験からの外挿が中心で、RECOVER 2024 は犬猫のみを対象としています。ウサギの心肺蘇生の予後は極めて不良で、多くの個体がアトロピンエステラーゼを持つためアトロピンの効果は不確実 — グリコピロレートが第一選択です。' }
 };
 
@@ -505,9 +528,9 @@ const EMERGENCY_DRUGS = [{
   conc: '20 mg/mL',
   color: 'amber',
   monitor: {
-    zh: ['ECG：QRS 寬度、心律是否轉復', '貓與兔：震顫、癲癇、心搏過緩等毒性徵象 — 出現立即停藥', '犬：嘔吐、低血壓；累積量勿超過 8 mg/kg/hr', '肝功能不佳或低心輸出量者代謝變慢，需減量', '含腎上腺素的劑型不可靜脈給予'],
-    en: ['ECG: QRS width and whether the rhythm converts', 'Cats and rabbits: tremor, seizures, bradycardia — stop immediately if seen', 'Dogs: vomiting, hypotension; keep cumulative dose under 8 mg/kg/hr', 'Reduce the dose with hepatic dysfunction or low cardiac output', 'Never give epinephrine-containing preparations intravenously'],
-    ja: ['ECG：QRS 幅と調律の回復', '猫・ウサギ：振戦、痙攣、徐脈などの中毒徴候 — 出現時は直ちに中止', '犬：嘔吐、低血圧；累積 8 mg/kg/hr を超えない', '肝機能低下や低心拍出では代謝が遅く減量が必要', 'アドレナリン含有製剤は静脈内投与しない']
+    zh: ['ECG：QRS 寬度、心律是否轉復', '貓與兔：震顫、癲癇、心搏過緩等毒性徵象 — 出現立即停藥', '犬：嘔吐、低血壓；bolus 累積勿超過 8 mg/kg', '肝功能不佳或低心輸出量者代謝變慢，需減量', '含腎上腺素的劑型不可靜脈給予'],
+    en: ['ECG: QRS width and whether the rhythm converts', 'Cats and rabbits: tremor, seizures, bradycardia — stop immediately if seen', 'Dogs: vomiting, hypotension; keep cumulative boluses under 8 mg/kg', 'Reduce the dose with hepatic dysfunction or low cardiac output', 'Never give epinephrine-containing preparations intravenously'],
+    ja: ['ECG：QRS 幅と調律の回復', '猫・ウサギ：振戦、痙攣、徐脈などの中毒徴候 — 出現時は直ちに中止', '犬：嘔吐、低血圧；ボーラス累積 8 mg/kg を超えない', '肝機能低下や低心拍出では代謝が遅く減量が必要', 'アドレナリン含有製剤は静脈内投与しない']
   },
   doses: [{
     label: { zh: 'Dog．VF / pulseless VT', en: 'Dog · VF / pulseless VT', ja: '犬・VF / 無脈性 VT' },
@@ -693,6 +716,80 @@ const EMERGENCY_DRUGS = [{
     mlPerMg: 0.2,
     route: { zh: 'IM（緊急時 IV slow）', en: 'IM (IV slow in emergencies)', ja: 'IM（緊急時は IV 緩徐）' },
     species: 'rabbit'
+  }]
+}, {
+  name: 'Epinephrine IM',
+  cn: { zh: '腎上腺素．過敏性休克', en: 'Epinephrine · anaphylaxis', ja: 'アドレナリン・アナフィラキシー' },
+  conc: '1 mg/mL (1:1000)',
+  color: 'emerald',
+  monitor: {
+    zh: ['唯一能逆轉過敏性休克的藥物 — 抗組織胺與類固醇只是輔助，不可取代或延後 epinephrine', '每 5–15 分鐘依血壓、心率、呼吸與黏膜顏色評估是否重複', '同時給氧、建立 IV，晶體液 bolus（見輸液分頁）', '兩劑 IM 後仍低血壓 → 改 epinephrine CRI 0.05–0.1 μg/kg/min 起始（見升壓 / CRI 分頁）', '犬：休克器官以肝臟為主 — POCUS 可見膽囊壁水腫（halo sign）；貓：以呼吸道症狀與嘔吐為主', '症狀緩解後至少住院觀察 12–24 小時，注意雙相反應'],
+    en: ['The only drug that reverses anaphylaxis — antihistamines and corticosteroids are adjuncts and must never replace or delay epinephrine', 'Reassess blood pressure, heart rate, breathing and mucous membranes every 5–15 min to decide on repeat doses', 'Give oxygen, place an IV and give a crystalloid bolus (see the Fluids tab)', 'Still hypotensive after two IM doses → start an epinephrine CRI at 0.05–0.1 μg/kg/min (see the Vasopressors tab)', 'Dogs: the liver is the shock organ — POCUS may show gallbladder wall oedema (halo sign); cats: mainly respiratory signs and vomiting', 'Observe in hospital for at least 12–24 hours after recovery — biphasic reactions occur'],
+    ja: ['アナフィラキシーを逆転できる唯一の薬 — 抗ヒスタミン薬とステロイドは補助であり、アドレナリンの代わりにしたり遅らせたりしない', '5–15 分ごとに血圧・心拍数・呼吸・粘膜色を評価して反復を判断', '酸素投与、静脈路確保、晶質液ボーラス（輸液タブ参照）を並行', 'IM 2 回後も低血圧 → アドレナリン CRI 0.05–0.1 μg/kg/min で開始（昇圧薬タブ参照）', '犬：ショック臓器は肝臓 — POCUS で胆嚢壁浮腫（halo sign）；猫：呼吸器症状と嘔吐が主体', '回復後も少なくとも 12–24 時間入院観察 — 二相性反応に注意']
+  },
+  doses: [{
+    label: { zh: 'IM 大腿外側．每 5–15 分可重複，單次上限約 0.5 mg', en: 'IM lateral thigh · repeat q5–15min, max about 0.5 mg per dose', ja: 'IM 大腿外側・5–15 分ごと反復可、1 回上限約 0.5 mg' },
+    mgPerKg: 0.01,
+    maxMg: 0.5,
+    mlPerMg: 1,
+    route: 'IM',
+    priority: true
+  }],
+  note: {
+    zh: '與 CPR 的劑量數字相同（0.01 mg/kg），但途徑是 IM，不是 IV 推注。',
+    en: 'Same number as the CPR dose (0.01 mg/kg), but given IM — not as an IV push.',
+    ja: '数値は CPR 用量と同じ（0.01 mg/kg）だが、IV 急速投与ではなく IM で投与する。'
+  }
+}, {
+  name: 'Diphenhydramine',
+  cn: { zh: '苯海拉明（H1 阻斷）', en: 'Diphenhydramine (H1 blocker)', ja: 'ジフェンヒドラミン（H1 遮断）' },
+  conc: '50 mg/mL',
+  color: 'emerald',
+  monitor: {
+    zh: ['輔助用藥：改善蕁麻疹、搔癢、血管性水腫，對低血壓與支氣管收縮幫助有限', '靜脈快速推注會造成低血壓 — 以 IM 為主', '鎮靜為常見副作用；貓偶見興奮'],
+    en: ['Adjunct only: helps urticaria, pruritus and angioedema, but does little for hypotension or bronchoconstriction', 'Rapid IV injection causes hypotension — give IM', 'Sedation is common; cats occasionally become excited'],
+    ja: ['補助薬：蕁麻疹・掻痒・血管浮腫は改善するが、低血圧や気管支収縮への効果は限定的', '急速静注で低血圧 — IM を基本とする', '鎮静がよくみられ、猫では興奮することがある']
+  },
+  doses: [{
+    label: { zh: '過敏反應輔助．q8–12h', en: 'Allergic reaction adjunct · q8–12h', ja: 'アレルギー反応の補助・q8–12h' },
+    mgPerKg: 1,
+    mgPerKgHigh: 2,
+    mlPerMg: 0.02,
+    route: 'IM'
+  }]
+}, {
+  name: 'Famotidine',
+  cn: { zh: '法莫替丁（H2 阻斷）', en: 'Famotidine (H2 blocker)', ja: 'ファモチジン（H2 遮断）' },
+  conc: '10 mg/mL',
+  color: 'emerald',
+  monitor: {
+    zh: ['與 H1 阻斷劑併用效果較好', '貓靜脈快速推注曾有溶血報告 — 稀釋後慢推 5 分鐘以上', '腎功能不良者延長給藥間隔'],
+    en: ['Works better combined with an H1 blocker', 'Rapid IV injection has been linked to haemolysis in cats — dilute and give over at least 5 min', 'Lengthen the dosing interval in renal dysfunction'],
+    ja: ['H1 遮断薬との併用で効果が高い', '猫で急速静注による溶血の報告 — 希釈し 5 分以上かけて投与', '腎機能低下例では投与間隔を延長']
+  },
+  doses: [{
+    label: { zh: '過敏反應輔助．q12h', en: 'Allergic reaction adjunct · q12h', ja: 'アレルギー反応の補助・q12h' },
+    mgPerKg: 0.5,
+    mgPerKgHigh: 1,
+    mlPerMg: 0.1,
+    route: 'IV slow'
+  }]
+}, {
+  name: 'Dexamethasone SP',
+  cn: { zh: '地塞米松磷酸鈉', en: 'Dexamethasone sodium phosphate', ja: 'デキサメタゾンリン酸エステル' },
+  conc: '4 mg/mL',
+  color: 'emerald',
+  monitor: {
+    zh: ['起效需 4–6 小時，對急性期沒有幫助 — 只用來減少遲發／雙相反應，證據有限', '各廠牌濃度不同（2、4、5 mg/mL），務必核對', '避免與 NSAID 併用'],
+    en: ['Takes 4–6 hours to act and does nothing in the acute phase — used only to limit late/biphasic reactions, with limited evidence', 'Concentrations differ between brands (2, 4, 5 mg/mL) — always check', 'Avoid combining with NSAIDs'],
+    ja: ['効果発現まで 4–6 時間で急性期には無効 — 遅発・二相性反応の軽減目的のみで根拠は限定的', '製品により濃度が異なる（2、4、5 mg/mL）— 必ず確認', 'NSAIDs との併用は避ける']
+  },
+  doses: [{
+    label: { zh: '過敏反應輔助（非必要）', en: 'Allergic reaction adjunct (optional)', ja: 'アレルギー反応の補助（任意）' },
+    mgPerKg: 0.1,
+    mgPerKgHigh: 0.2,
+    mlPerMg: 0.25,
+    route: 'IV'
   }]
 }];
 const VASOPRESSORS = [{
@@ -939,7 +1036,7 @@ const BLOOD_VOLUME = {
   rabbit: 57
 };
 
-// 常見輸液的鈉濃度 (mEq/L)
+// 常見輸液的鈉濃度 (mEq/L)；k 為輸液本身含的鉀，Adrogué–Madias 需一併計入
 const NA_FLUIDS = [{
   value: 'nacl09',
   label: '0.9% NaCl (154)',
@@ -947,11 +1044,13 @@ const NA_FLUIDS = [{
 }, {
   value: 'normosol',
   label: 'Normosol-R / Plasma-Lyte (140)',
-  na: 140
+  na: 140,
+  k: 5
 }, {
   value: 'lrs',
   label: { zh: 'LRS 乳酸林格（130）', en: 'LRS lactated Ringer’s (130)', ja: 'LRS 乳酸リンゲル（130）' },
-  na: 130
+  na: 130,
+  k: 4
 }, {
   value: 'nacl045',
   label: '0.45% NaCl (77)',
@@ -973,6 +1072,8 @@ const NA_FLUIDS = [{
   label: { zh: '7.2% NaCl 高張（1232）', en: '7.2% NaCl hypertonic (1232)', ja: '7.2% NaCl 高張（1232）' },
   na: 1232
 }];
+// 血鈉 24 小時累計矯正上限 (mEq/L)
+const NA_DAY_CAP = 12;
 const NA_NORMAL = {
   dog: 145,
   cat: 152,
@@ -1012,22 +1113,27 @@ const PHOS_STOCK = {
   mmolPerMl: 3,
   kMEqPerMl: 4.4
 };
+// cap：多數電擊器的最大輸出（J）— 大型犬算出的能量常超過，此時直接用最大值
 const DEFIB_DOSES = {
   externalBiphasic: {
     low: 2,
-    high: 4
+    high: 4,
+    cap: 200
   },
   externalMonophasic: {
     low: 4,
-    high: 6
+    high: 6,
+    cap: 360
   },
   internalBiphasic: {
     low: 0.2,
-    high: 0.4
+    high: 0.4,
+    cap: 50
   },
   internalMonophasic: {
     low: 0.5,
-    high: 1
+    high: 1,
+    cap: 50
   }
 };
 const CPCR_FLOW = [{
@@ -1081,9 +1187,9 @@ const CPCR_FLOW = [{
   time: 'Post-arrest',
   color: 'emerald',
   items: {
-    zh: ['維持 MAP > 80 mmHg（犬）／> 70 mmHg（貓）', '避免高氧：SpO₂ 94–98%．避免 hyperventilation（PaCO₂ 32–40）', '溫和升溫：> 37.0°C 才主動加溫，避免再灌注傷害', '處理 reperfusion injury：考慮 mannitol、抗驚厥', '血糖 80–180 mg/dL；血鉀正常化', '神經學評估．通知飼主預後'],
-    en: ['Maintain MAP > 80 mmHg (dog) / > 70 mmHg (cat)', 'Avoid hyperoxia: SpO₂ 94–98% · avoid hyperventilation (PaCO₂ 32–40)', 'Rewarm gently: only actively warm above 37.0 °C, to limit reperfusion injury', 'Manage reperfusion injury: consider mannitol and anticonvulsants', 'Glucose 80–180 mg/dL; normalise potassium', 'Neurological assessment · discuss prognosis with the owner'],
-    ja: ['MAP > 80 mmHg（犬）／> 70 mmHg（猫）を維持', '高酸素を避ける：SpO₂ 94–98%・過換気を避ける（PaCO₂ 32–40）', '緩徐な復温：37.0°C を超えてから能動的加温し再灌流障害を防ぐ', '再灌流障害への対応：マンニトール、抗痙攣薬を検討', '血糖 80–180 mg/dL；カリウムを正常化', '神経学的評価・飼い主へ予後を説明']
+    zh: ['維持 MAP > 80 mmHg（犬）／> 70 mmHg（貓）', '避免高氧：SpO₂ 94–98%．避免 hyperventilation（PaCO₂ 32–40）', '允許輕度低體溫；回溫宜慢（≤ 0.25–0.5°C/hr），勿主動加溫超過 37.0°C，避免高體溫', '處理 reperfusion injury：考慮 mannitol、抗驚厥', '血糖 80–180 mg/dL；血鉀正常化', '神經學評估．通知飼主預後'],
+    en: ['Maintain MAP > 80 mmHg (dog) / > 70 mmHg (cat)', 'Avoid hyperoxia: SpO₂ 94–98% · avoid hyperventilation (PaCO₂ 32–40)', 'Tolerate mild hypothermia; rewarm slowly (≤ 0.25–0.5 °C/hr) and do not actively warm above 37.0 °C — avoid hyperthermia', 'Manage reperfusion injury: consider mannitol and anticonvulsants', 'Glucose 80–180 mg/dL; normalise potassium', 'Neurological assessment · discuss prognosis with the owner'],
+    ja: ['MAP > 80 mmHg（犬）／> 70 mmHg（猫）を維持', '高酸素を避ける：SpO₂ 94–98%・過換気を避ける（PaCO₂ 32–40）', '軽度低体温は許容し、復温は緩徐に（≤ 0.25–0.5°C/hr）。37.0°C を超える能動的加温はせず高体温を避ける', '再灌流障害への対応：マンニトール、抗痙攣薬を検討', '血糖 80–180 mg/dL；カリウムを正常化', '神経学的評価・飼い主へ予後を説明']
   }
 }];
 const CHECKLIST_SECTIONS = [{
@@ -1158,9 +1264,11 @@ const ECG_TREE = {
     ]
   },
   distinguishable: {
-    q: { zh: '能分辨出 P 波與 QRS 波嗎？', en: 'Can you distinguish P waves and QRS complexes?', ja: 'P 波と QRS 波を identify できますか？' },
+    q: { zh: '能分辨出 P 波與 QRS 波嗎？', en: 'Can you distinguish P waves and QRS complexes?', ja: 'P 波と QRS 波を判別できますか？' },
+    hint: { zh: '無脈搏時，快速規則的寬 QRS＝無脈性 VT，和 VF 一樣要電擊', en: 'Without a pulse, fast regular wide QRS complexes are pulseless VT — shock it just like VF', ja: '脈がない状態で速く規則的な幅広 QRS＝無脈性 VT。VF と同様に除細動する' },
     opts: [
-      { label: { zh: '可以', en: 'Yes', ja: 'できる' }, dx: 'pea', tone: 'red' },
+      { label: { zh: '可以（P 波與 QRS 有組織）', en: 'Yes (organised P waves and QRS)', ja: 'できる（P 波と QRS が整っている）' }, dx: 'pea', tone: 'red' },
+      { label: { zh: '只有快速規則的寬 QRS', en: 'Only fast, regular wide QRS', ja: '速く規則的な幅広 QRS のみ' }, dx: 'pvt', tone: 'red' },
       { label: { zh: '不行（雜亂顫動）', en: 'No (chaotic fibrillation)', ja: 'できない（無秩序な細動）' }, dx: 'vf', tone: 'red' }
     ]
   },
@@ -1265,6 +1373,13 @@ const ECG_DX = {
     urgency: 'critical',
     desc: { zh: '雜亂無章、看不出 P 波與 QRS 的顫動波形。心室完全失去有效收縮，是少數可以電擊的心律。', en: 'Chaotic waveform with no identifiable P waves or QRS complexes. The ventricles are not contracting effectively — this is one of the shockable rhythms.', ja: 'P 波も QRS も判別できない無秩序な波形。心室は有効に収縮しておらず、除細動適応の調律。' },
     action: { zh: ['立即去顫：雙相 2–4 J/kg、單相 4–6 J/kg', '電擊後立即恢復按壓，2 分鐘後再評估', '頑固性：amiodarone 5 mg/kg 或 lidocaine（犬 2 mg/kg）', '考慮 magnesium 30 mg/kg（尤其 torsades）'], en: ['Defibrillate immediately: biphasic 2–4 J/kg, monophasic 4–6 J/kg', 'Resume compressions straight after the shock, reassess in 2 min', 'Refractory: amiodarone 5 mg/kg or lidocaine (dog 2 mg/kg)', 'Consider magnesium 30 mg/kg, especially for torsades'], ja: ['直ちに除細動：二相性 2–4 J/kg、単相性 4–6 J/kg', '通電後は直ちに圧迫を再開し 2 分後に再評価', '難治例：アミオダロン 5 mg/kg またはリドカイン（犬 2 mg/kg）', 'マグネシウム 30 mg/kg を検討（特に torsades）'] },
+    drugs: ['amiodarone', 'lidocaine', 'magnesium']
+  },
+  pvt: {
+    name: { zh: '無脈性心室性心搏過速 Pulseless VT', en: 'Pulseless Ventricular Tachycardia', ja: '無脈性心室頻拍 Pulseless VT' },
+    urgency: 'critical',
+    desc: { zh: '心電圖上是快速、規則的寬 QRS，但摸不到脈搏。雖然波形看起來有組織，處置和 VF 完全相同 — 是可以電擊的心律，不要當成 PEA。', en: 'Fast, regular wide QRS complexes on the monitor but no palpable pulse. The waveform looks organised, yet management is identical to VF — it is a shockable rhythm, not PEA.', ja: '心電図上は速く規則的な幅広 QRS だが脈が触れない。波形は整って見えても対応は VF と同じ — 除細動適応の調律であり PEA として扱わない。' },
+    action: { zh: ['立即去顫：雙相 2–4 J/kg、單相 4–6 J/kg', '電擊後立即恢復按壓，2 分鐘後再評估', '頑固性：amiodarone 5 mg/kg 或 lidocaine（犬 2 mg/kg）', '若為 torsades de pointes，考慮 magnesium 30 mg/kg'], en: ['Defibrillate immediately: biphasic 2–4 J/kg, monophasic 4–6 J/kg', 'Resume compressions straight after the shock, reassess in 2 min', 'Refractory: amiodarone 5 mg/kg or lidocaine (dog 2 mg/kg)', 'If it is torsades de pointes, consider magnesium 30 mg/kg'], ja: ['直ちに除細動：二相性 2–4 J/kg、単相性 4–6 J/kg', '通電後は直ちに圧迫を再開し 2 分後に再評価', '難治例：アミオダロン 5 mg/kg またはリドカイン（犬 2 mg/kg）', 'torsades de pointes ならマグネシウム 30 mg/kg を検討'] },
     drugs: ['amiodarone', 'lidocaine', 'magnesium']
   },
   sinus: {
@@ -1536,9 +1651,9 @@ const ANTIARRHYTHMICS = [{
   cn: { zh: '硫酸鎂', en: 'Magnesium sulfate', ja: '硫酸マグネシウム' },
   indication: { zh: 'Torsades de pointes、頑固性 VF、低血鎂相關心律不整', en: 'Torsades de pointes, refractory VF, arrhythmias associated with hypomagnesaemia', ja: 'Torsades de pointes、難治性 VF、低マグネシウム血症に伴う不整脈' },
   doses: {
-    zh: ['30 mg/kg IV over 5–15 分鐘（急救時可較快）', '後續 CRI：0.75–1 mg/kg/hr'],
-    en: ['30 mg/kg IV over 5–15 min (faster during resuscitation)', 'Follow-on CRI: 0.75–1 mg/kg/hr'],
-    ja: ['30 mg/kg を 5–15 分かけて IV（蘇生時はより速く）', '継続 CRI：0.75–1 mg/kg/hr']
+    zh: ['30 mg/kg IV over 5–15 分鐘（急救時可較快）', '後續 CRI：0.75–1 mEq/kg/day（MgSO₄ 約 3.8–5.1 mg/kg/hr）'],
+    en: ['30 mg/kg IV over 5–15 min (faster during resuscitation)', 'Follow-on CRI: 0.75–1 mEq/kg/day (MgSO₄ about 3.8–5.1 mg/kg/hr)'],
+    ja: ['30 mg/kg を 5–15 分かけて IV（蘇生時はより速く）', '継続 CRI：0.75–1 mEq/kg/day（MgSO₄ 約 3.8–5.1 mg/kg/hr）']
   },
   detail: {
     zh: ['難以矯正的低血鉀常常是因為同時有低血鎂 — 補鎂後鉀才補得進去', '快速推注會造成低血壓', '過量徵象：肌無力、深部腱反射消失、呼吸抑制、房室阻滯', '腎功能不良者會蓄積，需減量並監測血鎂', '不可與含鈣輸液同時快速給予'],
@@ -2099,11 +2214,12 @@ const AA_DOSING = {
       { label: { zh: '貓．PO q48h（極少用）', en: 'Cat · PO q48h (rarely used)', ja: '猫・PO q48h（使用はまれ）' }, route: 'PO', mgPerKg: 0.007, mgPerKgHigh: 0.015, form: 'solid', mcg: true, species: 'cat', priority: true }
     ]
   },
+  // 50% MgSO₄·7H₂O：1 mEq Mg²⁺ ≈ 123 mg，故 0.75–1 mEq/kg/day ≈ 3.85–5.13 mg/kg/hr
   magnesium: {
     concLabel: '500 mg/mL（50%）',
     calc: [
       { label: { zh: 'Torsades / 頑固性 VF．IV over 5–15 min', en: 'Torsades / refractory VF · IV over 5–15 min', ja: 'Torsades / 難治性 VF・5–15 分かけて IV' }, route: 'IV slow', mgPerKg: 30, conc: 500, priority: true },
-      { label: { zh: '後續 CRI', en: 'Follow-on CRI', ja: '継続 CRI' }, route: 'CRI', mgPerKgHr: 0.75, mgPerKgHrHigh: 1, conc: 500 }
+      { label: { zh: '後續 CRI．0.75–1 mEq/kg/day', en: 'Follow-on CRI · 0.75–1 mEq/kg/day', ja: '継続 CRI・0.75–1 mEq/kg/day' }, route: 'CRI', mgPerKgHr: 3.85, mgPerKgHrHigh: 5.13, conc: 500 }
     ]
   },
   atropineAA: {
@@ -2456,10 +2572,13 @@ const colorMap = {
 };
 const fmt = (n, digits = 2) => {
   if (!isFinite(n) || n === 0) return '—';
-  if (n < 0.01) return n.toExponential(2);
-  if (n < 1) return n.toFixed(digits);
-  if (n < 10) return n.toFixed(2);
-  if (n < 100) return n.toFixed(1);
+  const a = Math.abs(n);
+  // 幼貓、兔的藥量常 < 0.1 mL：改用兩位有效數字，
+  // 避免顯示成科學記號（3.00e-3）或被 toFixed(2) 四捨五入掉一半
+  if (a < 0.1) return n.toPrecision(2);
+  if (a < 1) return n.toFixed(digits);
+  if (a < 10) return n.toFixed(2);
+  if (a < 100) return n.toFixed(1);
   return Math.round(n).toString();
 };
 
@@ -2467,6 +2586,21 @@ const fmt = (n, digits = 2) => {
 // 主元件
 // ───────────────────────────────────────────────────────────────
 
+// 開啟次數計數
+const VIEW_API = 'https://abacus.jasoncameron.dev';
+const VIEW_NS = 'tfwen-vet-cpcr/views';
+const VIEW_KEYS = {
+  session: 'xb-view-counted',
+  pending: 'xb-view-pending',
+  last: 'xb-view-last'
+};
+
+// 超過此體重就提示可能輸入錯誤（單位 kg）
+const WEIGHT_MAX = {
+  dog: 100,
+  cat: 15,
+  rabbit: 10
+};
 function VetShockCalculator() {
   const [lang, setLang] = useState('zh');
   const [species, setSpecies] = useState('dog');
@@ -2477,11 +2611,55 @@ function VetShockCalculator() {
   // 拍照辨識的結果放在最上層 — 報告單同時含電解質與血氣，
   // 兩個分頁都要吃得到
   const [imported, setImported] = useState(null);
+  // CPR 計時放在最上層：切換分頁不中斷，提示音與節拍器照常
+  const [cpr, setCpr] = useStoredState(CPR_KEY, null);
+  const [metro, setMetro] = useState(false);
+  const cprOn = cprRunning(cpr);
+  useCprAlerts(cpr);
+  useMetronome(metro && cprOn);
+  useWakeLock(cprOn);
   useEffect(() => {
-    // Free counter API (Abacus). Fails silently when offline.
-    fetch('https://abacus.jasoncameron.dev/hit/tfwen-vet-cpcr/views').then(r => r.json()).then(d => {
-      if (d && typeof d.value === 'number') setViews(d.value);
-    }).catch(() => {});
+    // 開啟次數（Abacus 免費計數 API，只送一個 +1，不含任何病患資料）
+    // ・同一個分頁 session 只計一次：重新整理不重複累加
+    // ・離線時先記在本機，下次連網再補送（最多 20 次），診間斷網的開啟也算得到
+    // ・畫面先顯示上次拿到的數字，離線也看得到
+    const store = (fn, fallback) => { try { return fn(); } catch (_) { return fallback; } };
+    const counted = store(() => sessionStorage.getItem(VIEW_KEYS.session) === '1', false);
+    const pending = store(() => parseInt(localStorage.getItem(VIEW_KEYS.pending), 10) || 0, 0);
+    const last = store(() => parseInt(localStorage.getItem(VIEW_KEYS.last), 10) || 0, 0);
+    if (last > 0) setViews(last);
+    const call = ep => fetch(`${VIEW_API}/${ep}/${VIEW_NS}`).then(r => r.json()).then(d => {
+      if (!d || typeof d.value !== 'number') throw new Error('bad response');
+      return d.value;
+    });
+    const save = v => {
+      setViews(v);
+      store(() => localStorage.setItem(VIEW_KEYS.last, String(v)));
+    };
+    (async () => {
+      if (counted) {
+        save(await call('get'));
+        return;
+      }
+      store(() => sessionStorage.setItem(VIEW_KEYS.session, '1'));
+      let v;
+      try {
+        v = await call('hit');
+      } catch (_) {
+        store(() => localStorage.setItem(VIEW_KEYS.pending, String(pending + 1)));
+        return;
+      }
+      // 補送離線期間的開啟；中途失敗就把剩下的留到下次
+      let left = Math.min(pending, 20);
+      try {
+        while (left > 0) {
+          v = await call('hit');
+          left--;
+        }
+      } catch (_) {}
+      store(() => left > 0 ? localStorage.setItem(VIEW_KEYS.pending, String(left)) : localStorage.removeItem(VIEW_KEYS.pending));
+      save(v);
+    })().catch(() => {});
   }, []);
   // 讓 <html lang> 跟著語系走，螢幕閱讀器與瀏覽器翻譯才會判讀正確
   useEffect(() => {
@@ -2493,6 +2671,8 @@ function VetShockCalculator() {
   };
   const w = parseFloat(weightInput) || 0;
   const hasWeight = w > 0;
+  // 兔常以公克秤重 — 1500 打進公斤欄，所有劑量會放大一千倍
+  const weightOdd = w > WEIGHT_MAX[species];
   const toggleCheck = id => setChecked(p => ({
     ...p,
     [id]: !p[id]
@@ -2534,6 +2714,10 @@ function VetShockCalculator() {
     id: 'checklist',
     key: 'tabChecklist',
     icon: ListChecks
+  }, {
+    id: 'sheet',
+    key: 'tabSheet',
+    icon: Printer
   }];
   const speciesBtns = [{
     id: 'dog',
@@ -2554,7 +2738,7 @@ function VetShockCalculator() {
   return /*#__PURE__*/React.createElement(LangCtx.Provider, {
     value: lang
   }, /*#__PURE__*/React.createElement("div", {
-    className: "min-h-screen bg-[#0a0d14] text-slate-100 font-body relative overflow-x-hidden"
+    className: `min-h-screen bg-[#0a0d14] text-slate-100 font-body relative overflow-x-hidden ${tab === 'sheet' ? 'sheet-mode' : ''}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "absolute inset-0 grid-bg opacity-40 pointer-events-none"
   }), /*#__PURE__*/React.createElement("header", {
@@ -2627,7 +2811,10 @@ function VetShockCalculator() {
     className: `flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${tab === id ? 'border-red-400 text-red-300' : 'border-transparent text-slate-500 hover:text-slate-300'}`
   }, /*#__PURE__*/React.createElement(Icon, {
     className: "w-4 h-4"
-  }), t(key)))))), /*#__PURE__*/React.createElement("main", {
+  }), t(key))))), cprOn && tab !== 'flow' && /*#__PURE__*/React.createElement(CprBar, {
+    cpr: cpr,
+    onOpen: () => setTab('flow')
+  })), /*#__PURE__*/React.createElement("main", {
     className: "relative max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8"
   }, !hasWeight && /*#__PURE__*/React.createElement("div", {
     className: "mb-6 flex items-start gap-3 px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/5"
@@ -2635,7 +2822,13 @@ function VetShockCalculator() {
     className: "w-5 h-5 text-amber-400 shrink-0 mt-0.5"
   }), /*#__PURE__*/React.createElement("div", {
     className: "text-sm text-amber-200"
-  }, t('needWeight'))), species === 'rabbit' && /*#__PURE__*/React.createElement("div", {
+  }, t('needWeight'))), weightOdd && /*#__PURE__*/React.createElement("div", {
+    className: "mb-6 px-4 py-3 rounded-lg border-2 border-red-500/60 bg-red-500/10 text-sm text-red-200 font-semibold"
+  }, fill(t('weightOdd'), {
+    w: w,
+    sp: t(species),
+    max: WEIGHT_MAX[species]
+  })), species === 'rabbit' && /*#__PURE__*/React.createElement("div", {
     className: "mb-6 px-4 py-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-xs text-emerald-200 leading-relaxed"
   }, t('rabbitCaveat')), tab === 'emergency' && /*#__PURE__*/React.createElement(EmergencyDrugsView, {
     w: w,
@@ -2662,7 +2855,17 @@ function VetShockCalculator() {
   }), tab === 'ecg' && /*#__PURE__*/React.createElement(ECGView, {
     w: w,
     species: species
-  }), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, null), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
+  }), tab === 'flow' && /*#__PURE__*/React.createElement(CPRFlowView, {
+    cpr: cpr,
+    setCpr: setCpr,
+    metro: metro,
+    setMetro: setMetro,
+    w: w,
+    species: species
+  }), tab === 'sheet' && /*#__PURE__*/React.createElement(DoseSheet, {
+    w: w,
+    species: species
+  }), tab === 'checklist' && /*#__PURE__*/React.createElement(ChecklistView, {
     checked: checked,
     toggleCheck: toggleCheck,
     resetChecks: resetChecks
@@ -2696,6 +2899,9 @@ function EmergencyDrugsView({
   }, {
     key: 'indigo',
     ui: 'grpIndigo'
+  }, {
+    key: 'emerald',
+    ui: 'grpEmerald'
   }];
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -2722,6 +2928,44 @@ function EmergencyDrugsView({
     }))));
   }));
 }
+// 急救藥物單一劑量列 → { 體積, 藥量, 每公斤劑量 }，急救藥物卡與劑量表共用
+function emergencyDose(dose, w, cappedTxt = '') {
+  let volDose, doseLabel, perKg;
+  if (dose.mgPerKg) {
+    // maxMg：單次劑量上限（大型犬依體重算會超過）
+    const cap = v => dose.maxMg ? Math.min(v, dose.maxMg) : v;
+    const capped = dose.maxMg && dose.mgPerKg * w > dose.maxMg;
+    const lowMg = cap(dose.mgPerKg * w);
+    const highMg = dose.mgPerKgHigh ? cap(dose.mgPerKgHigh * w) : null;
+    const lowMl = lowMg * dose.mlPerMg;
+    const highMl = highMg ? highMg * dose.mlPerMg : null;
+    doseLabel = (highMg ? `${fmt(lowMg)}–${fmt(highMg)} mg` : `${fmt(lowMg)} mg`) + (capped ? ` ${cappedTxt}` : '');
+    volDose = highMl ? `${fmt(lowMl)}–${fmt(highMl)} mL` : `${fmt(lowMl)} mL`;
+    perKg = dose.mgPerKgHigh ? `${dose.mgPerKg}–${dose.mgPerKgHigh} mg/kg` : `${dose.mgPerKg} mg/kg`;
+  } else if (dose.unitPerKg) {
+    const u = dose.unitPerKg * w;
+    const ml = u * dose.mlPerUnit;
+    doseLabel = `${fmt(u)} U`;
+    volDose = `${fmt(ml)} mL`;
+    perKg = `${dose.unitPerKg} U/kg`;
+  } else if (dose.mEqPerKg) {
+    const meq = dose.mEqPerKg * w;
+    const ml = meq * dose.mlPerMEq;
+    doseLabel = `${fmt(meq)} mEq`;
+    volDose = `${fmt(ml)} mL`;
+    perKg = `${dose.mEqPerKg} mEq/kg`;
+  } else if (dose.mlPerKgDirect) {
+    const ml = dose.mlPerKgDirect * w;
+    const mlH = dose.mlPerKgHighDirect ? dose.mlPerKgHighDirect * w : null;
+    const c0 = dose.mgPerMlConc;
+    doseLabel = c0 ? mlH ? `${fmt(ml * c0)}–${fmt(mlH * c0)} mg` : `${fmt(ml * c0)} mg` : '';
+    volDose = mlH ? `${fmt(ml)}–${fmt(mlH)} mL` : `${fmt(ml)} mL`;
+    const base = dose.mlPerKgHighDirect ? `${dose.mlPerKgDirect}–${dose.mlPerKgHighDirect} mL/kg` : `${dose.mlPerKgDirect} mL/kg`;
+    const mgKg = dose.mlPerKgHighDirect ? `${dose.mlPerKgDirect * c0}–${dose.mlPerKgHighDirect * c0}` : `${dose.mlPerKgDirect * c0}`;
+    perKg = c0 ? `${base}（${mgKg} mg/kg）` : base;
+  }
+  return { volDose, doseLabel, perKg };
+}
 function DrugCard({
   drug,
   w,
@@ -2729,6 +2973,7 @@ function DrugCard({
 }) {
   const c = colorMap[drug.color];
   const l = useL();
+  const t = useT();
   return /*#__PURE__*/React.createElement("div", {
     className: `rounded-xl border ${c.border} ${c.bg} p-4 sm:p-5`
   }, /*#__PURE__*/React.createElement("div", {
@@ -2740,37 +2985,7 @@ function DrugCard({
   }, l(drug.cn), "．", drug.conc))), /*#__PURE__*/React.createElement("div", {
     className: "space-y-2.5"
   }, drug.doses.filter(d => !d.species || d.species === species).map((dose, i) => {
-    // Compute dose
-    let volDose, doseLabel, perKg;
-    if (dose.mgPerKg) {
-      const lowMg = dose.mgPerKg * w;
-      const highMg = dose.mgPerKgHigh ? dose.mgPerKgHigh * w : null;
-      const lowMl = lowMg * dose.mlPerMg;
-      const highMl = highMg ? highMg * dose.mlPerMg : null;
-      doseLabel = highMg ? `${fmt(lowMg)}–${fmt(highMg)} mg` : `${fmt(lowMg)} mg`;
-      volDose = highMl ? `${fmt(lowMl)}–${fmt(highMl)} mL` : `${fmt(lowMl)} mL`;
-      perKg = dose.mgPerKgHigh ? `${dose.mgPerKg}–${dose.mgPerKgHigh} mg/kg` : `${dose.mgPerKg} mg/kg`;
-    } else if (dose.unitPerKg) {
-      const u = dose.unitPerKg * w;
-      const ml = u * dose.mlPerUnit;
-      doseLabel = `${fmt(u)} U`;
-      volDose = `${fmt(ml)} mL`;
-      perKg = `${dose.unitPerKg} U/kg`;
-    } else if (dose.mEqPerKg) {
-      const meq = dose.mEqPerKg * w;
-      const ml = meq * dose.mlPerMEq;
-      doseLabel = `${fmt(meq)} mEq`;
-      volDose = `${fmt(ml)} mL`;
-      perKg = `${dose.mEqPerKg} mEq/kg`;
-    } else if (dose.mlPerKgDirect) {
-      const ml = dose.mlPerKgDirect * w;
-      const mlH = dose.mlPerKgHighDirect ? dose.mlPerKgHighDirect * w : null;
-      const c0 = dose.mgPerMlConc;
-      doseLabel = c0 ? mlH ? `${fmt(ml * c0)}–${fmt(mlH * c0)} mg` : `${fmt(ml * c0)} mg` : '';
-      volDose = mlH ? `${fmt(ml)}–${fmt(mlH)} mL` : `${fmt(ml)} mL`;
-      const base = dose.mlPerKgHighDirect ? `${dose.mlPerKgDirect}–${dose.mlPerKgHighDirect} mL/kg` : `${dose.mlPerKgDirect} mL/kg`;
-      perKg = c0 ? `${base}（${dose.mlPerKgDirect * c0}–${dose.mlPerKgHighDirect * c0} mg/kg）` : base;
-    }
+    const { volDose, doseLabel, perKg } = emergencyDose(dose, w, t('capped'));
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       className: `rounded-lg border border-slate-800 bg-slate-900/50 p-3 ${dose.priority ? 'ring-1 ring-red-500/40' : ''}`
@@ -3056,7 +3271,10 @@ function FluidsDefibView({
       a: `${f.plasma}–${f.plasmaHigh}`
     }),
     color: "red"
-  }))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement(HeadTraumaSection, {
+    w: w,
+    species: species
+  }), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 mb-3"
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-1.5 h-6 bg-yellow-500 rounded-full"
@@ -3069,29 +3287,126 @@ function FluidsDefibView({
     primary: true,
     low: w * DEFIB_DOSES.externalBiphasic.low,
     high: w * DEFIB_DOSES.externalBiphasic.high,
+    cap: DEFIB_DOSES.externalBiphasic.cap,
     rangeLabel: "2–4 J/kg",
     w: w
   }), /*#__PURE__*/React.createElement(DefibCard, {
     title: t('defibExtMono'),
     low: w * DEFIB_DOSES.externalMonophasic.low,
     high: w * DEFIB_DOSES.externalMonophasic.high,
+    cap: DEFIB_DOSES.externalMonophasic.cap,
     rangeLabel: "4–6 J/kg",
     w: w
   }), /*#__PURE__*/React.createElement(DefibCard, {
     title: t('defibIntBi'),
     low: w * DEFIB_DOSES.internalBiphasic.low,
     high: w * DEFIB_DOSES.internalBiphasic.high,
+    cap: DEFIB_DOSES.internalBiphasic.cap,
     rangeLabel: "0.2–0.4 J/kg",
     w: w
   }), /*#__PURE__*/React.createElement(DefibCard, {
     title: t('defibIntMono'),
     low: w * DEFIB_DOSES.internalMonophasic.low,
     high: w * DEFIB_DOSES.internalMonophasic.high,
+    cap: DEFIB_DOSES.internalMonophasic.cap,
     rangeLabel: "0.5–1 J/kg",
     w: w
   })), /*#__PURE__*/React.createElement("p", {
     className: "mt-3 text-xs text-slate-400 leading-relaxed"
   }, t('defibNote'))));
+}
+// ───────────────────────────────────────────────────────────────
+// 頭部外傷 / 顱內壓 — 高滲治療與改良式格拉斯哥昏迷指數（MGCS, Platt 2001）
+// ───────────────────────────────────────────────────────────────
+
+const MGCS = {
+  motor: {
+    zh: ['正常步態、脊髓反射正常', '半身／四肢輕癱，或去大腦姿勢', '橫臥，間歇性伸肌僵直', '橫臥，持續性伸肌僵直', '橫臥，持續伸肌僵直合併角弓反張', '橫臥，肌張力低下，脊髓反射減弱或消失'],
+    en: ['Normal gait, normal spinal reflexes', 'Hemiparesis, tetraparesis or decerebrate activity', 'Recumbent, intermittent extensor rigidity', 'Recumbent, constant extensor rigidity', 'Recumbent, constant extensor rigidity with opisthotonus', 'Recumbent, hypotonia, depressed or absent spinal reflexes'],
+    ja: ['正常歩様、脊髄反射正常', '片側不全麻痺・四肢不全麻痺、または除脳姿勢', '横臥、間欠的な伸筋硬直', '横臥、持続的な伸筋硬直', '横臥、持続的な伸筋硬直と後弓反張', '横臥、筋緊張低下、脊髄反射の減弱または消失']
+  },
+  brainstem: {
+    zh: ['瞳孔光反射與眼頭反射正常', '瞳孔光反射變慢，眼頭反射正常或減弱', '雙側無反應性縮瞳，眼頭反射正常或減弱', '針尖瞳孔，眼頭反射減弱或消失', '單側無反應性散瞳，眼頭反射減弱或消失', '雙側無反應性散瞳，眼頭反射減弱或消失'],
+    en: ['Normal pupillary light and oculocephalic reflexes', 'Slow pupillary light reflexes, normal to reduced oculocephalic reflexes', 'Bilateral unresponsive miosis, normal to reduced oculocephalic reflexes', 'Pinpoint pupils, reduced to absent oculocephalic reflexes', 'Unilateral unresponsive mydriasis, reduced to absent oculocephalic reflexes', 'Bilateral unresponsive mydriasis, reduced to absent oculocephalic reflexes'],
+    ja: ['対光反射・眼球頭反射とも正常', '対光反射が遅延、眼球頭反射は正常〜低下', '両側の無反応性縮瞳、眼球頭反射は正常〜低下', '針先瞳孔、眼球頭反射は低下〜消失', '片側の無反応性散瞳、眼球頭反射は低下〜消失', '両側の無反応性散瞳、眼球頭反射は低下〜消失']
+  },
+  conscious: {
+    zh: ['偶爾清醒，對環境有反應', '沉鬱或譫妄，能反應但可能不恰當', '半昏迷，對視覺刺激有反應', '半昏迷，對聽覺刺激有反應', '半昏迷，只對反覆疼痛刺激有反應', '昏迷，對反覆疼痛刺激無反應'],
+    en: ['Occasional periods of alertness, responsive to environment', 'Depression or delirium, responds but perhaps inappropriately', 'Semicomatose, responsive to visual stimuli', 'Semicomatose, responsive to auditory stimuli', 'Semicomatose, responsive only to repeated noxious stimuli', 'Comatose, unresponsive to repeated noxious stimuli'],
+    ja: ['時に覚醒し、環境に反応する', '沈うつまたはせん妄、反応するが不適切なことがある', '半昏睡、視覚刺激に反応', '半昏睡、聴覚刺激に反応', '半昏睡、反復する痛み刺激にのみ反応', '昏睡、反復する痛み刺激に無反応']
+  }
+};
+const TBI_S = {
+  zh: {
+    title: '頭部外傷 / 顱內壓上升', sub: '高滲治療降低腦壓。低血容或低血壓時選高張食鹽水（同時擴容）；血容量正常時兩者皆可。',
+    man: 'Mannitol 20%', manSub: '0.5–1 g/kg（2.5–5 mL/kg）．15–20 分鐘．需過濾器',
+    hts: 'Hypertonic saline 7.2–7.5%', htsSub: '{a} mL/kg．5–10 分鐘',
+    care: ['頭部與身體一起墊高 15–30°（用板子，不要只折脖子）；不要壓迫頸靜脈、不從頸靜脈採血', '維持 SpO₂ ≥ 95%、PaCO₂ 35–40 mmHg；只有疑似腦疝時才短暫過度換氣', '維持正常血壓（MAP ≥ 80 mmHg）— 低血壓會讓腦灌流壓崩掉', '禁用皮質類固醇（會增加死亡率）', '避免高血糖與高體溫；給足止痛', 'Mannitol 低血容時慎用（滲透性利尿）；兩者重複使用都要追蹤血鈉與滲透壓'],
+    mgcs: '改良式格拉斯哥昏迷指數 MGCS', mgcsSub: '三項各 1–6 分，總分 3–18。初評後每 30–60 分鐘重評，趨勢比單次分數重要。',
+    motor: '運動功能', brainstem: '腦幹反射', conscious: '意識程度',
+    score: 'MGCS 總分', good: '預後良好（15–18）', guarded: '預後保留（9–14）', grave: '預後不良（3–8）'
+  },
+  en: {
+    title: 'Head trauma / raised ICP', sub: 'Hyperosmolar therapy lowers intracranial pressure. With hypovolaemia or hypotension choose hypertonic saline (it also expands volume); when euvolaemic either works.',
+    man: 'Mannitol 20%', manSub: '0.5–1 g/kg (2.5–5 mL/kg) · over 15–20 min · use a filter',
+    hts: 'Hypertonic saline 7.2–7.5%', htsSub: '{a} mL/kg · over 5–10 min',
+    care: ['Elevate head and body together 15–30° on a board (do not just flex the neck); avoid jugular compression and jugular sampling', 'Keep SpO₂ ≥ 95% and PaCO₂ 35–40 mmHg; hyperventilate only briefly for suspected herniation', 'Maintain normotension (MAP ≥ 80 mmHg) — hypotension collapses cerebral perfusion pressure', 'Do not give corticosteroids (they increase mortality)', 'Avoid hyperglycaemia and hyperthermia; provide adequate analgesia', 'Use mannitol cautiously in hypovolaemia (osmotic diuresis); monitor sodium and osmolality with repeated doses of either'],
+    mgcs: 'Modified Glasgow Coma Scale (MGCS)', mgcsSub: 'Three categories scored 1–6, total 3–18. Reassess every 30–60 min — the trend matters more than a single score.',
+    motor: 'Motor activity', brainstem: 'Brainstem reflexes', conscious: 'Level of consciousness',
+    score: 'MGCS total', good: 'Good prognosis (15–18)', guarded: 'Guarded prognosis (9–14)', grave: 'Grave prognosis (3–8)'
+  },
+  ja: {
+    title: '頭部外傷 / 頭蓋内圧上昇', sub: '高浸透圧療法で頭蓋内圧を下げる。循環血液量減少や低血圧があれば高張食塩水（容量も補える）、正常循環血液量ならどちらでも可。',
+    man: 'マンニトール 20%', manSub: '0.5–1 g/kg（2.5–5 mL/kg）・15–20 分・フィルター使用',
+    hts: '高張食塩水 7.2–7.5%', htsSub: '{a} mL/kg・5–10 分',
+    care: ['頭部と体を板ごと 15–30° 挙上（首だけ曲げない）。頸静脈を圧迫せず、頸静脈採血もしない', 'SpO₂ ≥ 95%、PaCO₂ 35–40 mmHg を維持。過換気は脳ヘルニア疑い時に短時間のみ', '正常血圧（MAP ≥ 80 mmHg）を維持 — 低血圧は脳灌流圧を破綻させる', 'コルチコステロイドは使用しない（死亡率を上げる）', '高血糖と高体温を避け、十分な鎮痛を行う', '循環血液量減少時のマンニトールは慎重に（浸透圧利尿）。いずれも反復時は Na と浸透圧を追跡'],
+    mgcs: '修正グラスゴー・コーマ・スケール（MGCS）', mgcsSub: '3 項目を各 1–6 点、合計 3–18 点。30–60 分ごとに再評価し、単回の点数より推移を重視。',
+    motor: '運動機能', brainstem: '脳幹反射', conscious: '意識レベル',
+    score: 'MGCS 合計', good: '予後良好（15–18）', guarded: '予後要注意（9–14）', grave: '予後不良（3–8）'
+  }
+};
+function HeadTraumaSection({
+  w,
+  species
+}) {
+  const lang = useLang();
+  const S = TBI_S[lang] || TBI_S.zh;
+  const E = React.createElement;
+  const f = FLUID_PROTOCOLS[species];
+  const [sc, setSc] = useState({ motor: '', brainstem: '', conscious: '' });
+  const keys = ['motor', 'brainstem', 'conscious'];
+  const done = keys.every(k => sc[k] !== '');
+  const total = keys.reduce((a, k) => a + (parseInt(sc[k], 10) || 0), 0);
+  const band = total >= 15 ? 'good' : total >= 9 ? 'guarded' : 'grave';
+  const bandColor = { good: 'emerald', guarded: 'amber', grave: 'red' }[band];
+  return E('section', null,
+    E('div', { className: 'flex items-center gap-3 mb-3' },
+      E('span', { className: 'w-1.5 h-6 bg-indigo-500 rounded-full' }),
+      E('h2', { className: 'font-display text-xl font-semibold' }, S.title)),
+    E('p', { className: 'text-xs text-slate-400 leading-relaxed mb-3' }, S.sub),
+    E('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-3' },
+      E(BigStat, { label: S.man, value: w > 0 ? `${fmt(w * 2.5)}–${fmt(w * 5)}` : '—', unit: 'mL', sub: S.manSub, color: 'indigo' }),
+      E(BigStat, { label: S.hts, value: w > 0 ? `${fmt(w * f.hypertonic)}–${fmt(w * f.hypertonicHigh)}` : '—', unit: 'mL', sub: fill(S.htsSub, { a: `${f.hypertonic}–${f.hypertonicHigh}` }), color: 'indigo' })),
+    E('ul', { className: 'mt-3 space-y-1 rounded-lg border border-slate-800 bg-slate-900/40 p-3' },
+      S.care.map((c, i) => E('li', { key: i, className: 'flex gap-2 text-[12px] text-slate-300 leading-relaxed' },
+        E('span', { className: 'text-indigo-400 shrink-0 font-mono' }, '▸'), E('span', null, c)))),
+    E('div', { className: 'mt-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-4 space-y-3' },
+      E('div', null,
+        E('h3', { className: 'font-display text-lg font-semibold leading-tight' }, S.mgcs),
+        E('p', { className: 'text-[11px] text-slate-500 mt-1 leading-relaxed' }, S.mgcsSub)),
+      E('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-3' },
+        keys.map(k => E(SelectField, {
+          key: k,
+          label: S[k],
+          value: sc[k],
+          onChange: v => setSc(p => ({ ...p, [k]: v })),
+          options: [{ value: '', label: '—' }].concat(L(MGCS[k], lang).map((txt, i) => ({ value: String(6 - i), label: `${6 - i}．${txt}` })))
+        }))),
+      E('div', { className: 'flex items-baseline gap-3 flex-wrap' },
+        E('span', { className: 'text-xs text-slate-400' }, S.score),
+        E('span', { className: `font-mono text-3xl font-bold num-glow ${done ? colorMap[bandColor].accent : 'text-slate-600'}` }, done ? total : '—'),
+        E('span', { className: 'font-mono text-sm text-slate-500' }, '/ 18'),
+        done && E('span', { className: `text-sm font-semibold ${colorMap[bandColor].text}` }, S[band]))));
 }
 function BigStat({
   label,
@@ -3120,11 +3435,13 @@ function DefibCard({
   title,
   low,
   high,
+  cap,
   rangeLabel,
   primary,
   w
 }) {
   const t = useT();
+  const overCap = w > 0 && cap && high > cap;
   return /*#__PURE__*/React.createElement("div", {
     className: `rounded-xl border p-4 ${primary ? 'border-yellow-500/40 bg-yellow-500/5 ring-1 ring-yellow-500/30' : 'border-slate-800 bg-slate-900/40'}`
   }, /*#__PURE__*/React.createElement("div", {
@@ -3141,7 +3458,11 @@ function DefibCard({
     className: "font-mono text-sm text-slate-400"
   }, "J")), /*#__PURE__*/React.createElement("div", {
     className: "text-[11px] text-slate-500 font-mono mt-1"
-  }, rangeLabel));
+  }, rangeLabel), overCap && /*#__PURE__*/React.createElement("div", {
+    className: "mt-1.5 text-[11px] text-amber-300 leading-snug"
+  }, fill(t('defibCap'), {
+    c: cap
+  })));
 }
 const nf = (v, d = 2) => isFinite(v) && !isNaN(v) ? Number(v).toFixed(d) : '—';
 function NumField({
@@ -3859,7 +4180,7 @@ const NA_S = {
   zh: {
     cn: '補充／矯正鈉 — 最高輸液速率', sub: '使用 Adrogué–Madias 公式，將「每小時允許的血鈉變化」換算成該輸液的 mL/hr 上限。',
     naNow: '現值血鈉 Na⁺', req: '必填', naTarget: '目標血鈉', tgtHint: '{sp}正常 {v}',
-    kAdd: '輸液內加 KCl', kHint: '公式需計入鉀', fluid: '選用輸液',
+    kAdd: '輸液內加 KCl', kHint: '另加的量；輸液本身含鉀已自動計入', fluid: '選用輸液',
     pace: '病程', chronic: '慢性 0.5', acute: '急性 1.0',
     rateLabel: '最高輸液速率', rateSub: '{v} mL/kg/hr', rateBad: '此輸液方向不符',
     dLabel: '每輸 1 L 的血鈉變化', dSub: '{f}．含 K {k} mEq/L',
@@ -3875,13 +4196,14 @@ const NA_S = {
     s8: '自由水缺乏（高血鈉）', s8out: '{v} mL 自由水',
     warnDir: '⚠ 選用的輸液無法將血鈉往目標方向移動（{d}）。請改選其他輸液。',
     dirUp: '需要 Na 高於血清值的輸液', dirDown: '需要 Na 低於血清值的輸液',
+    warnDays: '⚠ 落差 {g} mEq/L 超過 24 小時上限 {c} mEq/L，至少需分 {d} 天矯正。上方「所需時間／總量」為連續以最高速率輸注的理論值 — 每天達到當日目標後就要停止或改用維持輸液，隔日依回測值重算。',
     warnFast: '⚠ 算出的速率 > 10 mL/kg/hr。這代表該輸液的鈉落差太小，矯正效率差且有容量過載風險。建議改用鈉落差更大的輸液（如 3% NaCl 或 D5W）以降低體積。',
     note1: '體重、持續失水與尿液損失都會影響實際變化，公式為起始估算值。矯正低血鈉過快 → 滲透性脫髓鞘症（ODS）；矯正高血鈉過快 → 腦水腫。開始後 ', note2: '每 2–4 小時', note3: ' 回測電解質並重新代入計算。'
   },
   en: {
     cn: 'Sodium correction — maximum infusion rate', sub: 'Uses the Adrogué–Madias equation to convert the allowed hourly change in serum sodium into an mL/hr ceiling for the chosen fluid.',
     naNow: 'Serum Na⁺ now', req: 'required', naTarget: 'Target Na⁺', tgtHint: '{sp} normal {v}',
-    kAdd: 'KCl added to fluid', kHint: 'the equation includes potassium', fluid: 'Fluid',
+    kAdd: 'KCl added to fluid', kHint: 'extra only — the fluid’s own K is already included', fluid: 'Fluid',
     pace: 'Onset', chronic: 'Chronic 0.5', acute: 'Acute 1.0',
     rateLabel: 'Maximum infusion rate', rateSub: '{v} mL/kg/hr', rateBad: 'wrong direction for this fluid',
     dLabel: 'Na change per litre infused', dSub: '{f} · with K {k} mEq/L',
@@ -3897,13 +4219,14 @@ const NA_S = {
     s8: 'Free water deficit (hypernatraemia)', s8out: '{v} mL of free water',
     warnDir: '⚠ The chosen fluid cannot move sodium toward the target ({d}). Select a different fluid.',
     dirUp: 'you need a fluid with Na above the serum value', dirDown: 'you need a fluid with Na below the serum value',
+    warnDays: '⚠ The gap of {g} mEq/L exceeds the 24-hour ceiling of {c} mEq/L, so correction needs at least {d} days. The time and volume above assume continuous infusion at the maximum rate — stop or switch to maintenance fluid once each day’s target is reached, and recalculate from the repeat value the next day.',
     warnFast: '⚠ The calculated rate exceeds 10 mL/kg/hr. The sodium gradient of this fluid is too small — correction is inefficient and volume overload is a risk. Choose a fluid with a larger gradient (3% NaCl or D5W) to reduce the volume.',
     note1: 'Body weight, ongoing losses and urinary output all affect the real change — this is a starting estimate. Correcting hyponatraemia too fast causes osmotic demyelination; correcting hypernatraemia too fast causes cerebral oedema. Recheck electrolytes ', note2: 'every 2–4 hours', note3: ' after starting and recalculate.'
   },
   ja: {
     cn: 'ナトリウム補正 — 最大輸液速度', sub: 'Adrogué–Madias 式を用い、1 時間あたりに許容される血清 Na の変化量を、その輸液の mL/hr 上限に換算します。',
     naNow: '現在の血清 Na⁺', req: '必須', naTarget: '目標 Na⁺', tgtHint: '{sp}の正常値 {v}',
-    kAdd: '輸液に加える KCl', kHint: '式にカリウムを含める', fluid: '使用する輸液',
+    kAdd: '輸液に加える KCl', kHint: '追加分のみ。輸液自体の K は自動で算入', fluid: '使用する輸液',
     pace: '経過', chronic: '慢性 0.5', acute: '急性 1.0',
     rateLabel: '最大輸液速度', rateSub: '{v} mL/kg/hr', rateBad: 'この輸液では方向が逆',
     dLabel: '1 L 投与あたりの Na 変化', dSub: '{f}・K {k} mEq/L 添加',
@@ -3919,6 +4242,7 @@ const NA_S = {
     s8: '自由水欠乏（高ナトリウム血症）', s8out: '自由水 {v} mL',
     warnDir: '⚠ 選択した輸液では血清 Na を目標方向へ動かせません（{d}）。別の輸液を選んでください。',
     dirUp: '血清値より Na の高い輸液が必要', dirDown: '血清値より Na の低い輸液が必要',
+    warnDays: '⚠ 差 {g} mEq/L は 24 時間の上限 {c} mEq/L を超えるため、補正には最低 {d} 日かかります。上の所要時間・総量は最大速度で持続投与した場合の理論値です — その日の目標に達したら中止または維持輸液に切り替え、翌日は再検値で再計算してください。',
     warnFast: '⚠ 算出速度が 10 mL/kg/hr を超えています。この輸液の Na 較差が小さく補正効率が悪いうえ輸液過剰のリスクがあります。較差の大きい輸液（3% NaCl や D5W）に変更して量を減らしてください。',
     note1: '体重、持続する喪失、尿量はいずれも実際の変化に影響するため、本式は初期推定値です。低 Na 血症の急速補正は浸透圧性脱髄症候群を、高 Na 血症の急速補正は脳浮腫を招きます。開始後は ', note2: '2–4 時間ごと', note3: ' に電解質を再検し、再計算してください。'
   }
@@ -3945,7 +4269,7 @@ function SodiumCard({
   const fLabel = l(f.label);
   const now = parseFloat(naNow) || 0;
   const tgt = parseFloat(naTarget) || 0;
-  const kInf = parseFloat(kAdd) || 0;
+  const kInf = (f.k || 0) + (parseFloat(kAdd) || 0);
   const tbw = 0.6 * w;
   const ready = w > 0 && now > 0 && tgt > 0;
   const dPerL = ready ? (f.na + kInf - now) / (tbw + 1) : 0;
@@ -3960,7 +4284,10 @@ function SodiumCard({
   const totalVol = rateMl * hoursNeed;
   const fwd = ready && now > tgt ? tbw * (now / tgt - 1) * 1000 : 0;
   const naDeficit = ready && tgt > now ? tbw * (tgt - now) : 0;
-  const day1Delta = Math.min(gap, limit * 24);
+  // 不論急慢性，24 小時累計變化都不超過 12 mEq/L
+  const dayCap = Math.min(limit * 24, NA_DAY_CAP);
+  const day1Delta = Math.min(gap, dayCap);
+  const multiDay = ready && dirOk && gap > dayCap;
   const day1Na = needUp ? now + day1Delta : now - day1Delta;
   const tooFast = mlKgHr > 10;
   const sign = dPerL > 0 ? '+' : '';
@@ -3974,7 +4301,7 @@ function SodiumCard({
     out: fill(S.s2out, { v: sign + nf(dPerL, 3) })
   }, {
     label: fill(S.s3, { p: pace === 'acute' ? S.s3acute : S.s3chronic }),
-    expr: fill(S.s3expr, { l: nf(limit, 2), d: nf(limit * 24, 0) }),
+    expr: fill(S.s3expr, { l: nf(limit, 2), d: nf(dayCap, 0) }),
     out: `${nf(limit, 2)} mEq/L/hr`
   }, {
     label: S.s4,
@@ -3986,7 +4313,7 @@ function SodiumCard({
     out: fill(S.s5out, { h: nf(hoursNeed, 1), v: nf(totalVol, 0) })
   }, {
     label: S.s6,
-    expr: `Δ24hr = min(${nf(gap, 0)}, ${nf(limit * 24, 0)}) = ${nf(day1Delta, 0)} mEq/L；${nf(now, 0)} ${needUp ? '+' : '−'} ${nf(day1Delta, 0)}`,
+    expr: `Δ24hr = min(${nf(gap, 0)}, ${nf(dayCap, 0)}) = ${nf(day1Delta, 0)} mEq/L；${nf(now, 0)} ${needUp ? '+' : '−'} ${nf(day1Delta, 0)}`,
     out: fill(S.s6out, { v: nf(day1Na, 0) }) + (day1Na !== tgt ? S.s6more : '')
   }] : [];
   if (ready && naDeficit > 0) {
@@ -4052,7 +4379,9 @@ function SodiumCard({
     tone: "red"
   }, fill(S.warnDir, { d: needUp ? S.dirUp : S.dirDown })), tooFast && dirOk && /*#__PURE__*/React.createElement(Warn, {
     tone: "amber"
-  }, S.warnFast), /*#__PURE__*/React.createElement(Warn, {
+  }, S.warnFast), multiDay && /*#__PURE__*/React.createElement(Warn, {
+    tone: "amber"
+  }, fill(S.warnDays, { g: nf(gap, 0), c: nf(dayCap, 0), d: Math.ceil(gap / dayCap) })), /*#__PURE__*/React.createElement(Warn, {
     tone: "slate"
   }, S.note1, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-200 font-mono"
@@ -4218,8 +4547,9 @@ function PotassiumCard({
 }
 const P_S = {
   zh: {
-    cn: '補磷酸鉀．原液 3 mmol/mL', sub: '0.06–0.12 mmol/kg/hr 連續輸注 6 小時，並自動帶出同時輸入的鉀負荷。',
-    rate: '磷輸注速率', low: '0.06 起始', mid: '0.09 中', high: '0.12 上限',
+    cn: '補磷酸鉀．原液 3 mmol/mL', sub: '0.03–0.12 mmol/kg/hr 連續輸注 6 小時，並自動帶出同時輸入的鉀負荷。',
+    rate: '磷輸注速率', low: '0.03 保守', mid: '0.06 中', high: '0.12 嚴重低血磷',
+    severe: '⚠ 目前為 {v} mmol/kg/hr，適用於嚴重低血磷（< 1.0 mg/dL，或已出現溶血、肌無力、呼吸肌疲勞）。輕中度低血磷請改用 0.03 保守速率；高速率務必每 6 小時回測磷、鉀、鈣。',
     custom: '自訂速率', customHint: '保守區間 0.01–0.03',
     hours: '輸注時數', hoursHint: '標準 6 hr 後回測',
     carrier: '載液總量（可覆寫）', carrierHint: '留空 = maintenance {m} mL/kg/hr × {h} hr',
@@ -4236,11 +4566,12 @@ const P_S = {
     warnK: '⚠ 此速率下的鉀負荷 {v} mEq/kg/hr 已超過 0.5 mEq/kg/hr 上限。請降低磷速率，或改用 sodium phosphate 取代部分劑量。',
     warnTiny: '⚠ 原液速率僅 {v} mL/hr，一般輸液幫浦難以精準給予。請一定使用上方的稀釋方案，將 {h} 小時總量混入載液後定速輸注。',
     warnCa1: '禁用含鈣輸液', warnCa2: '（LRS、Normosol-R 含 Ca）作為載液 — 會產生磷酸鈣沉澱。僅使用 0.9% NaCl。',
-    note1: '適應症：血磷 < 1.5 mg/dL（或 < 2.0 且有溶血、肌無力、呼吸肌疲勞），常見於 DKA 給予胰島素後、refeeding syndrome、腸道外營養（TPN）。', note2: '每 6 小時', note3: ' 回測磷、鉀、鈣、鈉；血磷 > 2.0 mg/dL 即停。低鈣、高鉀、少尿性腎衰竭禁用。保守共識劑量為 0.01–0.03 mmol/kg/hr，0.06–0.12 用於嚴重低血磷且需密集監測。'
+    note1: '適應症：血磷 < 1.5 mg/dL（或 < 2.0 且有溶血、肌無力、呼吸肌疲勞），常見於 DKA 給予胰島素後、refeeding syndrome、腸道外營養（TPN）。', note2: '每 6 小時', note3: ' 回測磷、鉀、鈣、鈉；血磷 > 2.0 mg/dL 即停。低鈣、高鉀、少尿性腎衰竭禁用。保守共識劑量為 0.01–0.03 mmol/kg/hr，> 0.03 用於嚴重低血磷且需密集監測。'
   },
   en: {
-    cn: 'Potassium phosphate · stock 3 mmol/mL', sub: '0.06–0.12 mmol/kg/hr as a 6-hour infusion, with the accompanying potassium load calculated automatically.',
-    rate: 'Phosphate infusion rate', low: '0.06 start', mid: '0.09 mid', high: '0.12 max',
+    cn: 'Potassium phosphate · stock 3 mmol/mL', sub: '0.03–0.12 mmol/kg/hr as a 6-hour infusion, with the accompanying potassium load calculated automatically.',
+    rate: 'Phosphate infusion rate', low: '0.03 conservative', mid: '0.06 mid', high: '0.12 severe',
+    severe: '⚠ The current rate of {v} mmol/kg/hr is meant for severe hypophosphataemia (< 1.0 mg/dL, or with haemolysis, weakness or respiratory muscle fatigue). For mild to moderate hypophosphataemia use the conservative 0.03 rate; at higher rates recheck phosphate, potassium and calcium every 6 hours.',
     custom: 'Custom rate', customHint: 'conservative range 0.01–0.03',
     hours: 'Infusion hours', hoursHint: 'standard 6 hr, then recheck',
     carrier: 'Total carrier volume (override)', carrierHint: 'blank = maintenance {m} mL/kg/hr × {h} hr',
@@ -4257,11 +4588,12 @@ const P_S = {
     warnK: '⚠ The potassium load at this rate, {v} mEq/kg/hr, exceeds the 0.5 mEq/kg/hr ceiling. Reduce the phosphate rate or substitute sodium phosphate for part of the dose.',
     warnTiny: '⚠ The stock rate is only {v} mL/hr, which most infusion pumps cannot deliver accurately. Use the dilution above — mix the whole {h}-hour dose into the carrier and run it at a fixed rate.',
     warnCa1: 'never use a calcium-containing fluid', warnCa2: ' (LRS and Normosol-R contain calcium) as the carrier — calcium phosphate will precipitate. Use 0.9% NaCl only.',
-    note1: 'Indicated for phosphate < 1.5 mg/dL (or < 2.0 with haemolysis, weakness or respiratory muscle fatigue), typically after insulin in DKA, in refeeding syndrome, or on parenteral nutrition. Recheck phosphate, potassium, calcium and sodium ', note2: 'every 6 hours', note3: '; stop once phosphate exceeds 2.0 mg/dL. Contraindicated with hypocalcaemia, hyperkalaemia or oliguric renal failure. The conservative consensus dose is 0.01–0.03 mmol/kg/hr; 0.06–0.12 is for severe hypophosphataemia under intensive monitoring.'
+    note1: 'Indicated for phosphate < 1.5 mg/dL (or < 2.0 with haemolysis, weakness or respiratory muscle fatigue), typically after insulin in DKA, in refeeding syndrome, or on parenteral nutrition. Recheck phosphate, potassium, calcium and sodium ', note2: 'every 6 hours', note3: '; stop once phosphate exceeds 2.0 mg/dL. Contraindicated with hypocalcaemia, hyperkalaemia or oliguric renal failure. The conservative consensus dose is 0.01–0.03 mmol/kg/hr; anything above 0.03 is for severe hypophosphataemia under intensive monitoring.'
   },
   ja: {
-    cn: 'リン酸カリウム・原液 3 mmol/mL', sub: '0.06–0.12 mmol/kg/hr で 6 時間持続投与し、同時に入るカリウム負荷も自動算出します。',
-    rate: 'リン投与速度', low: '0.06 開始', mid: '0.09 中間', high: '0.12 上限',
+    cn: 'リン酸カリウム・原液 3 mmol/mL', sub: '0.03–0.12 mmol/kg/hr で 6 時間持続投与し、同時に入るカリウム負荷も自動算出します。',
+    rate: 'リン投与速度', low: '0.03 保守的', mid: '0.06 中間', high: '0.12 重度低リン',
+    severe: '⚠ 現在の {v} mmol/kg/hr は重度低リン血症（< 1.0 mg/dL、または溶血・筋力低下・呼吸筋疲労を伴う場合）向けです。軽度〜中等度では保守的な 0.03 を使用し、高速度では 6 時間ごとにリン・カリウム・カルシウムを再検してください。',
     custom: '任意の速度', customHint: '保守的な範囲は 0.01–0.03',
     hours: '投与時間', hoursHint: '標準 6 時間で再検',
     carrier: 'キャリア液の総量（上書き可）', carrierHint: '空欄 = 維持 {m} mL/kg/hr × {h} hr',
@@ -4278,7 +4610,7 @@ const P_S = {
     warnK: '⚠ この速度でのカリウム負荷 {v} mEq/kg/hr は上限 0.5 mEq/kg/hr を超えています。リンの速度を下げるか、一部をリン酸ナトリウムに置き換えてください。',
     warnTiny: '⚠ 原液速度が {v} mL/hr しかなく、通常の輸液ポンプでは正確に投与できません。必ず上記の希釈方法を用い、{h} 時間分をキャリア液に混和して定速投与してください。',
     warnCa1: 'カルシウム含有輸液は使用禁止', warnCa2: '（LRS、Normosol-R はカルシウムを含む）— リン酸カルシウムが析出します。0.9% NaCl のみを使用してください。',
-    note1: '適応はリン < 1.5 mg/dL（または < 2.0 で溶血・筋力低下・呼吸筋疲労を伴う場合）。DKA のインスリン投与後、リフィーディング症候群、静脈栄養時に多くみられます。リン・カリウム・カルシウム・ナトリウムを ', note2: '6 時間ごと', note3: ' に再検し、リンが 2.0 mg/dL を超えたら中止します。低カルシウム血症、高カリウム血症、乏尿性腎不全では禁忌です。保守的なコンセンサス用量は 0.01–0.03 mmol/kg/hr で、0.06–0.12 は重度低リン血症に対し厳重なモニタリング下で用います。'
+    note1: '適応はリン < 1.5 mg/dL（または < 2.0 で溶血・筋力低下・呼吸筋疲労を伴う場合）。DKA のインスリン投与後、リフィーディング症候群、静脈栄養時に多くみられます。リン・カリウム・カルシウム・ナトリウムを ', note2: '6 時間ごと', note3: ' に再検し、リンが 2.0 mg/dL を超えたら中止します。低カルシウム血症、高カリウム血症、乏尿性腎不全では禁忌です。保守的なコンセンサス用量は 0.01–0.03 mmol/kg/hr で、0.03 を超える速度は重度低リン血症に対し厳重なモニタリング下で用います。'
   }
 };
 function PhosphateCard({
@@ -4287,7 +4619,8 @@ function PhosphateCard({
 }) {
   const lang = useLang();
   const S = P_S[lang] || P_S.zh;
-  const [dose, setDose] = useState('0.06');
+  // 預設為嚴重低血磷的速率；輕中度改選 0.03
+  const [dose, setDose] = useState('0.12');
   const [hours, setHours] = useState('6');
   const [carrier, setCarrier] = useState('');
   const maint = FLUID_PROTOCOLS[species].maintenancePerHr;
@@ -4343,7 +4676,7 @@ function PhosphateCard({
     className: "col-span-2"
   }, /*#__PURE__*/React.createElement(Seg, {
     label: S.rate, value: dose, onChange: setDose, color: "indigo",
-    options: [{ value: '0.06', label: S.low }, { value: '0.09', label: S.mid }, { value: '0.12', label: S.high }]
+    options: [{ value: '0.03', label: S.low }, { value: '0.06', label: S.mid }, { value: '0.12', label: S.high }]
   })), /*#__PURE__*/React.createElement(NumField, {
     label: S.custom, value: dose, onChange: setDose, unit: "mmol/kg/hr", step: "0.01", hint: S.customHint
   }), /*#__PURE__*/React.createElement(NumField, {
@@ -4379,7 +4712,9 @@ function PhosphateCard({
     steps: steps, color: "indigo"
   }), kOver && /*#__PURE__*/React.createElement(Warn, {
     tone: "red"
-  }, fill(S.warnK, { v: nf(kPerKg, 3) })), tinyVol && /*#__PURE__*/React.createElement(Warn, {
+  }, fill(S.warnK, { v: nf(kPerKg, 3) })), d > 0.03 && /*#__PURE__*/React.createElement(Warn, {
+    tone: "amber"
+  }, fill(S.severe, { v: d })), tinyVol && /*#__PURE__*/React.createElement(Warn, {
     tone: "amber"
   }, fill(S.warnTiny, { v: nf(mlRate, 3), h: nf(h, 0) })), /*#__PURE__*/React.createElement(Warn, {
     tone: "red"
@@ -4390,6 +4725,153 @@ function PhosphateCard({
   }, S.note1, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-200 font-mono"
   }, S.note2), S.note3));
+}
+
+// ───────────────────────────────────────────────────────────────
+// 高血鉀緊急處置
+// ───────────────────────────────────────────────────────────────
+
+const HK = {
+  caMlKg: [0.5, 1.5],        // 10% calcium gluconate mL/kg（50–150 mg/kg）
+  insulin: ['0.25', '0.5'],  // regular insulin U/kg
+  dexPerU: 2,                // 每 1 U 胰島素配 2 g dextrose
+  bicarbMEqKg: [1, 2],
+  terbMgKg: 0.01,            // terbutaline 1 mg/mL
+  tiers: [6.5, 8]            // 輕度 < 6.5 ≤ 中度 < 8 ≤ 重度
+};
+const HK_S = {
+  zh: {
+    cn: '高血鉀緊急處置', sub: '依體重算出心肌保護（鈣）與把鉀推回細胞內（胰島素＋葡萄糖、碳酸氫鈉、β2 agonist）的劑量。這些都只是爭取時間，同時要處理病因。',
+    kNow: '現值血鉀 K⁺', req: '必填', ecg: '心電圖變化', ecgNo: '無', ecgYes: '有（高尖 T、P 消失、QRS 增寬、心搏過緩）',
+    ins: 'Regular insulin', prod: 'NaHCO₃ 製劑',
+    tierMild: '輕度', tierMod: '中度', tierSevere: '重度', tierNone: '未達高血鉀', tierSub: '{v} mEq/L',
+    caLabel: '10% Calcium gluconate', caSub: '0.5–1.5 mL/kg．10–20 分鐘慢推',
+    insLabel: 'Regular insulin', insSub: '{u} U．稀釋成 1 U/mL 後抽取',
+    dexLabel: '50% Dextrose（配胰島素）', dexSub: '{g} g．稀釋 1:1 以上再給',
+    s1: '心肌保護：10% calcium gluconate（不降鉀，30–60 分鐘後效果消退）', s1out: '{a}–{b} mL IV over 10–20 min',
+    s2: 'Regular insulin（把鉀推回細胞內，15–30 分鐘起效）', s2expr: '{d} U/kg × {w} kg', s2out: '{u} U → 1 U/mL 稀釋液 {u} mL（0.1 mL 胰島素原液 100 U/mL + 9.9 mL NS）',
+    s3: '同時給 dextrose 防低血糖（每 1 U 胰島素 2 g）', s3expr: '{u} U × 2 g = {g} g ÷ 0.5 g/mL', s3out: '50% dextrose {m} mL（稀釋至 ≤ 25%）',
+    s4: '接續 2.5–5% dextrose 維持 4–6 小時', s4out: '每 30–60 分鐘測血糖',
+    s5: 'NaHCO₃（合併代謝性酸中毒時較有效）', s5expr: '{a}–{b} mEq/kg × {w} kg ÷ {c} mEq/mL', s5out: '{x}–{y} mL IV over 15–20 min',
+    s6: '選用：terbutaline（β2 agonist）', s6expr: '0.01 mg/kg × {w} kg ÷ 1 mg/mL', s6out: '{v} mL IV slow．注意心搏過速',
+    warnUrgent: '⚠ 血鉀 ≥ 8 或已有心電圖變化：先給鈣保護心肌，再接胰島素＋葡萄糖。持續 ECG 監測。',
+    warnNone: '血鉀 < 5.5 mEq/L，不需要高血鉀處置。',
+    warnLine: '⚠ 鈣與碳酸氫鈉不可同一管路（會沉澱）。胰島素後 4–6 小時內每 30–60 分鐘測血糖；本身高血糖（如 DKA）時可減少或省略 dextrose。',
+    note1: '同時處理病因：', note2: '貓尿道阻塞先解除阻塞、腹腔積尿引流、Addison（給 dexamethasone 並做 ACTH 刺激試驗）、急性腎損傷',
+    note3: '。停用含鉀輸液；0.9% NaCl 或平衡液都可用於稀釋血鉀。治療後 1–2 小時回測血鉀。'
+  },
+  en: {
+    cn: 'Hyperkalaemia — emergency treatment', sub: 'Weight-based doses for cardioprotection (calcium) and for shifting potassium into cells (insulin + dextrose, bicarbonate, β2 agonist). These only buy time — treat the cause in parallel.',
+    kNow: 'Serum K⁺ now', req: 'required', ecg: 'ECG changes', ecgNo: 'None', ecgYes: 'Present (tented T, lost P, wide QRS, bradycardia)',
+    ins: 'Regular insulin', prod: 'NaHCO₃ product',
+    tierMild: 'Mild', tierMod: 'Moderate', tierSevere: 'Severe', tierNone: 'Not hyperkalaemic', tierSub: '{v} mEq/L',
+    caLabel: '10% Calcium gluconate', caSub: '0.5–1.5 mL/kg · slowly over 10–20 min',
+    insLabel: 'Regular insulin', insSub: '{u} U · dilute to 1 U/mL before drawing up',
+    dexLabel: '50% Dextrose (with insulin)', dexSub: '{g} g · dilute at least 1:1',
+    s1: 'Cardioprotection: 10% calcium gluconate (does not lower K; wears off in 30–60 min)', s1out: '{a}–{b} mL IV over 10–20 min',
+    s2: 'Regular insulin (shifts K into cells, onset 15–30 min)', s2expr: '{d} U/kg × {w} kg', s2out: '{u} U → {u} mL of a 1 U/mL dilution (0.1 mL of 100 U/mL insulin + 9.9 mL NS)',
+    s3: 'Dextrose alongside to prevent hypoglycaemia (2 g per unit of insulin)', s3expr: '{u} U × 2 g = {g} g ÷ 0.5 g/mL', s3out: '{m} mL of 50% dextrose (dilute to ≤ 25%)',
+    s4: 'Follow with 2.5–5% dextrose for 4–6 hours', s4out: 'check glucose every 30–60 min',
+    s5: 'NaHCO₃ (most useful with concurrent metabolic acidosis)', s5expr: '{a}–{b} mEq/kg × {w} kg ÷ {c} mEq/mL', s5out: '{x}–{y} mL IV over 15–20 min',
+    s6: 'Optional: terbutaline (β2 agonist)', s6expr: '0.01 mg/kg × {w} kg ÷ 1 mg/mL', s6out: '{v} mL IV slowly · watch for tachycardia',
+    warnUrgent: '⚠ K ≥ 8 or ECG changes present: give calcium first to protect the myocardium, then insulin + dextrose. Continuous ECG.',
+    warnNone: 'K < 5.5 mEq/L — no hyperkalaemia treatment needed.',
+    warnLine: '⚠ Never run calcium and bicarbonate in the same line (precipitation). Check glucose every 30–60 min for 4–6 hours after insulin; reduce or omit dextrose if the patient is already hyperglycaemic (e.g. DKA).',
+    note1: 'Treat the cause at the same time: ', note2: 'relieve urethral obstruction in cats, drain uroabdomen, Addison’s (dexamethasone plus ACTH stimulation test), acute kidney injury',
+    note3: '. Stop potassium-containing fluids; 0.9% NaCl or a balanced crystalloid both dilute potassium. Recheck K 1–2 hours after treatment.'
+  },
+  ja: {
+    cn: '高カリウム血症の緊急治療', sub: '心筋保護（カルシウム）と細胞内へのカリウム移動（インスリン＋ブドウ糖、炭酸水素ナトリウム、β2 作動薬）の用量を体重から算出します。いずれも時間稼ぎであり、原因治療を並行してください。',
+    kNow: '現在の血清 K⁺', req: '必須', ecg: '心電図変化', ecgNo: 'なし', ecgYes: 'あり（テント状 T、P 消失、QRS 拡大、徐脈）',
+    ins: 'レギュラーインスリン', prod: 'NaHCO₃ 製剤',
+    tierMild: '軽度', tierMod: '中等度', tierSevere: '重度', tierNone: '高カリウム血症ではない', tierSub: '{v} mEq/L',
+    caLabel: '10% グルコン酸カルシウム', caSub: '0.5–1.5 mL/kg・10–20 分かけて緩徐に',
+    insLabel: 'レギュラーインスリン', insSub: '{u} U・1 U/mL に希釈して吸引',
+    dexLabel: '50% ブドウ糖（インスリンと併用）', dexSub: '{g} g・1:1 以上に希釈',
+    s1: '心筋保護：10% グルコン酸カルシウム（K は下げない。30–60 分で効果消失）', s1out: '{a}–{b} mL を 10–20 分かけて IV',
+    s2: 'レギュラーインスリン（K を細胞内へ移動、15–30 分で発現）', s2expr: '{d} U/kg × {w} kg', s2out: '{u} U → 1 U/mL 希釈液 {u} mL（100 U/mL 原液 0.1 mL + NS 9.9 mL）',
+    s3: '低血糖予防にブドウ糖を同時投与（インスリン 1 U あたり 2 g）', s3expr: '{u} U × 2 g = {g} g ÷ 0.5 g/mL', s3out: '50% ブドウ糖 {m} mL（≤ 25% に希釈）',
+    s4: '続けて 2.5–5% ブドウ糖を 4–6 時間', s4out: '30–60 分ごとに血糖測定',
+    s5: 'NaHCO₃（代謝性アシドーシス合併時に有効）', s5expr: '{a}–{b} mEq/kg × {w} kg ÷ {c} mEq/mL', s5out: '{x}–{y} mL を 15–20 分かけて IV',
+    s6: '任意：テルブタリン（β2 作動薬）', s6expr: '0.01 mg/kg × {w} kg ÷ 1 mg/mL', s6out: '{v} mL IV 緩徐・頻脈に注意',
+    warnUrgent: '⚠ K ≥ 8 または心電図変化あり：まずカルシウムで心筋を保護し、続いてインスリン＋ブドウ糖。持続 ECG 監視。',
+    warnNone: 'K < 5.5 mEq/L — 高カリウム血症の治療は不要です。',
+    warnLine: '⚠ カルシウムと炭酸水素ナトリウムは同一ラインで投与しない（沈殿）。インスリン後 4–6 時間は 30–60 分ごとに血糖を測定。もともと高血糖（DKA など）ならブドウ糖を減量または省略。',
+    note1: '原因治療を同時に：', note2: '猫の尿道閉塞の解除、尿腹症のドレナージ、アジソン病（デキサメタゾン投与と ACTH 刺激試験）、急性腎障害',
+    note3: '。カリウム含有輸液を中止。0.9% NaCl でも平衡晶質液でもカリウムは希釈されます。治療 1–2 時間後に K を再検。'
+  }
+};
+function HyperKCard({
+  w,
+  imported
+}) {
+  const lang = useLang();
+  const S = HK_S[lang] || HK_S.zh;
+  const E = React.createElement;
+  const [kNow, setKNow] = useState('');
+  const [ecg, setEcg] = useState('no');
+  const [ins, setIns] = useState(HK.insulin[0]);
+  const [prod, setProd] = useState('0.83');
+  useImported(imported, { k: setKNow });
+  const kv = parseFloat(kNow) || 0;
+  const conc = parseFloat(prod) || 0.83;
+  const insKg = parseFloat(ins);
+  const isHigh = kv >= 5.5;
+  const tier = !isHigh ? 'none' : kv >= HK.tiers[1] ? 'severe' : kv >= HK.tiers[0] ? 'mod' : 'mild';
+  const urgent = kv >= HK.tiers[1] || ecg === 'yes';
+  const ready = w > 0 && (isHigh || ecg === 'yes');
+  const caLo = HK.caMlKg[0] * w, caHi = HK.caMlKg[1] * w;
+  const units = insKg * w;
+  const dexG = units * HK.dexPerU;
+  const dexMl = dexG / 0.5;
+  const bLo = HK.bicarbMEqKg[0] * w / conc, bHi = HK.bicarbMEqKg[1] * w / conc;
+  const terb = HK.terbMgKg * w;
+  const W = nf(w, 1);
+  const steps = ready ? [{
+    label: S.s1,
+    expr: `${HK.caMlKg[0]}–${HK.caMlKg[1]} mL/kg × ${W} kg`,
+    out: fill(S.s1out, { a: fmt(caLo), b: fmt(caHi) })
+  }, {
+    label: S.s2,
+    expr: fill(S.s2expr, { d: ins, w: W }),
+    out: fill(S.s2out, { u: fmt(units) })
+  }, {
+    label: S.s3,
+    expr: fill(S.s3expr, { u: fmt(units), g: fmt(dexG) }),
+    out: fill(S.s3out, { m: fmt(dexMl) })
+  }, {
+    label: S.s4,
+    expr: '2.5–5% dextrose CRI',
+    out: S.s4out
+  }, {
+    label: S.s5,
+    expr: fill(S.s5expr, { a: HK.bicarbMEqKg[0], b: HK.bicarbMEqKg[1], w: W, c: conc }),
+    out: fill(S.s5out, { x: fmt(bLo), y: fmt(bHi) })
+  }, {
+    label: S.s6,
+    expr: fill(S.s6expr, { w: W }),
+    out: fill(S.s6out, { v: fmt(terb) })
+  }] : [];
+  const tierName = { none: S.tierNone, mild: S.tierMild, mod: S.tierMod, severe: S.tierSevere }[tier];
+  return E(CalcCard, { title: 'Hyperkalaemia Treatment', cn: S.cn, color: 'red', sub: S.sub },
+    E('div', { className: 'grid grid-cols-2 sm:grid-cols-3 gap-3' },
+      E(NumField, { label: S.kNow, value: kNow, onChange: setKNow, unit: 'mEq/L', step: '0.1', hint: S.req }),
+      E('div', { className: 'col-span-2' },
+        E(Seg, { label: S.ecg, value: ecg, onChange: setEcg, color: 'red', options: [{ value: 'no', label: S.ecgNo }, { value: 'yes', label: S.ecgYes }] })),
+      E(Seg, { label: S.ins, value: ins, onChange: setIns, color: 'red', options: HK.insulin.map(v => ({ value: v, label: `${v} U/kg` })) }),
+      E('div', { className: 'col-span-2' },
+        E(SelectField, { label: S.prod, value: prod, onChange: setProd, options: BICARB_PRODUCTS }))),
+    E('div', { className: 'grid grid-cols-1 sm:grid-cols-3 gap-3' },
+      E(BigStat, { label: S.caLabel, value: ready ? `${fmt(caLo)}–${fmt(caHi)}` : '—', unit: 'mL', sub: S.caSub, color: 'red', highlight: urgent }),
+      E(BigStat, { label: S.insLabel, value: ready ? fmt(units) : '—', unit: 'U', sub: ready ? fill(S.insSub, { u: fmt(units) }) : '—', color: 'amber' }),
+      E(BigStat, { label: S.dexLabel, value: ready ? fmt(dexMl) : '—', unit: 'mL', sub: ready ? fill(S.dexSub, { g: fmt(dexG) }) : '—', color: 'cyan' })),
+    kv > 0 && E(Warn, { tone: tier === 'none' ? 'slate' : tier === 'mild' ? 'amber' : 'red' },
+      E('span', { className: 'font-mono font-bold' }, `${tierName}．${fill(S.tierSub, { v: nf(kv, 1) })}`),
+      tier === 'none' && ecg !== 'yes' ? `　${S.warnNone}` : ''),
+    E(Formula, { steps, color: 'red' }),
+    ready && urgent && E(Warn, { tone: 'red' }, S.warnUrgent),
+    E(Warn, { tone: 'amber' }, S.warnLine),
+    E(Warn, { tone: 'slate' }, S.note1, E('span', { className: 'text-slate-200' }, S.note2), S.note3));
 }
 
 // ───────────────────────────────────────────────────────────────
@@ -4825,6 +5307,12 @@ function useImported(imported, map) {
     }
   }, [imported]);
 }
+// 算式列中的短標籤（算式本身不翻譯，只換掉夾在裡面的文字）
+const AB_X = {
+  zh: { derived: ' ← BE 反推', agOver: 'AG 超出上限', lacExplains: '乳酸可解釋', clNormal: '{v} 附近為正常', ref: '參考', fw: '自由水', cl: '氯', alb: '白蛋白', phos: '磷', lac: '乳酸', uma: '未測定', beMeas: 'BE實測', beSum: '各成分總和' },
+  en: { derived: ' ← from BE', agOver: 'AG above upper limit', lacExplains: 'lactate explains', clNormal: 'normal ≈ {v}', ref: 'ref', fw: 'free water', cl: 'Cl', alb: 'albumin', phos: 'phosphate', lac: 'lactate', uma: 'unmeasured', beMeas: 'BE measured', beSum: 'sum of components' },
+  ja: { derived: ' ← BE から逆算', agOver: 'AG の上限超過分', lacExplains: '乳酸で説明可能', clNormal: '{v} 付近が正常', ref: '参考', fw: '自由水', cl: 'Cl', alb: 'アルブミン', phos: 'リン', lac: '乳酸', uma: '未測定', beMeas: 'BE 実測', beSum: '各成分の合計' }
+};
 function AcidBaseCard({
   w,
   species,
@@ -4833,6 +5321,7 @@ function AcidBaseCard({
   const lang = useLang();
   const t = useT();
   const S = AB_S[lang] || AB_S.zh;
+  const X = AB_X[lang] || AB_X.zh;
   const R = AB_REF[species];
   const [pH, setPH] = useState('');
   const [paco2, setPaco2] = useState('');
@@ -5102,17 +5591,17 @@ function AcidBaseCard({
   if (hasGas) {
     steps.push({
       label: S.s1,
-      expr: `pH ${nf(nPH, 2)}（${species === 'dog' ? '犬' : species === 'cat' ? '貓' : '兔'} ${RG.pH[0]}–${RG.pH[1]}）`,
+      expr: `pH ${nf(nPH, 2)}（${t(species)} ${RG.pH[0]}–${RG.pH[1]}）`,
       out: acidemia ? S.acidemia : alkalemia ? S.alkalemia : S.phNormal
     });
     steps.push({
       label: S.s2,
-      expr: `HCO₃⁻ ${nf(hco3, 1)}（${RG.hco3[0]}–${RG.hco3[1]}）${hco3Derived ? ' ← BE 反推' : ''}；PaCO₂ ${nCO2 ? nf(nCO2, 0) : '—'}（${RG.paco2[0]}–${RG.paco2[1]}）`,
+      expr: `HCO₃⁻ ${nf(hco3, 1)}（${RG.hco3[0]}–${RG.hco3[1]}）${hco3Derived ? X.derived : ''}；PaCO₂ ${nCO2 ? nf(nCO2, 0) : '—'}（${RG.paco2[0]}–${RG.paco2[1]}）`,
       out: primaryName
     });
     if (expVal !== null) {
       steps.push({
-        label: fill(S.s3, { c: primary === 'respAcid' || primary === 'respAlk' ? course === 'chronic' ? S.chronic : S.acute : (species === 'dog' ? '犬' : species === 'cat' ? '貓' : '兔') }),
+        label: fill(S.s3, { c: primary === 'respAcid' || primary === 'respAlk' ? effCourse === 'chronic' ? S.chronic : S.acute : t(species) }),
         expr: expLabel,
         out: compVerdict
       });
@@ -5149,19 +5638,19 @@ function AcidBaseCard({
     if (agExcess > 0) {
       steps.push({
         label: S.sOrganic,
-        expr: `AG 超出上限 = ${nf(agUse, 1)} − ${R.ag[1]} = ${nf(agExcess, 1)}；乳酸可解釋 ${nf(nLac, 1)}`,
+        expr: `${X.agOver} = ${nf(agUse, 1)} − ${R.ag[1]} = ${nf(agExcess, 1)}；${X.lacExplains} ${nf(nLac, 1)}`,
         out: agUnexplained > 0 ? fill(S.sOrganicOut, { v: nf(agUnexplained, 1) }) : S.sOrganicLac
       });
     }
     steps.push({
       label: S.s7,
       expr: `Cl⁻corr = ${nf(nCl, 0)} × (${R.na} ÷ ${nf(nNa, 0)})`,
-      out: `${nf(clCorr, 1)} mEq/L（${R.cl} 附近為正常）`
+      out: `${nf(clCorr, 1)} mEq/L（${fill(X.clNormal, { v: R.cl })}）`
     });
     steps.push({
       label: S.s8,
       expr: `SID = (${nf(nNa, 0)} + ${nf(nK, 1)}) − (${nf(nCl, 0)} + ${nf(nLac, 1)})`,
-      out: `${nf(sid, 1)} mEq/L（Na⁻Cl ${nf(nNa - nCl, 0)}，參考 ${R.naclN}）`
+      out: `${nf(sid, 1)} mEq/L（Na − Cl ${nf(nNa - nCl, 0)}，${X.ref} ${R.naclN}）`
     });
   }
   if (showDose && deficitBE > 0) {
@@ -5205,32 +5694,32 @@ function AcidBaseCard({
   if (needStewart) {
     steps.push({
       label: S.sq1,
-      expr: `BE_自由水 = ${R.fwK} × (${nf(nNa, 0)} − ${R.na})`,
+      expr: `BE_${X.fw} = ${R.fwK} × (${nf(nNa, 0)} − ${R.na})`,
       out: `${beFW > 0 ? '+' : ''}${nf(beFW, 1)} mEq/L`
     });
     steps.push({
       label: S.sq2,
-      expr: `BE_氯 = ${R.cl} − ${nf(clCorr, 1)}`,
+      expr: `BE_${X.cl} = ${R.cl} − ${nf(clCorr, 1)}`,
       out: `${beCl > 0 ? '+' : ''}${nf(beCl, 1)} mEq/L`
     });
     if (nAlb > 0) steps.push({
       label: S.sq3,
-      expr: `BE_白蛋白 = 3.7 × (${R.albN} − ${nf(nAlb, 1)})`,
+      expr: `BE_${X.alb} = 3.7 × (${R.albN} − ${nf(nAlb, 1)})`,
       out: `${beAlb > 0 ? '+' : ''}${nf(beAlb, 1)} mEq/L`
     });
     if (nPhos > 0) steps.push({
       label: S.sq4,
-      expr: `BE_磷 = 0.58 × (${R.phosN} − ${nf(nPhos, 1)})`,
+      expr: `BE_${X.phos} = 0.58 × (${R.phosN} − ${nf(nPhos, 1)})`,
       out: `${bePhos > 0 ? '+' : ''}${nf(bePhos, 1)} mEq/L`
     });
     if (nLac > 0) steps.push({
       label: S.sq5,
-      expr: `BE_乳酸 = −${nf(nLac, 1)}`,
+      expr: `BE_${X.lac} = −${nf(nLac, 1)}`,
       out: `${nf(beLac, 1)} mEq/L`
     });
     steps.push({
       label: S.sq6,
-      expr: `BE_未測定 = BE實測 − 各成分總和 = ${nf(be, 1)} − (${nf(beSum, 1)})`,
+      expr: `BE_${X.uma} = ${X.beMeas} − ${X.beSum} = ${nf(be, 1)} − (${nf(beSum, 1)})`,
       out: `${beUMA > 0 ? '+' : ''}${nf(beUMA, 1)} mEq/L`
     });
   }
@@ -5410,6 +5899,8 @@ function ElectrolyteView({
     w: w, species: species, imported: imported
   }), /*#__PURE__*/React.createElement(PotassiumCard, {
     w: w, imported: imported
+  }), /*#__PURE__*/React.createElement(HyperKCard, {
+    w: w, imported: imported
   }), /*#__PURE__*/React.createElement(PhosphateCard, {
     w: w, species: species
   }));
@@ -5577,7 +6068,7 @@ function FlowResult({
   }, d.name))))));
 }
 // 依體重把結構化劑量換算成實際體積
-function calcDoseRow(d, w) {
+function calcDoseRow(d, w, perHead = '隻') {
   const rng = (lo, hi) => hi != null ? `${fmt(lo)}–${fmt(hi)}` : fmt(lo);
   const rngRaw = (lo, hi) => hi != null ? `${lo}–${hi}` : `${lo}`;
   const conc = d.conc;
@@ -5656,7 +6147,7 @@ function calcDoseRow(d, w) {
     return {
       big: conc ? `${rng(mgLo / conc, mgHi != null ? mgHi / conc : null)} mL` : `${rng(mgLo, mgHi)} mg`,
       sub: conc ? `= ${rng(mgLo, mgHi)} mg` : null,
-      perKg: `${rngRaw(mgLo, mgHi)} mg/隻`,
+      perKg: `${rngRaw(mgLo, mgHi)} mg/${perHead}`,
       fixed: true
     };
   }
@@ -5700,7 +6191,7 @@ function DrugDetailCard({
   })) : calcRows ? /*#__PURE__*/React.createElement("div", {
     className: "space-y-2"
   }, calcRows.map((d, i) => {
-    const r = calcDoseRow(d, w);
+    const r = calcDoseRow(d, w, t('perHead'));
     if (!r) return null;
     return /*#__PURE__*/React.createElement("div", {
       key: i,
@@ -5847,12 +6338,419 @@ function SeizureView({
     species: species
   }));
 }
-function CPRFlowView() {
+// ───────────────────────────────────────────────────────────────
+// CPR 計時與給藥紀錄
+// 紀錄存在本機 localStorage（重新整理不會遺失），按「清除」才刪除。
+// ───────────────────────────────────────────────────────────────
+
+const CPR_KEY = 'xb-cpr';
+const CPR_CYCLE_MS = 120000;           // 每 2 分鐘檢查心律／換手
+const CPR_EPI_MS = [180000, 300000];   // Epinephrine 每 3–5 分鐘
+const CPR_RATE = 110;                  // 節拍器 次/分（100–120）
+const CPR_S = {
+  zh: {
+    title: 'CPR 計時與給藥紀錄', sub: '按下開始後計時 2 分鐘 cycle 與 Epinephrine 間隔，點按鈕即記錄時間與依體重算好的劑量。紀錄存在這台裝置，結束後可複製或下載貼進病歷。',
+    start: '開始 CPR', elapsed: '總時間', cycle: 'Cycle {n}', nextCheck: '距心律檢查', checkNow: '檢查心律／換手！',
+    sinceEpi: '距上次 Epi', noEpi: '尚未給', epiWait: '未滿 3 分鐘', epiOk: '可給下一劑', epiDue: '已超過 5 分鐘',
+    drugs: '給藥', procs: '處置', end: '結束',
+    metronome: '節拍器 {r}/min', undo: '復原上一筆', clear: '清除紀錄', copy: '複製紀錄', download: '下載 .txt', copied: '已複製',
+    confirmClear: '確定要清除這次 CPR 紀錄？', resume: '再次心停，繼續計時', ended: '已結束', log: '時間軸', noWeight: '未輸入體重 — 只記錄時間，不帶劑量',
+    bar: 'CPR 進行中', barTap: '點此回到計時',
+    exTitle: '急救小本本 CPR 紀錄', exInfo: '日期 {d}　物種 {sp}　體重 {w} kg', exSpan: '開始 {a}　結束 {b}　總時間 {t}', exRunning: '進行中',
+    ev: { start: '開始 CPR', epi: 'Epinephrine', vaso: 'Vasopressin', atro: 'Atropine', glyco: 'Glycopyrrolate', amio: 'Amiodarone', lido: 'Lidocaine', bicarb: 'NaHCO₃', shock: '電擊', intubate: '插管', ivio: '建立 IV / IO', rhythm: '心律檢查／換手', rosc: 'ROSC', stop: '停止 CPR', resume: '再次心停，繼續 CPR' }
+  },
+  en: {
+    title: 'CPR timer and drug log', sub: 'Press start to time 2-minute cycles and epinephrine intervals; tap a button to record the time and the weight-based dose. The log stays on this device — copy or download it for the medical record afterwards.',
+    start: 'Start CPR', elapsed: 'Elapsed', cycle: 'Cycle {n}', nextCheck: 'Rhythm check in', checkNow: 'Check rhythm / swap!',
+    sinceEpi: 'Since epi', noEpi: 'not given', epiWait: 'under 3 min', epiOk: 'next dose may be given', epiDue: 'over 5 min',
+    drugs: 'Drugs', procs: 'Procedures', end: 'End',
+    metronome: 'Metronome {r}/min', undo: 'Undo last', clear: 'Clear log', copy: 'Copy log', download: 'Download .txt', copied: 'Copied',
+    confirmClear: 'Clear this CPR log?', resume: 'Re-arrest — resume timing', ended: 'Ended', log: 'Timeline', noWeight: 'No weight entered — times are logged without doses',
+    bar: 'CPR in progress', barTap: 'tap to open the timer',
+    exTitle: 'Vet Emergency Pocketbook — CPR log', exInfo: 'Date {d}  Species {sp}  Weight {w} kg', exSpan: 'Start {a}  End {b}  Total {t}', exRunning: 'in progress',
+    ev: { start: 'CPR started', epi: 'Epinephrine', vaso: 'Vasopressin', atro: 'Atropine', glyco: 'Glycopyrrolate', amio: 'Amiodarone', lido: 'Lidocaine', bicarb: 'NaHCO₃', shock: 'Shock', intubate: 'Intubated', ivio: 'IV / IO placed', rhythm: 'Rhythm check / swap', rosc: 'ROSC', stop: 'CPR stopped', resume: 'Re-arrest, CPR resumed' }
+  },
+  ja: {
+    title: 'CPR タイマーと投薬記録', sub: '開始を押すと 2 分サイクルとアドレナリン間隔を計時し、ボタンを押すと時刻と体重から算出した用量を記録します。記録はこの端末に保存され、終了後にコピーまたはダウンロードしてカルテに貼れます。',
+    start: 'CPR 開始', elapsed: '経過時間', cycle: 'サイクル {n}', nextCheck: '調律確認まで', checkNow: '調律確認／交代！',
+    sinceEpi: '前回 Epi から', noEpi: '未投与', epiWait: '3 分未満', epiOk: '次回投与可', epiDue: '5 分超過',
+    drugs: '投薬', procs: '処置', end: '終了',
+    metronome: 'メトロノーム {r}/分', undo: '直前を取り消し', clear: '記録を消去', copy: '記録をコピー', download: '.txt をダウンロード', copied: 'コピーしました',
+    confirmClear: 'この CPR 記録を消去しますか？', resume: '再心停止 — 計時を再開', ended: '終了', log: 'タイムライン', noWeight: '体重未入力 — 時刻のみ記録し用量は付きません',
+    bar: 'CPR 実施中', barTap: 'タップでタイマーへ',
+    exTitle: '救急ハンドブック CPR 記録', exInfo: '日付 {d}　動物種 {sp}　体重 {w} kg', exSpan: '開始 {a}　終了 {b}　合計 {t}', exRunning: '実施中',
+    ev: { start: 'CPR 開始', epi: 'アドレナリン', vaso: 'バソプレシン', atro: 'アトロピン', glyco: 'グリコピロレート', amio: 'アミオダロン', lido: 'リドカイン', bicarb: 'NaHCO₃', shock: '除細動', intubate: '挿管', ivio: 'IV / IO 確保', rhythm: '調律確認／交代', rosc: 'ROSC', stop: 'CPR 中止', resume: '再心停止、CPR 再開' }
+  }
+};
+
+// 依物種與體重產生按鈕與劑量字串（數值與「急救藥物」分頁一致）
+function cprActions(species, w) {
+  const has = w > 0;
+  const d = (ml, amt) => has ? `${fmt(ml)} mL（${amt}）` : null;
+  const shockHi = Math.min(4 * w, DEFIB_DOSES.externalBiphasic.cap);
+  const shockLo = Math.min(2 * w, DEFIB_DOSES.externalBiphasic.cap);
+  const drugs = [
+    { k: 'epi', tone: 'red', dose: d(0.01 * w, `${fmt(0.01 * w)} mg`) },
+    { k: 'vaso', tone: 'red', dose: d(0.04 * w, `${fmt(0.8 * w)} U`) },
+    species === 'rabbit'
+      ? { k: 'glyco', tone: 'red', dose: d(0.05 * w, `${fmt(0.01 * w)} mg`) }
+      : { k: 'atro', tone: 'red', dose: d(0.04 * w, `${fmt(0.04 * w)} mg`) },
+    species !== 'rabbit' && { k: 'amio', tone: 'amber', dose: d(0.1 * w, `${fmt(5 * w)} mg`) },
+    species === 'dog' && { k: 'lido', tone: 'amber', dose: d(0.1 * w, `${fmt(2 * w)} mg`) },
+    { k: 'bicarb', tone: 'cyan', dose: d(1.2 * w, `${fmt(w)} mEq`) }
+  ].filter(Boolean);
+  const procs = [
+    { k: 'shock', tone: 'amber', dose: has ? `${fmt(shockLo)}–${fmt(shockHi)} J（biphasic）` : null },
+    { k: 'rhythm', tone: 'emerald', dose: null },
+    { k: 'intubate', tone: 'indigo', dose: null },
+    { k: 'ivio', tone: 'indigo', dose: null }
+  ];
+  return { drugs, procs };
+}
+
+const mmss = ms => {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+const clock = t => new Date(t).toLocaleTimeString('en-GB', { hour12: false });
+const lastEvent = (cpr, k) => {
+  for (let i = cpr.events.length - 1; i >= 0; i--) if (cpr.events[i].k === k) return cpr.events[i];
+  return null;
+};
+const cprRunning = cpr => !!(cpr && cpr.start && !cpr.end);
+
+// localStorage 不可用（私密瀏覽等）時仍可正常運作，只是不保存
+function useStoredState(key, init) {
+  const [v, setV] = useState(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : init;
+    } catch (_) {
+      return init;
+    }
+  });
+  useEffect(() => {
+    try {
+      if (v == null) localStorage.removeItem(key);else localStorage.setItem(key, JSON.stringify(v));
+    } catch (_) {}
+  }, [key, v]);
+  return [v, setV];
+}
+function useNow(on, ms = 250) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!on) return;
+    const id = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(id);
+  }, [on, ms]);
+  return now;
+}
+
+// 提示音：iOS 需在使用者點擊時先建立 AudioContext（開始按鈕會做）
+let __audioCtx = null;
+function audioCtx() {
+  try {
+    if (!__audioCtx) __audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (__audioCtx.state === 'suspended') __audioCtx.resume();
+    return __audioCtx;
+  } catch (_) {
+    return null;
+  }
+}
+function tone(freq, dur, at = 0, vol = 0.2) {
+  const ac = audioCtx();
+  if (!ac) return;
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.frequency.value = freq;
+  g.gain.value = vol;
+  o.connect(g);
+  g.connect(ac.destination);
+  const t0 = ac.currentTime + at;
+  o.start(t0);
+  o.stop(t0 + dur);
+}
+function alertBeep(n) {
+  for (let i = 0; i < n; i++) tone(880, 0.18, i * 0.3, 0.3);
+  try {
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  } catch (_) {}
+}
+
+// 切到其他分頁也要提醒：2 分鐘 cycle 到了響三聲，Epinephrine 滿 3 分鐘響一聲
+function useCprAlerts(cpr) {
+  const fired = useRef({});
+  const running = cprRunning(cpr);
+  const anchor = cpr ? cpr.anchor : 0;
+  const lastEpi = cpr ? lastEvent(cpr, 'epi') : null;
+  const epiT = lastEpi ? lastEpi.t : 0;
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      if (now - anchor >= CPR_CYCLE_MS && fired.current.cycle !== anchor) {
+        fired.current.cycle = anchor;
+        alertBeep(3);
+      }
+      if (epiT && now - epiT >= CPR_EPI_MS[0] && fired.current.epi !== epiT) {
+        fired.current.epi = epiT;
+        alertBeep(1);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running, anchor, epiT]);
+}
+function useMetronome(on) {
+  useEffect(() => {
+    if (!on) return;
+    const id = setInterval(() => tone(1200, 0.03, 0, 0.15), 60000 / CPR_RATE);
+    return () => clearInterval(id);
+  }, [on]);
+}
+// CPR 進行中保持螢幕常亮
+function useWakeLock(on) {
+  useEffect(() => {
+    if (!on || !('wakeLock' in navigator)) return;
+    let lock = null;
+    let alive = true;
+    const req = () => navigator.wakeLock.request('screen').then(l => {
+      if (alive) lock = l;else l.release();
+    }).catch(() => {});
+    req();
+    const vis = () => {
+      if (document.visibilityState === 'visible') req();
+    };
+    document.addEventListener('visibilitychange', vis);
+    return () => {
+      alive = false;
+      document.removeEventListener('visibilitychange', vis);
+      if (lock) lock.release().catch(() => {});
+    };
+  }, [on]);
+}
+
+// 狀態計算：給計時面板與頂部提示列共用
+function cprStatus(cpr, now) {
+  const end = cpr.end || now;
+  const cycleLeft = CPR_CYCLE_MS - (end - cpr.anchor);
+  const cycleNo = cpr.events.filter(e => e.k === 'rhythm').length + 1;
+  const epi = lastEvent(cpr, 'epi');
+  const sinceEpi = epi ? end - epi.t : null;
+  const epiState = sinceEpi == null ? 'none' : sinceEpi < CPR_EPI_MS[0] ? 'wait' : sinceEpi < CPR_EPI_MS[1] ? 'ok' : 'due';
+  return { elapsed: end - cpr.start, cycleLeft, cycleNo, sinceEpi, epiState };
+}
+const EPI_TONE = { none: 'text-slate-400', wait: 'text-slate-300', ok: 'text-amber-300', due: 'text-red-300' };
+
+function cprExportText(cpr, S, spName) {
+  const lines = [S.exTitle, fill(S.exInfo, {
+    d: new Date(cpr.start).toLocaleDateString('sv-SE'),
+    sp: spName,
+    w: cpr.w ? nf(cpr.w, 1) : '—'
+  }), fill(S.exSpan, {
+    a: clock(cpr.start),
+    b: cpr.end ? clock(cpr.end) : S.exRunning,
+    t: mmss((cpr.end || Date.now()) - cpr.start)
+  }), '---'];
+  cpr.events.forEach(e => lines.push(`${mmss(e.t - cpr.start).padStart(6)}  ${clock(e.t)}  ${S.ev[e.k] || e.k}${e.d ? '  ' + e.d : ''}`));
+  return lines.join('\n');
+}
+
+function CprBar({
+  cpr,
+  onOpen
+}) {
+  const lang = useLang();
+  const S = CPR_S[lang] || CPR_S.zh;
+  const now = useNow(true, 500);
+  const st = cprStatus(cpr, now);
+  const over = st.cycleLeft <= 0;
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: onOpen,
+    className: `no-print w-full border-t ${over ? 'border-red-500/60 bg-red-500/20 animate-pulse' : 'border-red-500/30 bg-red-500/10'} px-4 py-1.5 flex items-center gap-4 text-xs font-mono text-red-200`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "font-bold"
+  }, S.bar, " ", mmss(st.elapsed)), /*#__PURE__*/React.createElement("span", null, fill(S.cycle, {
+    n: st.cycleNo
+  }), "．", over ? S.checkNow : mmss(st.cycleLeft)), /*#__PURE__*/React.createElement("span", {
+    className: EPI_TONE[st.epiState]
+  }, "Epi ", st.sinceEpi == null ? S.noEpi : mmss(st.sinceEpi)), /*#__PURE__*/React.createElement("span", {
+    className: "ml-auto text-red-300/70 hidden sm:inline"
+  }, S.barTap));
+}
+
+function CprTimer({
+  cpr,
+  setCpr,
+  metro,
+  setMetro,
+  w,
+  species
+}) {
+  const lang = useLang();
+  const t = useT();
+  const S = CPR_S[lang] || CPR_S.zh;
+  const E = React.createElement;
+  const running = cprRunning(cpr);
+  const now = useNow(running);
+  const [copied, setCopied] = useState(false);
+  const acts = cprActions(species, w);
+  const add = (k, dose) => setCpr(c => {
+    const ts = Date.now();
+    const ev = { t: ts, k, d: dose || '' };
+    // 心律檢查＝下一個 cycle 從現在開始
+    return { ...c, anchor: k === 'rhythm' ? ts : c.anchor, events: [...c.events, ev] };
+  });
+  const start = () => {
+    audioCtx();
+    const ts = Date.now();
+    setCpr({ start: ts, anchor: ts, end: null, sp: species, w, events: [{ t: ts, k: 'start', d: '' }] });
+  };
+  const finish = k => setCpr(c => {
+    const ts = Date.now();
+    return { ...c, end: ts, events: [...c.events, { t: ts, k, d: '' }] };
+  });
+  const resume = () => setCpr(c => {
+    const ts = Date.now();
+    audioCtx();
+    return { ...c, end: null, anchor: ts, events: [...c.events, { t: ts, k: 'resume', d: '' }] };
+  });
+  const undo = () => setCpr(c => c.events.length > 1 ? { ...c, end: null, events: c.events.slice(0, -1) } : c);
+  const clear = () => {
+    if (window.confirm(S.confirmClear)) {
+      setCpr(null);
+      setMetro(false);
+    }
+  };
+  const text = () => cprExportText(cpr, S, t(cpr.sp || species));
+  const copy = () => {
+    const done = () => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    };
+    const fallback = () => {
+      const ta = document.createElement('textarea');
+      ta.value = text();
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        done();
+      } catch (_) {}
+      ta.remove();
+    };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text()).then(done, fallback);else fallback();
+  };
+  const download = () => {
+    const blob = new Blob([text()], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    const d = new Date(cpr.start);
+    const pad = n => String(n).padStart(2, '0');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cpr-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  const btn = (a, onClick, extra = '') => {
+    const c = colorMap[a.tone];
+    return E('button', {
+      key: a.k,
+      onClick,
+      disabled: !running,
+      className: `text-left rounded-lg border-2 ${c.border} ${c.bg} px-3 py-2.5 transition-all ${running ? 'hover:brightness-150 active:scale-[0.98]' : 'opacity-40'} ${extra}`
+    }, E('div', { className: `font-semibold text-sm ${c.text}` }, S.ev[a.k]),
+      a.dose && E('div', { className: 'font-mono text-[11px] text-slate-400 mt-0.5' }, a.dose));
+  };
+  const small = (label, onClick, tone = 'slate') => E('button', {
+    onClick,
+    className: `px-3 py-1.5 rounded-lg border text-xs font-mono transition-all ${tone === 'red' ? 'border-red-500/40 text-red-300 hover:bg-red-500/10' : 'border-slate-700 text-slate-300 hover:border-slate-500'}`
+  }, label);
+  const head = E('div', { className: 'px-4 py-3 border-b border-red-500/30 flex items-start gap-3' },
+    E('span', { className: 'w-1.5 h-10 bg-red-500 rounded-full shrink-0 mt-0.5' }),
+    E('div', null,
+      E('h3', { className: 'font-display text-lg font-semibold leading-tight' }, S.title),
+      E('p', { className: 'text-[11px] text-slate-500 mt-1 leading-relaxed' }, S.sub)));
+  if (!cpr) {
+    return E('section', { className: 'rounded-xl border-2 border-red-500/40 bg-red-500/5 overflow-hidden' }, head,
+      E('div', { className: 'p-4 space-y-2' },
+        E('button', {
+          onClick: start,
+          className: 'w-full rounded-xl border-2 border-red-500/60 bg-red-500/15 py-4 font-display text-2xl font-bold text-red-200 hover:bg-red-500/25 transition-all'
+        }, '▶ ', S.start),
+        !(w > 0) && E('p', { className: 'text-[11px] text-amber-300' }, S.noWeight)));
+  }
+  const st = cprStatus(cpr, now);
+  const over = running && st.cycleLeft <= 0;
+  // 手機上三格並排，給藥按鈕才不會被擠到畫面外
+  const statBox = (label, value, cls, sub) => E('div', { className: `rounded-lg border border-slate-800 bg-slate-950/60 p-2 sm:p-3 min-w-0 ${cls || ''}` },
+    E('div', { className: 'text-[10px] font-mono uppercase tracking-wider text-slate-500 truncate' }, label),
+    E('div', { className: 'font-mono text-2xl sm:text-3xl font-bold num-glow mt-0.5' }, value),
+    sub && E('div', { className: 'text-[10px] sm:text-[11px] font-mono mt-0.5 leading-tight' }, sub));
+  return E('section', { className: 'rounded-xl border-2 border-red-500/40 bg-red-500/5 overflow-hidden' }, head,
+    E('div', { className: 'p-4 space-y-4' },
+      E('div', { className: 'grid grid-cols-3 gap-2 sm:gap-3' },
+        statBox(S.elapsed, mmss(st.elapsed), 'text-red-300', running ? null : E('span', { className: 'text-emerald-300' }, S.ended)),
+        statBox(fill(S.cycle, { n: st.cycleNo }), over ? `+${mmss(-st.cycleLeft)}` : mmss(st.cycleLeft),
+          over ? 'text-red-200 border-red-500/60 bg-red-500/20 animate-pulse' : 'text-amber-300',
+          E('span', { className: over ? 'text-red-200 font-bold' : 'text-slate-500' }, over ? S.checkNow : S.nextCheck)),
+        statBox(S.sinceEpi, st.sinceEpi == null ? '—' : mmss(st.sinceEpi), EPI_TONE[st.epiState],
+          E('span', null, { none: S.noEpi, wait: S.epiWait, ok: S.epiOk, due: S.epiDue }[st.epiState]))),
+      E('div', null,
+        E('div', { className: 'text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5' }, S.drugs),
+        E('div', { className: 'grid grid-cols-2 sm:grid-cols-3 gap-2' }, acts.drugs.map(a => btn(a, () => add(a.k, a.dose))))),
+      E('div', null,
+        E('div', { className: 'text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5' }, S.procs),
+        E('div', { className: 'grid grid-cols-2 sm:grid-cols-4 gap-2' }, acts.procs.map(a => btn(a, () => add(a.k, a.dose))))),
+      E('div', null,
+        E('div', { className: 'text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5' }, S.end),
+        running
+          ? E('div', { className: 'grid grid-cols-2 gap-2' },
+            btn({ k: 'rosc', tone: 'emerald' }, () => finish('rosc')),
+            btn({ k: 'stop', tone: 'red' }, () => finish('stop')))
+          : E('button', {
+            onClick: resume,
+            className: 'w-full rounded-lg border-2 border-red-500/50 bg-red-500/10 px-3 py-2.5 text-sm font-semibold text-red-200 hover:bg-red-500/20'
+          }, '▶ ', S.resume)),
+      E('div', { className: 'flex flex-wrap gap-2 items-center' },
+        E('label', { className: 'flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-mono text-slate-300 cursor-pointer' },
+          E('input', { type: 'checkbox', checked: metro, onChange: e => { audioCtx(); setMetro(e.target.checked); }, className: 'accent-red-500' }),
+          fill(S.metronome, { r: CPR_RATE })),
+        small(S.undo, undo),
+        small(copied ? S.copied : S.copy, copy),
+        small(S.download, download),
+        small(S.clear, clear, 'red')),
+      E('div', { className: 'rounded-lg border border-slate-800 bg-slate-950/70 overflow-hidden' },
+        E('div', { className: 'px-3 py-1.5 border-b border-slate-800 text-[10px] font-mono uppercase tracking-[0.18em] text-slate-400 font-bold' }, S.log),
+        E('ol', { className: 'divide-y divide-slate-800/60 max-h-72 overflow-y-auto' },
+          cpr.events.slice().reverse().map((e, i) => E('li', { key: cpr.events.length - i, className: 'px-3 py-1.5 flex items-baseline gap-3 text-[12px]' },
+            E('span', { className: 'font-mono text-red-300 w-12 shrink-0 text-right' }, mmss(e.t - cpr.start)),
+            E('span', { className: 'font-mono text-slate-600 shrink-0' }, clock(e.t)),
+            E('span', { className: 'text-slate-200' }, S.ev[e.k] || e.k),
+            e.d && E('span', { className: 'font-mono text-[11px] text-slate-400' }, e.d)))))));
+}
+function CPRFlowView({
+  cpr,
+  setCpr,
+  metro,
+  setMetro,
+  w,
+  species
+}) {
   const l = useL();
   const t = useT();
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-4"
-  }, CPCR_FLOW.map((step, i) => {
+  }, /*#__PURE__*/React.createElement(CprTimer, {
+    cpr: cpr,
+    setCpr: setCpr,
+    metro: metro,
+    setMetro: setMetro,
+    w: w,
+    species: species
+  }), CPCR_FLOW.map((step, i) => {
     const c = colorMap[step.color];
     const items = l(step.items);
     const columns = l(step.columns);
@@ -6048,6 +6946,109 @@ const REFERENCES = {
     note: { zh: '低血磷輸注速率 0.01–0.03（嚴重者 0.06–0.12）mmol/kg/hr × 6 hr', en: 'Hypophosphataemia infusion rate 0.01–0.03 (severe 0.06–0.12) mmol/kg/hr over 6 hr', ja: '低リン血症の投与速度 0.01–0.03（重度は 0.06–0.12）mmol/kg/hr × 6 時間' }
   }]
 };
+// ───────────────────────────────────────────────────────────────
+// 可列印的急救劑量表：依目前物種與體重，把常用急救劑量排成一頁
+// ───────────────────────────────────────────────────────────────
+
+const SHEET_S = {
+  zh: {
+    title: '急救劑量表', sub: '依目前的物種與體重產生。列印後可貼在急救車上；換病患時記得重新列印。', print: '列印',
+    info: '{sp}．{w} kg．{d}', noWeight: '請先在上方輸入體重。',
+    drugs: '急救藥物', cri: 'CRI（標準稀釋）', defib: '電擊能量', fluids: '輸液與高滲治療', seizure: '癲癇急救',
+    cDrug: '藥物', cUse: '用途', cPerKg: '每公斤', cDose: '劑量', cVol: '體積', cRoute: '途徑',
+    bolus: '晶體液 shock bolus', hts: '高張食鹽水 7.2–7.5%', mannitol: 'Mannitol 20%', prbc: 'pRBC', capped: '已依機型上限 {c} J 封頂',
+    foot: '劑量為一般參考範圍；實際使用前請核對藥廠濃度與病患狀況。'
+  },
+  en: {
+    title: 'Emergency dose sheet', sub: 'Generated for the current species and weight. Print it for the crash cart — reprint for each patient.', print: 'Print',
+    info: '{sp} · {w} kg · {d}', noWeight: 'Enter a body weight above first.',
+    drugs: 'Emergency drugs', cri: 'CRIs (standard dilutions)', defib: 'Defibrillation energy', fluids: 'Fluids and hyperosmolar therapy', seizure: 'Seizure emergency',
+    cDrug: 'Drug', cUse: 'Use', cPerKg: 'Per kg', cDose: 'Dose', cVol: 'Volume', cRoute: 'Route',
+    bolus: 'Crystalloid shock bolus', hts: 'Hypertonic saline 7.2–7.5%', mannitol: 'Mannitol 20%', prbc: 'pRBC', capped: 'capped at the {c} J device maximum',
+    foot: 'Doses are general reference ranges — check your product concentration and the patient before giving.'
+  },
+  ja: {
+    title: '救急用量表', sub: '現在の動物種と体重から作成。印刷して救急カートに貼り、患者ごとに印刷し直してください。', print: '印刷',
+    info: '{sp}・{w} kg・{d}', noWeight: 'まず上部に体重を入力してください。',
+    drugs: '救急薬', cri: 'CRI（標準希釈）', defib: '除細動エネルギー', fluids: '輸液と高浸透圧療法', seizure: '発作の救急',
+    cDrug: '薬剤', cUse: '用途', cPerKg: '体重あたり', cDose: '用量', cVol: '容量', cRoute: '経路',
+    bolus: '晶質液ショックボーラス', hts: '高張食塩水 7.2–7.5%', mannitol: 'マンニトール 20%', prbc: 'pRBC', capped: '機種上限 {c} J で頭打ち',
+    foot: '用量は一般的な参考範囲です。投与前に製剤濃度と患者の状態を確認してください。'
+  }
+};
+const SHEET_SZ = [['diazepam', 'IV'], ['diazepam', 'PR'], ['midazolam', 'IV / IM'], ['midazolam', 'IN'], ['levetiracetam', 'IV'], ['phenobarbital', 'IV']];
+
+function DoseSheet({
+  w,
+  species
+}) {
+  const lang = useLang();
+  const l = useL();
+  const t = useT();
+  const S = SHEET_S[lang] || SHEET_S.zh;
+  const E = React.createElement;
+  const f = FLUID_PROTOCOLS[species];
+  const has = w > 0;
+  const sec = (title, rows) => rows.length ? [
+    E('tr', { key: title }, E('th', { colSpan: 6, className: 'text-left pt-4 pb-1 font-display text-base font-semibold text-red-300' }, title)),
+    ...rows.map((r, i) => E('tr', { key: title + i, className: 'border-t border-slate-800 align-top' },
+      E('td', { className: 'py-1.5 pr-2 font-semibold text-slate-100 whitespace-nowrap' }, r[0]),
+      E('td', { className: 'py-1.5 pr-2 text-slate-400' }, r[1]),
+      E('td', { className: 'py-1.5 pr-2 font-mono text-slate-400 whitespace-nowrap' }, r[2]),
+      E('td', { className: 'py-1.5 pr-2 font-mono text-slate-300 whitespace-nowrap' }, r[3]),
+      E('td', { className: 'py-1.5 pr-2 font-mono font-bold text-emerald-300 whitespace-nowrap' }, r[4]),
+      E('td', { className: 'py-1.5 font-mono text-slate-400' }, r[5])))
+  ] : [];
+  const drugRows = [];
+  ['red', 'amber', 'cyan', 'indigo', 'emerald'].forEach(col => EMERGENCY_DRUGS.filter(d => d.color === col).forEach(drug => {
+    drug.doses.filter(d => !d.species || d.species === species).forEach(dose => {
+      const r = emergencyDose(dose, w, t('capped'));
+      drugRows.push([`${drug.name}（${drug.conc}）`, l(dose.label), r.perKg, r.doseLabel, r.volDose, l(dose.route)]);
+    });
+  }));
+  const criRows = VASOPRESSORS.map(vp => {
+    const rg = vp.ranges.find(x => x.species === species);
+    if (!rg) return null;
+    const u = vp.unit || 'μg';
+    const rate = d => d * w * 60 / vp.concUgPerMl;
+    return [vp.name, l(vp.prep), `${rg.low}–${rg.high} ${u}/kg/min`, '', `${fmt(rate(rg.low))}–${fmt(rate(rg.high))} mL/hr`, 'CRI'];
+  }).filter(Boolean);
+  const defibRows = [['defibExtBi', 'externalBiphasic'], ['defibExtMono', 'externalMonophasic'], ['defibIntBi', 'internalBiphasic'], ['defibIntMono', 'internalMonophasic']].map(([k, d]) => {
+    const x = DEFIB_DOSES[d];
+    const over = x.high * w > x.cap;
+    return [t(k), over ? fill(S.capped, { c: x.cap }) : '', `${x.low}–${x.high} J/kg`, '', `${fmt(Math.min(x.low * w, x.cap))}–${fmt(Math.min(x.high * w, x.cap))} J`, ''];
+  });
+  const fluidRows = [
+    [S.bolus, '', `${f.crystalloidBolus}–${f.crystalloidBolusHigh} mL/kg`, '', `${fmt(f.crystalloidBolus * w)}–${fmt(f.crystalloidBolusHigh * w)} mL`, '15–20 min'],
+    [S.hts, '', `${f.hypertonic}–${f.hypertonicHigh} mL/kg`, '', `${fmt(f.hypertonic * w)}–${fmt(f.hypertonicHigh * w)} mL`, '5–10 min'],
+    [S.mannitol, '', '0.5–1 g/kg', `${fmt(0.5 * w)}–${fmt(w)} g`, `${fmt(2.5 * w)}–${fmt(5 * w)} mL`, '15–20 min'],
+    [S.prbc, '', `${f.pRBC} mL/kg`, '', `${fmt(f.pRBC * w)} mL`, '']
+  ];
+  const szRows = SHEET_SZ.map(([id, route]) => {
+    const dz = SZ_DOSING[id];
+    const row = dz && dz.calc.find(c => c.route === route && (!c.species || c.species === species));
+    if (!row) return null;
+    const r = calcDoseRow(row, w, t('perHead'));
+    const drug = SEIZURE_DRUGS.find(d => d.id === id);
+    return [`${drug ? drug.name : id}${dz.concLabel ? `（${dz.concLabel}）` : ''}`, l(row.label), r.perKg, r.sub ? r.sub.replace(/^= /, '') : '', r.big, row.route];
+  }).filter(Boolean);
+  const head = ['cDrug', 'cUse', 'cPerKg', 'cDose', 'cVol', 'cRoute'];
+  return E('section', { className: 'print-sheet rounded-xl border border-slate-700 bg-slate-900/40 p-4' },
+    E('div', { className: 'flex items-start justify-between gap-3 flex-wrap' },
+      E('div', null,
+        E('h2', { className: 'font-display text-2xl font-bold' }, S.title),
+        E('p', { className: 'font-mono text-sm text-emerald-300 mt-0.5' }, fill(S.info, { sp: t(species), w: has ? nf(w, 1) : '—', d: new Date().toLocaleString(lang === 'en' ? 'en-GB' : lang === 'ja' ? 'ja-JP' : 'zh-TW') })),
+        E('p', { className: 'text-[11px] text-slate-500 mt-1 no-print' }, S.sub)),
+      has && E('button', {
+        onClick: () => window.print(),
+        className: 'no-print px-4 py-2 rounded-lg border-2 border-emerald-500/50 bg-emerald-500/10 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/20'
+      }, '🖨 ', S.print)),
+    !has ? E('p', { className: 'mt-4 text-sm text-amber-300' }, S.noWeight) : E('div', { className: 'mt-2 overflow-x-auto' },
+      E('table', { className: 'w-full text-[12px] leading-snug' },
+        E('thead', null, E('tr', { className: 'text-[10px] font-mono uppercase tracking-wider text-slate-500 text-left' }, head.map(k => E('th', { key: k, className: 'py-1 pr-2 font-normal' }, S[k])))),
+        E('tbody', null, sec(S.drugs, drugRows), sec(S.cri, criRows), sec(S.defib, defibRows), sec(S.fluids, fluidRows), sec(S.seizure, szRows)))),
+    has && E('p', { className: 'mt-4 text-[10px] text-slate-500' }, S.foot));
+}
 function ReferencesSection() {
   const [open, setOpen] = useState(false);
   const t = useT();
@@ -6108,6 +7109,13 @@ function ReferencesSection() {
 }
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(/*#__PURE__*/React.createElement(VetShockCalculator, null));
+
+// 註冊 service worker：第一次連網開啟後即可離線使用（直接開檔案 file:// 時不支援）
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
   </script>
 </body>
 </html>
